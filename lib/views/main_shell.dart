@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'chat/chat_list_view.dart';
 import 'widgets/app_bottom_nav_bar.dart';
 import 'widgets/komunitas_header.dart';
 import 'widgets/materi_header.dart';
@@ -70,32 +71,44 @@ class _MainShellState extends State<MainShell> {
     4,
   };
 
-  static const List<Widget> _pages = [
-    PlaceholderScreen(
-      icon: Icons.home_rounded,
-      title: 'Beranda',
-      message: 'Jalur belajar harian (streak, XP, level) tampil di sini.',
-    ),
-    PlaceholderScreen(
-      icon: Icons.assignment_rounded,
-      title: 'Kuis',
-      message: 'Kuis dan evaluasi pemahaman tampil di sini.',
-    ),
-    _HeaderPage(
-      header: MateriHeader(),
-      body: _CenteredNote('Daftar materi bahasa isyarat tampil di sini.'),
-    ),
-    _HeaderPage(
-      header: KomunitasHeader(),
-      body: _CenteredNote('Forum diskusi dan latihan bersama tampil di sini.'),
-    ),
-    _HeaderPage(
-      header: ProfilHeader(),
-      body: _CenteredNote(
-        'Progres belajar, XP, dan pengaturan akun tampil di sini.',
+  /// Halaman tiap tab. Dibuat per-build agar bisa menyambungkan tombol DM
+  /// pada header ke layar Chat.
+  List<Widget> _buildPages(BuildContext context) {
+    void openChat() {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ChatListScreen()),
+      );
+    }
+
+    return [
+      const PlaceholderScreen(
+        icon: Icons.home_rounded,
+        title: 'Beranda',
+        message: 'Jalur belajar harian (streak, XP, level) tampil di sini.',
       ),
-    ),
-  ];
+      const PlaceholderScreen(
+        icon: Icons.assignment_rounded,
+        title: 'Kuis',
+        message: 'Kuis dan evaluasi pemahaman tampil di sini.',
+      ),
+      const _HeaderPage(
+        header: MateriHeader(),
+        body: _CenteredNote('Daftar materi bahasa isyarat tampil di sini.'),
+      ),
+      _HeaderPage(
+        header: KomunitasHeader(onMessages: openChat),
+        body: const _CenteredNote(
+          'Forum diskusi dan latihan bersama tampil di sini.',
+        ),
+      ),
+      _HeaderPage(
+        header: ProfilHeader(onMessages: openChat),
+        body: const _CenteredNote(
+          'Progres belajar, XP, dan pengaturan akun tampil di sini.',
+        ),
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +120,7 @@ class _MainShellState extends State<MainShell> {
               title: Text(_titles[_index]),
               centerTitle: true,
             ),
-      body: IndexedStack(index: _index, children: _pages),
+      body: IndexedStack(index: _index, children: _buildPages(context)),
       bottomNavigationBar: AppBottomNavBar(
         items: _items,
         selectedIndex: _index,

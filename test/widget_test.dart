@@ -2,11 +2,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:sign_l/main.dart';
 import 'package:sign_l/views/widgets/app_bottom_nav_bar.dart';
 
 void main() {
+  // Cegah pengunduhan font saat pengujian.
+  GoogleFonts.config.allowRuntimeFetching = false;
+
   testWidgets('Navbar tampil dan berpindah tab saat item ditekan',
       (WidgetTester tester) async {
     await tester.pumpWidget(const SignLApp());
