@@ -22,14 +22,12 @@ class ProfilHeader extends StatelessWidget {
         HeaderIconButton(
           svgAsset: 'assets/images/dm_fix.svg',
           semanticLabel: 'Pesan langsung',
-          filled: false,
           onTap: onMessages,
         ),
         const SizedBox(width: 4),
         HeaderIconButton(
           svgAsset: 'assets/images/setting_fix.svg',
           semanticLabel: 'Pengaturan',
-          filled: false,
           onTap: onSettings,
         ),
       ],
