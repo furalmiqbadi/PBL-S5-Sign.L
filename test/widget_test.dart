@@ -52,8 +52,14 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(const SignLApp());
 
-    // Tab Profil memakai avatar, bukan ikon berlabel.
-    expect(find.byType(Image), findsOneWidget);
+    // Tab Profil di navbar memakai avatar, bukan ikon berlabel.
+    expect(
+      find.descendant(
+        of: find.byType(AppBottomNavBar),
+        matching: find.byType(Image),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Profil'), findsNothing); // tanpa label di navbar
   });
 }
