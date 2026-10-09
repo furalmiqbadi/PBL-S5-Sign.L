@@ -1,30 +1,59 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Smoke test untuk kerangka aplikasi Sign.L dan perilaku bottom navbar.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sign_l/main.dart';
+import 'package:sign_l/views/widgets/app_bottom_nav_bar.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Navbar tampil dan berpindah tab saat item ditekan',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const SignLApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Navbar dengan 4 item + tombol tengah harus dirender.
+    expect(find.byType(AppBottomNavBar), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Beranda aktif sejak awal: judul AppBar menampilkan "Beranda".
+    expect(find.text('Beranda'), findsWidgets);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Label hanya muncul saat aktif, jadi tab Kuis ditekan lewat ikonnya.
+    await tester.tap(find.byIcon(Icons.assignment_outlined));
+    await tester.pumpAndSettle();
+    expect(find.text('Kuis'), findsWidgets);
+  });
+
+  testWidgets('Label tombol tengah muncul saat aktif atau ditekan',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const SignLApp());
+
+    // Beranda aktif -> tab tengah (Materi) tidak berlabel.
+    expect(find.text('Materi'), findsNothing);
+
+    // Tekan dan tahan tombol tengah -> label muncul.
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byIcon(Icons.menu_book_rounded)),
+    );
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(find.text('Materi'), findsWidgets);
+
+    // Batalkan tekanan (tanpa mengetuk) -> label kembali hilang.
+    await gesture.cancel();
+    await tester.pumpAndSettle();
+    expect(find.text('Materi'), findsNothing);
+
+    // Ketuk tombol tengah -> tab Materi aktif dan labelnya tampil menetap.
+    await tester.tap(find.byIcon(Icons.menu_book_rounded));
+    await tester.pumpAndSettle();
+    expect(find.text('Materi'), findsWidgets);
+  });
+
+  testWidgets('Item foto profil tidak menampilkan label',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const SignLApp());
+
+    // Tab Profil memakai avatar, bukan ikon berlabel.
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.text('Profil'), findsNothing); // tanpa label di navbar
   });
 }
