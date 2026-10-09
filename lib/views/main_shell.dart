@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'chat/chat_list_view.dart';
 import 'widgets/app_bottom_nav_bar.dart';
+import 'widgets/home_header.dart';
 import 'widgets/komunitas_header.dart';
 import 'widgets/materi_header.dart';
 import 'widgets/profil_header.dart';
@@ -12,8 +13,12 @@ import 'widgets/profil_header.dart';
 /// Lima tab dengan urutan visual:
 /// `0 Beranda · 1 Kuis · 2 Materi (tengah) · 3 Komunitas · 4 Profil`.
 ///
-/// Semua halaman utama di-host di dalam [IndexedStack], sehingga state tiap
+/// Semua halaman utama di-host di dalam [PageView], sehingga state tiap
 /// halaman tetap terjaga saat berpindah tab dan navbar selalu terlihat.
+///
+/// Perpindahan tab dianimasikan sebagai *page turn* horizontal (slide),
+/// mengikuti arah urutan tab. Geser manual dinonaktifkan agar navigasi
+/// sepenuhnya lewat navbar.
 ///
 /// Catatan: [PlaceholderScreen] di bawah hanya penanda sementara. Ganti
 /// isinya dengan layar asli, mis. `HomeScreen`, `QuizScreen`, `MateriScreen`,
@@ -27,6 +32,26 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _index = 0;
+
+  /// Pengendali halaman untuk animasi slide antar tab.
+  final PageController _pageController = PageController();
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  /// Pindah ke tab [index] dengan animasi slide.
+  void _goTo(int index) {
+    if (index == _index) return;
+    setState(() => _index = index);
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
+  }
 
   // 5 tab dengan urutan visual:
   // 0 Beranda | 1 Kuis | 2 Materi (tengah) | 3 Komunitas | 4 Profil
@@ -55,36 +80,30 @@ class _MainShellState extends State<MainShell> {
   /// URL foto profil pengguna. `null` = pakai foto dummy bawaan.
   static const String? _profilePhotoUrl = null;
 
-  static const List<String> _titles = [
-    'Beranda',
-    'Kuis',
-    'Materi',
-    'Komunitas',
-    'Profil',
-  ];
-
-  /// Tab yang memakai header kustom sendiri (Materi, Komunitas, Profil),
-  /// sehingga AppBar bawaan tidak ditampilkan untuk tab-tab ini.
-  static const Set<int> _customHeaderTabs = {
-    AppBottomNavBar.centerIndex,
-    3,
-    4,
-  };
-
-  /// Halaman tiap tab. Dibuat per-build agar bisa menyambungkan tombol DM
-  /// pada header ke layar Chat.
-  List<Widget> _buildPages(BuildContext context) {
-    void openChat() {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const ChatListScreen()),
-      );
-    }
-
-    return [
-      const PlaceholderScreen(
-        icon: Icons.home_rounded,
-        title: 'Beranda',
-        message: 'Jalur belajar harian (streak, XP, level) tampil di sini.',
+  static const List<Widget> _pages = [
+    _HeaderPage(
+      header: HomeHeader(),
+      body: _CenteredNote(
+        'Jalur belajar harian (streak, XP, level) tampil di sini.',
+      ),
+    ),
+    // Header Kuis sama persis dengan header Materi, hanya berbeda judul.
+    _HeaderPage(
+      header: MateriHeader(title: 'Kuis'),
+      body: _CenteredNote('Kuis dan evaluasi pemahaman tampil di sini.'),
+    ),
+    _HeaderPage(
+      header: MateriHeader(),
+      body: _CenteredNote('Daftar materi bahasa isyarat tampil di sini.'),
+    ),
+    _HeaderPage(
+      header: KomunitasHeader(),
+      body: _CenteredNote('Forum diskusi dan latihan bersama tampil di sini.'),
+    ),
+    _HeaderPage(
+      header: ProfilHeader(),
+      body: _CenteredNote(
+        'Progres belajar, XP, dan pengaturan akun tampil di sini.',
       ),
       const PlaceholderScreen(
         icon: Icons.assignment_rounded,
@@ -113,23 +132,50 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Tab dengan header kustom tidak memakai AppBar bawaan.
-      appBar: _customHeaderTabs.contains(_index)
-          ? null
-          : AppBar(
-              title: Text(_titles[_index]),
-              centerTitle: true,
-            ),
-      body: IndexedStack(index: _index, children: _buildPages(context)),
+      // Semua tab memakai header kustom, jadi AppBar bawaan tidak dipakai.
+      //
+      // [PageView] memberi animasi slide antar tab; tiap halaman dibungkus
+      // [_KeepAlivePage] agar state-nya tidak dibuang saat berada di luar layar.
+      body: PageView(
+        controller: _pageController,
+        // Navigasi hanya lewat navbar, bukan geser manual.
+        physics: const NeverScrollableScrollPhysics(),
+        children: [
+          for (final page in _pages) _KeepAlivePage(child: page),
+        ],
+      ),
       bottomNavigationBar: AppBottomNavBar(
         items: _items,
         selectedIndex: _index,
-        onSelect: (index) => setState(() => _index = index),
-        onCenterTap: () => setState(() => _index = AppBottomNavBar.centerIndex),
+        onSelect: _goTo,
+        onCenterTap: () => _goTo(AppBottomNavBar.centerIndex),
         centerIcon: Icons.menu_book_rounded,
         centerLabel: 'Materi',
       ),
     );
+  }
+}
+
+/// Membungkus halaman tab agar tetap hidup (state terjaga) meski berada di
+/// luar layar di dalam [PageView].
+class _KeepAlivePage extends StatefulWidget {
+  final Widget child;
+
+  const _KeepAlivePage({required this.child});
+
+  @override
+  State<_KeepAlivePage> createState() => _KeepAlivePageState();
+}
+
+class _KeepAlivePageState extends State<_KeepAlivePage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }
 
