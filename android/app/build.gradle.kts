@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.pbl.sign.L" 
-    compileSdk = 35 // Compatible dengan Android 15
+    compileSdk = 36 // Compatible dengan Android 15
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -18,7 +18,7 @@ android {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.pbl.sign.L"
         minSdk = 29 // Minimal Android 10 (API 29). 
-        targetSdk = 35 // Target Android 15 
+        targetSdk = 36 // Target Android 15 
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
         // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
