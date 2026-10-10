@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'views/home/materi_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -6,7 +7,10 @@ import 'package:provider/provider.dart';
 import 'controllers/auth_controller.dart';
 import 'views/auth/auth_views.dart';
 
+import 'controllers/chat_controller.dart';
+import 'controllers/notification_controller.dart';
 import 'views/main_shell.dart';
+import 'views/theme/app_theme.dart';
 
 void main() {
   runApp(
@@ -22,6 +26,17 @@ class SignLanguageApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ChatController()),
+        ChangeNotifierProvider(create: (_) => NotificationController()),
+      ],
+      child: MaterialApp(
+        title: 'Sign.L',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        home: const MainShell(),
+      ),
     const primary = Color(0xFFC40083);
     return MaterialApp(
       debugShowCheckedModeBanner: false,

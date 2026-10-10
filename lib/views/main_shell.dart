@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'chat/chat_list_view.dart';
 import 'widgets/app_bottom_nav_bar.dart';
 import 'widgets/home_header.dart';
 import 'widgets/komunitas_header.dart';
@@ -104,8 +105,29 @@ class _MainShellState extends State<MainShell> {
       body: _CenteredNote(
         'Progres belajar, XP, dan pengaturan akun tampil di sini.',
       ),
-    ),
-  ];
+      const PlaceholderScreen(
+        icon: Icons.assignment_rounded,
+        title: 'Kuis',
+        message: 'Kuis dan evaluasi pemahaman tampil di sini.',
+      ),
+      const _HeaderPage(
+        header: MateriHeader(),
+        body: _CenteredNote('Daftar materi bahasa isyarat tampil di sini.'),
+      ),
+      _HeaderPage(
+        header: KomunitasHeader(onMessages: openChat),
+        body: const _CenteredNote(
+          'Forum diskusi dan latihan bersama tampil di sini.',
+        ),
+      ),
+      _HeaderPage(
+        header: ProfilHeader(onMessages: openChat),
+        body: const _CenteredNote(
+          'Progres belajar, XP, dan pengaturan akun tampil di sini.',
+        ),
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
