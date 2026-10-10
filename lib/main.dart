@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'controllers/auth_controller.dart';
 import 'views/auth/auth_views.dart';
 
+import 'views/main_shell.dart';
+
 void main() {
   runApp(
     ChangeNotifierProvider(
