@@ -4,8 +4,9 @@ import 'package:provider/provider.dart';
 
 import 'controllers/auth_controller.dart';
 import 'views/auth/auth_views.dart';
-
 import 'views/main_shell.dart';
+
+
 
 void main() {
   runApp(
@@ -39,7 +40,8 @@ class SignLApp extends StatelessWidget {
           hintStyle: const TextStyle(fontSize: 11, color: Color(0xFFB9A8B7)),
         ),
       ),
-      home: const LoginPage(),
+      // [DEV MODE] Sementara langsung buka MainShell (yang akan di set default ke Profil)
+      home: const MainShell(),
     );
   }
 }

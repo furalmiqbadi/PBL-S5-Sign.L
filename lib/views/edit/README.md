@@ -6,7 +6,7 @@ Menyimpan antarmuka halaman Edit Profil — form untuk mengubah data profil peng
 ---
 
 ## 👤 Penanggung Jawab
-**Frontend Developer (Ihsan)** — Merancang UI interaktif ala Duolingo.
+**Frontend Developer (Ihsan)**
 
 ---
 

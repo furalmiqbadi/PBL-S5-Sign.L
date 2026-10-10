@@ -6,7 +6,7 @@ Menyimpan antarmuka halaman Profil pengguna — menampilkan identitas, statistik
 ---
 
 ## 👤 Penanggung Jawab
-**Frontend Developer (Ihsan)** — Merancang UI interaktif ala Duolingo.
+**Frontend Developer (Ihsan)**
 
 ---
 

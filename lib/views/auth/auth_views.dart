@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../widgets/auth_widgets.dart';
+import '../main_shell.dart';
 
 class BlankHomePage extends StatelessWidget {
   const BlankHomePage({super.key});
@@ -23,7 +24,7 @@ class BlankHomePage extends StatelessWidget {
       );
 }
 
-void openHome(BuildContext context) => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const BlankHomePage()), (_) => false);
+void openHome(BuildContext context) => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const MainShell()), (_) => false);
 
 class LoginPage extends StatefulWidget { const LoginPage({super.key}); @override State<LoginPage> createState() => _LoginPageState(); }
 class _LoginPageState extends State<LoginPage> {

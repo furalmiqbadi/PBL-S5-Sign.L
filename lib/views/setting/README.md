@@ -6,7 +6,7 @@ Menyimpan antarmuka halaman Pengaturan (Settings) — memungkinkan pengguna meng
 ---
 
 ## 👤 Penanggung Jawab
-**Frontend Developer (Ihsan)** — Merancang UI interaktif ala Duolingo.
+**Frontend Developer (Ihsan)**
 
 ---
 

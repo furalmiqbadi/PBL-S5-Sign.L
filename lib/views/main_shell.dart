@@ -5,6 +5,7 @@ import 'widgets/home_header.dart';
 import 'widgets/komunitas_header.dart';
 import 'widgets/materi_header.dart';
 import 'widgets/profil_header.dart';
+import 'profile/profile_screen.dart';
 
 /// Kerangka utama aplikasi yang menampilkan [AppBottomNavBar] di semua
 /// halaman tab.
@@ -30,10 +31,13 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  int _index = 0;
+  // [DEV MODE] Default index diubah dari 0 ke 4 agar langsung membuka halaman Profil saat tes. 
+  // Nanti kembalikan ke 0 jika sudah selesai mendesain.
+  int _index = 4;
 
   /// Pengendali halaman untuk animasi slide antar tab.
-  final PageController _pageController = PageController();
+  // [DEV MODE] initialPage diubah dari kosong () menjadi (initialPage: 4)
+  final PageController _pageController = PageController(initialPage: 4);
 
   @override
   void dispose() {
@@ -101,9 +105,7 @@ class _MainShellState extends State<MainShell> {
     ),
     _HeaderPage(
       header: ProfilHeader(),
-      body: _CenteredNote(
-        'Progres belajar, XP, dan pengaturan akun tampil di sini.',
-      ),
+      body: ProfileScreen(),
     ),
   ];
 

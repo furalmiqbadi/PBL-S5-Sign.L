@@ -6,7 +6,7 @@ Menyimpan antarmuka halaman beranda (Home) yang mengusung konsep gamifikasi ala 
 ---
 
 ## 👤 Penanggung Jawab
-**Frontend Developer (Ihsan)** — Merancang UI interaktif ala Duolingo.
+**Frontend Developer (Ihsan)**
 
 ---
 
