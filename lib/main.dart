@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'views/home/materi_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -16,8 +17,8 @@ void main() {
   );
 }
 
-class SignLApp extends StatelessWidget {
-  const SignLApp({super.key});
+class SignLanguageApp extends StatelessWidget {
+  const SignLanguageApp({super.key});
 
   @override
   Widget build(BuildContext context) {
