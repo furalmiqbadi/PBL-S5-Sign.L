@@ -14,11 +14,6 @@ dependencies:
   # --- State Management (Modified MVC) ---
   provider: ^6.1.1 # Untuk ChangeNotifier (Controller) & Dependency Injection
 
-  # # --- Firebase & Backend ---
-  # firebase_core: ^2.24.2
-  # firebase_auth: ^4.15.3
-  # cloud_firestore: ^4.13.6
-
   # --- Machine Learning & Kamera ---
   camera: ^0.10.5+9 # Akses kamera HP
   tflite_flutter: ^0.10.4 # Engine untuk menjalankan model .tflite (Paling stabil)
