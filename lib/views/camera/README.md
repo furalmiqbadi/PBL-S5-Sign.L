@@ -5,6 +5,11 @@ Menyimpan antarmuka halaman kamera interaktif untuk verifikasi dan latihan gestu
 
 ---
 
+## 👤 Penanggung Jawab
+**Frontend Developer (Ihsan)** — Merancang UI interaktif ala Duolingo.
+
+---
+
 ## 📌 Apa yang Diisi di Sini?
 - `camera_screen.dart`:
   - Menampilkan preview lensa kamera HP (`CameraPreview`).

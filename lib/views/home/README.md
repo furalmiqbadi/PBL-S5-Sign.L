@@ -5,6 +5,11 @@ Menyimpan antarmuka halaman beranda (Home) yang mengusung konsep gamifikasi ala 
 
 ---
 
+## 👤 Penanggung Jawab
+**Frontend Developer (Ihsan)** — Merancang UI interaktif ala Duolingo.
+
+---
+
 ## 📌 Apa yang Diisi di Sini?
 - `home_screen.dart`:
   - **Header Gamifikasi**: Menampilkan status streak harian (ikon api), total koin/permata, dan total XP user.
