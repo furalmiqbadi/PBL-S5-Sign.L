@@ -80,54 +80,44 @@ class _MainShellState extends State<MainShell> {
   /// URL foto profil pengguna. `null` = pakai foto dummy bawaan.
   static const String? _profilePhotoUrl = null;
 
-  static const List<Widget> _pages = [
-    _HeaderPage(
+  /// Buka layar Chat (tombol DM di header Komunitas dan Profil).
+  void _openChat() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ChatListScreen()),
+    );
+  }
+
+  /// Halaman tiap tab. `late final` agar dibuat sekali, dan bisa memakai
+  /// [_openChat] yang butuh context milik State ini.
+  late final List<Widget> _pages = [
+    const _HeaderPage(
       header: HomeHeader(),
       body: _CenteredNote(
         'Jalur belajar harian (streak, XP, level) tampil di sini.',
       ),
     ),
     // Header Kuis sama persis dengan header Materi, hanya berbeda judul.
-    _HeaderPage(
+    const _HeaderPage(
       header: MateriHeader(title: 'Kuis'),
       body: _CenteredNote('Kuis dan evaluasi pemahaman tampil di sini.'),
     ),
-    _HeaderPage(
+    const _HeaderPage(
       header: MateriHeader(),
       body: _CenteredNote('Daftar materi bahasa isyarat tampil di sini.'),
     ),
     _HeaderPage(
-      header: KomunitasHeader(),
-      body: _CenteredNote('Forum diskusi dan latihan bersama tampil di sini.'),
+      header: KomunitasHeader(onMessages: _openChat),
+      body: const _CenteredNote(
+        'Forum diskusi dan latihan bersama tampil di sini.',
+      ),
     ),
     _HeaderPage(
-      header: ProfilHeader(),
-      body: _CenteredNote(
+      header: ProfilHeader(onMessages: _openChat),
+      body: const _CenteredNote(
         'Progres belajar, XP, dan pengaturan akun tampil di sini.',
       ),
-      const PlaceholderScreen(
-        icon: Icons.assignment_rounded,
-        title: 'Kuis',
-        message: 'Kuis dan evaluasi pemahaman tampil di sini.',
-      ),
-      const _HeaderPage(
-        header: MateriHeader(),
-        body: _CenteredNote('Daftar materi bahasa isyarat tampil di sini.'),
-      ),
-      _HeaderPage(
-        header: KomunitasHeader(onMessages: openChat),
-        body: const _CenteredNote(
-          'Forum diskusi dan latihan bersama tampil di sini.',
-        ),
-      ),
-      _HeaderPage(
-        header: ProfilHeader(onMessages: openChat),
-        body: const _CenteredNote(
-          'Progres belajar, XP, dan pengaturan akun tampil di sini.',
-        ),
-      ),
-    ];
-  }
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
