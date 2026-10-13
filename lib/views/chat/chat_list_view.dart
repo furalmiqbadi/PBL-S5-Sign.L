@@ -44,7 +44,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 HeaderIconButton(
                   icon: Icons.notifications_none_rounded,
                   semanticLabel: 'Notifikasi',
-                  filled: false,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => const NotificationScreen(),
@@ -55,7 +54,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 HeaderIconButton(
                   icon: Icons.edit_square,
                   semanticLabel: 'Tulis pesan baru',
-                  filled: false,
                   onTap: () {},
                 ),
               ],
@@ -151,7 +149,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       itemCount: rooms.length,
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (context, index) {
@@ -193,7 +191,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   Widget _buildCommunityBanner(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      margin: const EdgeInsets.fromLTRB(20, 12, 20, 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.pinkSoft,

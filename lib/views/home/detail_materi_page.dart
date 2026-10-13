@@ -3,6 +3,8 @@ import '../../controllers/detail_materi_controller.dart';
 import '../widgets/detail_header.dart';
 import '../widgets/materi_card.dart';
 import '../widgets/final_exam_card.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 import '../home/isi_materi_page.dart';
 
 class DetailMateriPage extends StatefulWidget {
@@ -40,10 +42,10 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
       animation: _controller,
       builder: (context, _) {
         return Scaffold(
-          backgroundColor: const Color(0xFFFCF9F8),
+          backgroundColor: AppColors.background,
           body: SafeArea(
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
               children: [
                 _buildTopBar(),
                 const SizedBox(height: 12),
@@ -69,7 +71,7 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
         IconButton(
           icon: const Icon(
             Icons.arrow_back,
-            color: Color(0xFF1C1B1B),
+            color: AppColors.textPrimary,
           ),
           tooltip: 'Kembali',
           padding: EdgeInsets.zero,
@@ -101,11 +103,7 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
             const SizedBox(width: 8),
             Text(
               text,
-              style: const TextStyle(
-                color: Color(0xFF1C1B1B),
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+              style: AppTextStyles.titleLarge,
             ),
           ],
         ),
@@ -134,25 +132,21 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFD9E2),
+              color: AppColors.pinkSoft,
               borderRadius: BorderRadius.circular(9999),
             ),
-            child: const Text(
+            child: Text(
               'MODUL DASAR',
-              style: TextStyle(
-                color: Color(0xFF3E001D),
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
+              style: AppTextStyles.labelXSmall.copyWith(
                 letterSpacing: 0.5,
               ),
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Kuasai 26 gestur ejaan jari alfabet bahasa isyarat & verifikasi langsung kelenturan lekuk jarimu via panduan kamera AI real-time.',
-            style: TextStyle(
-              color: Color(0xFF594047),
-              fontSize: 14,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
               height: 1.63,
             ),
           ),
@@ -161,10 +155,10 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildInfoColumn(
-                  'Total Materi', '5 Sesi', const Color(0xFF1C1B1B)),
-              _buildInfoColumn('Latihan AI', 'Aktif', const Color(0xFFB5005F)),
+                  'Total Materi', '5 Sesi', AppColors.textPrimary),
+              _buildInfoColumn('Latihan AI', 'Aktif', AppColors.primary),
               _buildInfoColumn(
-                  'Kelulusan', 'Tes Refleks', const Color(0xFF964900)),
+                  'Kelulusan', 'Tes Refleks', AppColors.tertiary),
             ],
           ),
         ],
@@ -177,20 +171,16 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: Color(0xFF594047),
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
+          style: AppTextStyles.labelXSmall.copyWith(
+            color: AppColors.textSecondary,
             letterSpacing: 0.4,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(
+          style: AppTextStyles.titleSmall.copyWith(
             color: valueColor,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -203,13 +193,11 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
       children: [
         _sectionTitle(
           'A. Ejaan Alfabet Tangan',
-          const Color(0xFFB5005F),
+          AppColors.primary,
           trailing: Text(
             '${_controller.completedMateri} dari ${_controller.totalMateri} Selesai',
-            style: const TextStyle(
-              color: Color(0xFF594047),
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
+            style: AppTextStyles.labelXSmall.copyWith(
+              color: AppColors.textSecondary,
               letterSpacing: 0.4,
             ),
           ),
@@ -236,7 +224,7 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionTitle('B. Ujian Akhir Bab 1', const Color(0xFF8D6F77)),
+        _sectionTitle('B. Ujian Akhir Bab 1', AppColors.textMuted),
         const SizedBox(height: 12),
         const FinalExamCard(),
       ],

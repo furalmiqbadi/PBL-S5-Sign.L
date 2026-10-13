@@ -72,8 +72,8 @@ class SignlNavBar extends StatelessWidget {
         barColor: AppColors.surface,
         inactiveColor: AppColors.neutral,
         activeColor: AppColors.primary,
-        centerGradientStart: Color(0xFFF57C00),
-        centerGradientEnd: Color(0xFFD81B60),
+        centerGradientStart: AppColors.brandGradientStart,
+        centerGradientEnd: AppColors.brandGradientEnd,
       ),
     );
   }

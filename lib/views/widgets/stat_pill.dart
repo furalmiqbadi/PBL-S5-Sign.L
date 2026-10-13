@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../theme/app_text_styles.dart';
+
 /// Pill statistik kecil: ikon SVG + angka, dengan latar tipis berwarna aksen.
 ///
 /// Dipakai untuk menampilkan statistik belajar seperti streak, heart (nyawa),
@@ -54,7 +56,7 @@ class StatPill extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               value,
-              style: TextStyle(
+              style: AppTextStyles.labelLarge.copyWith(
                 color: accent,
                 fontSize: 15,
                 fontWeight: FontWeight.w800,

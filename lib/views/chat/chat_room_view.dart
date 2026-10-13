@@ -164,14 +164,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
     return ListView(
       controller: _scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
       children: items,
     );
   }
 
   Widget _buildInputBar(ChatController controller) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
       decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.border)),

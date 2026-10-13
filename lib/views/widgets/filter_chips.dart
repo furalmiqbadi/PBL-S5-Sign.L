@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../controllers/materi_controller.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class FilterChips extends StatelessWidget {
   final FilterType currentFilter;
@@ -34,14 +36,13 @@ class FilterChips extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: active ? const Color(0xFF313030) : const Color(0xFFF0EDEC),
+          color: active ? AppColors.neutral : AppColors.surfaceMuted,
           borderRadius: BorderRadius.circular(9999),
         ),
         child: Text(
           label,
-          style: TextStyle(
-            color: active ? const Color(0xFFF3F0EF) : const Color(0xFF594047),
-            fontSize: 12,
+          style: AppTextStyles.labelMedium.copyWith(
+            color: active ? AppColors.surface : AppColors.textSecondary,
             fontWeight: FontWeight.w600,
           ),
         ),

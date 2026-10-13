@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 import '../../models/gestur_model.dart';
+import '../theme/app_text_styles.dart';
 
 class LatihanProgressBar extends StatelessWidget {
   final Gestur gestur;
@@ -14,25 +16,22 @@ class LatihanProgressBar extends StatelessWidget {
           children: [
             RichText(
               text: TextSpan(
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontFamily: 'Inter',
+                style: AppTextStyles.bodySmall.copyWith(
                   letterSpacing: 0.30,
                 ),
                 children: [
                   TextSpan(
                     text: 'LATIHAN ${gestur.latihanKe} ',
                     style: const TextStyle(
-                      color: Color(0xFF8639B4),
+                      color: AppColors.secondary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   TextSpan(
                     text: '(DARI ${gestur.totalLatihan})',
-                    style: const TextStyle(
-                      color: Color(0xFF594047),
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.textSecondary,
                       fontWeight: FontWeight.w400,
-                      fontSize: 11,
                     ),
                   ),
                 ],
@@ -40,9 +39,8 @@ class LatihanProgressBar extends StatelessWidget {
             ),
             Text(
               gestur.progressPercent,
-              style: const TextStyle(
-                color: Color(0xFFDD2A7B),
-                fontSize: 12,
+              style: AppTextStyles.labelMedium.copyWith(
+                color: AppColors.primary,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -58,11 +56,11 @@ class LatihanProgressBar extends StatelessWidget {
               children: [
                 Flexible(
                   flex: gestur.latihanKe,
-                  child: Container(color: const Color(0xFF00C2FF)),
+                  child: Container(color: AppColors.secondary),
                 ),
                 Flexible(
                   flex: gestur.totalLatihan - gestur.latihanKe,
-                  child: Container(color: const Color(0xFFE5D4FF)),
+                  child: Container(color: AppColors.purpleSoft),
                 ),
               ],
             ),

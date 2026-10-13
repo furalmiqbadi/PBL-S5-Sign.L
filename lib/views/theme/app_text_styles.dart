@@ -60,6 +60,10 @@ class AppTextStyles {
         color: AppColors.textMuted,
       );
 
+  /// Label sangat kecil untuk metadata rapat (badge, caption kartu, dsb.).
+  static TextStyle get labelXSmall =>
+      _base(size: 10, weight: FontWeight.w600, height: 1.2);
+
   // --- Varian warna siap pakai ---
   static TextStyle muted(TextStyle style) =>
       style.copyWith(color: AppColors.textSecondary);

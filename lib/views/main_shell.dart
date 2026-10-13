@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'chat/chat_list_view.dart';
+import 'home/materi_page.dart';
 import 'widgets/app_bottom_nav_bar.dart';
 import 'widgets/home_header.dart';
 import 'widgets/komunitas_header.dart';
@@ -80,49 +81,38 @@ class _MainShellState extends State<MainShell> {
   /// URL foto profil pengguna. `null` = pakai foto dummy bawaan.
   static const String? _profilePhotoUrl = null;
 
-  static const List<Widget> _pages = [
-    _HeaderPage(
-      header: HomeHeader(),
-      body: _CenteredNote(
-        'Jalur belajar harian (streak, XP, level) tampil di sini.',
+  /// Halaman tiap tab. Dibuat per-build agar tombol DM pada header Komunitas
+  /// dan Profil dapat menyambung ke layar Chat.
+  List<Widget> _buildPages(BuildContext context) {
+    void openChat() {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ChatListScreen()),
+      );
+    }
+
+    return [
+      _HeaderPage(
+        header: HomeHeader(),
+        body: _CenteredNote(
+          'Jalur belajar harian (streak, XP, level) tampil di sini.',
+        ),
       ),
-    ),
-    // Header Kuis sama persis dengan header Materi, hanya berbeda judul.
-    _HeaderPage(
-      header: MateriHeader(title: 'Kuis'),
-      body: _CenteredNote('Kuis dan evaluasi pemahaman tampil di sini.'),
-    ),
-    _HeaderPage(
-      header: MateriHeader(),
-      body: _CenteredNote('Daftar materi bahasa isyarat tampil di sini.'),
-    ),
-    _HeaderPage(
-      header: KomunitasHeader(),
-      body: _CenteredNote('Forum diskusi dan latihan bersama tampil di sini.'),
-    ),
-    _HeaderPage(
-      header: ProfilHeader(),
-      body: _CenteredNote(
-        'Progres belajar, XP, dan pengaturan akun tampil di sini.',
+      // Header Kuis sama persis dengan header Materi, hanya berbeda judul.
+      _HeaderPage(
+        header: MateriHeader(title: 'Kuis'),
+        body: _CenteredNote('Kuis dan evaluasi pemahaman tampil di sini.'),
       ),
-      const PlaceholderScreen(
-        icon: Icons.assignment_rounded,
-        title: 'Kuis',
-        message: 'Kuis dan evaluasi pemahaman tampil di sini.',
-      ),
-      const _HeaderPage(
+      _HeaderPage(
         header: MateriHeader(),
-        body: _CenteredNote('Daftar materi bahasa isyarat tampil di sini.'),
+        body: const MateriPage(),
       ),
       _HeaderPage(
         header: KomunitasHeader(onMessages: openChat),
-        body: const _CenteredNote(
-          'Forum diskusi dan latihan bersama tampil di sini.',
-        ),
+        body: _CenteredNote('Forum diskusi dan latihan bersama tampil di sini.'),
       ),
       _HeaderPage(
         header: ProfilHeader(onMessages: openChat),
-        body: const _CenteredNote(
+        body: _CenteredNote(
           'Progres belajar, XP, dan pengaturan akun tampil di sini.',
         ),
       ),
@@ -141,7 +131,7 @@ class _MainShellState extends State<MainShell> {
         // Navigasi hanya lewat navbar, bukan geser manual.
         physics: const NeverScrollableScrollPhysics(),
         children: [
-          for (final page in _pages) _KeepAlivePage(child: page),
+          for (final page in _buildPages(context)) _KeepAlivePage(child: page),
         ],
       ),
       bottomNavigationBar: AppBottomNavBar(

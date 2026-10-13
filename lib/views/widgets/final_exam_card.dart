@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class FinalExamCard extends StatelessWidget {
   const FinalExamCard({super.key});
@@ -8,7 +10,7 @@ class FinalExamCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xB2F6F3F2),
+        color: AppColors.surfaceMuted.withValues(alpha: 0.70),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -20,42 +22,32 @@ class FinalExamCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFEBE7E7),
+                  color: AppColors.border,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.lock, color: Color(0xFF8D6F77)),
+                child: const Icon(Icons.lock, color: AppColors.textMuted),
               ),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Ujian Refleks Gestur Bab 1',
-                    style: TextStyle(
-                      color: Color(0xFF1C1B1B),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTextStyles.titleSmall,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Selesaikan seluruh materi & latihan\nkamera AI untuk membuka\nsertifikasi bab.',
-                    style: TextStyle(
-                      color: const Color(0xFF594047),
-                      fontSize: 12,
-                      height: 1.33,
-                    ),
+                    style: AppTextStyles.bodySmall.copyWith(height: 1.33),
                   ),
                 ],
               ),
             ],
           ),
-          const Text(
+          Text(
             'Terkunci',
-            style: TextStyle(
-              color: Color(0xFF8D6F77),
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
+            style: AppTextStyles.labelXSmall.copyWith(
+              color: AppColors.textMuted,
             ),
           ),
         ],
