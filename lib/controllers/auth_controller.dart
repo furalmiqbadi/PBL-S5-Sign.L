@@ -32,16 +32,28 @@ class AuthController extends ChangeNotifier {
     await _run(() => _authService.sendResetLink(email));
   }
 
+  // BARU: dipanggil dari SettingScreen saat user konfirmasi keluar
+  Future<void> logout() async {
+    await _run(() => _authService.logout());
+  }
+
   Future<void> resetPassword({required String password, required String confirmation}) async {
     await _run(() => _authService.resetPassword(password: password, confirmation: confirmation));
   }
 
+  // DIPERBAIKI: try/catch/finally supaya isLoading tidak stuck true
+  // jika service melempar exception.
   Future<void> _run(Future<void> Function() action) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
-    await action();
-    _isLoading = false;
-    notifyListeners();
+    try {
+      await action();
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

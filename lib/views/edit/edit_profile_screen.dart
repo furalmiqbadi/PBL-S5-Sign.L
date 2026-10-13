@@ -975,10 +975,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             // 5. Card: Tingkatan Role Akun
             _buildCardRoleAkun(),
             const SizedBox(height: 32),
-
-            // 6. Tombol Simpan Perubahan di Bawah
-            _buildBottomSaveButton(),
-            const SizedBox(height: 24),
+            
           ],
         ),
       ),
