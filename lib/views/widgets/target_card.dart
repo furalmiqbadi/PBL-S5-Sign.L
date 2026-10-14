@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class TargetCard extends StatelessWidget {
   final int completedBab;
@@ -18,7 +20,7 @@ class TargetCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment(-0.27, -0.27),
           end: Alignment(0.73, 1.27),
-          colors: [Colors.white, Color(0xFFF0EDEC), Color(0xFFEBE7E7)],
+          colors: [AppColors.surface, AppColors.surfaceMuted, AppColors.border],
         ),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
@@ -36,7 +38,7 @@ class TargetCard extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFFF58529), Color(0xFFDD2A7B), Color(0xFF8134AF)],
+                colors: [AppColors.tertiary, AppColors.primary, AppColors.secondary],
               ),
               shape: BoxShape.circle,
             ),
@@ -51,9 +53,8 @@ class TargetCard extends StatelessWidget {
                   children: [
                     Text(
                       'TARGET CAPAIAN',
-                      style: TextStyle(
-                        color: const Color(0xFFB5005F),
-                        fontSize: 10,
+                      style: AppTextStyles.labelXSmall.copyWith(
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.25,
                       ),
@@ -62,14 +63,13 @@ class TargetCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF0EDEC),
+                        color: AppColors.surfaceMuted,
                         borderRadius: BorderRadius.circular(9999),
                       ),
                       child: Text(
                         'Terkunci',
-                        style: TextStyle(
-                          color: const Color(0xFF8D6F77),
-                          fontSize: 10,
+                        style: AppTextStyles.labelXSmall.copyWith(
+                          color: AppColors.textMuted,
                         ),
                       ),
                     ),
@@ -78,20 +78,12 @@ class TargetCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   'Sertifikasi Resmi Tingkat A1\nSign.L',
-                  style: TextStyle(
-                    color: const Color(0xFF1C1B1B),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.titleLarge,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Selesaikan Bab 1 sampai 5 dan lulus uji\nkamera AI komprehensif untuk membuka\nlencana verifikasi dan sertifikat digital\nportofolio.',
-                  style: TextStyle(
-                    color: const Color(0xFF594047),
-                    fontSize: 12,
-                    height: 1.33,
-                  ),
+                  style: AppTextStyles.bodySmall.copyWith(height: 1.33),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -99,18 +91,14 @@ class TargetCard extends StatelessWidget {
                   children: [
                     Text(
                       'Kemajuan: $completedBab / $totalBab Bab',
-                      style: TextStyle(
-                        color: const Color(0xFF594047),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
+                      style: AppTextStyles.labelXSmall.copyWith(
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     Text(
                       'Sisa ${totalBab - completedBab} Bab',
-                      style: TextStyle(
-                        color: const Color(0xFFB5005F),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
+                      style: AppTextStyles.labelXSmall.copyWith(
+                        color: AppColors.primary,
                       ),
                     ),
                   ],

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 import '../../models/gestur_model.dart';
 
 class GesturDescriptionCard extends StatelessWidget {
@@ -12,7 +14,7 @@ class GesturDescriptionCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFFF0EDEC)),
+        border: Border.all(color: AppColors.surfaceMuted),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -31,24 +33,22 @@ class GesturDescriptionCard extends StatelessWidget {
             children: [
               Text(
                 'HURUF ${gestur.huruf}',
-                style: const TextStyle(
-                  color: Color(0xFF8639B4),
+                style: AppTextStyles.headlineSmall.copyWith(
                   fontSize: 19,
-                  fontWeight: FontWeight.w700,
+                  color: AppColors.secondary,
                   letterSpacing: 0.47,
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0x7FFFD9E2),
+                  color: AppColors.pinkSoft.withValues(alpha: 0.50),
                   borderRadius: BorderRadius.circular(9999),
                 ),
                 child: Text(
                   gestur.badgeLabel,
-                  style: const TextStyle(
-                    color: Color(0xFFDD2A7B),
-                    fontSize: 11,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -57,11 +57,10 @@ class GesturDescriptionCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           // Label deskripsi
-          const Text(
+          Text(
             'DESKRIPSI BENTUK TANGAN',
-            style: TextStyle(
-              color: Color(0xFFDD2A7B),
-              fontSize: 12,
+            style: AppTextStyles.labelMedium.copyWith(
+              color: AppColors.primary,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.60,
             ),
@@ -80,7 +79,7 @@ class GesturDescriptionCard extends StatelessWidget {
                       width: 6,
                       height: 6,
                       decoration: const BoxDecoration(
-                        color: Color(0xFF8639B4),
+                        color: AppColors.secondary,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -89,9 +88,7 @@ class GesturDescriptionCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       langkah,
-                      style: const TextStyle(
-                        color: Color(0xFF594047),
-                        fontSize: 12,
+                      style: AppTextStyles.bodySmall.copyWith(
                         height: 1.63,
                       ),
                     ),

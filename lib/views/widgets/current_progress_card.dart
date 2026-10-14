@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/bab_model.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class CurrentProgressCard extends StatelessWidget {
   final Bab bab;
@@ -30,29 +32,20 @@ class CurrentProgressCard extends StatelessWidget {
               children: [
                 Text(
                   'SEDANG BERLANGSUNG',
-                  style: TextStyle(
-                    color: const Color(0xFFB5005F),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
+                  style: AppTextStyles.labelXSmall.copyWith(
+                    color: AppColors.primary,
                     letterSpacing: 0.5,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   bab.title,
-                  style: const TextStyle(
-                    color: Color(0xFF1C1B1B),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.titleLarge,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Langkah berikutnya: Uji Kamera Huruf M-Z',
-                  style: TextStyle(
-                    color: const Color(0xFF594047),
-                    fontSize: 12,
-                  ),
+                  style: AppTextStyles.bodySmall,
                 ),
               ],
             ),
@@ -62,7 +55,7 @@ class CurrentProgressCard extends StatelessWidget {
             height: 44,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFFF58529), Color(0xFFDD2A7B), Color(0xFF8134AF)],
+                colors: [AppColors.tertiary, AppColors.primary, AppColors.secondary],
               ),
               shape: BoxShape.circle,
             ),

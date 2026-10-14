@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class GesturPreview extends StatelessWidget {
   final String assetPath;
@@ -24,7 +25,7 @@ class GesturPreview extends StatelessWidget {
         assetPath,
         fit: BoxFit.contain, // tampilkan seluruh gambar, tidak dipotong
         errorBuilder: (_, __, ___) => const Center(
-          child: Icon(Icons.image_not_supported, size: 48, color: Color(0xFF8D6F77)),
+          child: Icon(Icons.image_not_supported, size: 48, color: AppColors.textMuted),
         ),
       ),
     );

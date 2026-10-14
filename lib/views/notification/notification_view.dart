@@ -42,7 +42,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 HeaderIconButton(
                   icon: Icons.search_rounded,
                   semanticLabel: 'Cari notifikasi',
-                  filled: false,
                   onTap: () {},
                 ),
               ],

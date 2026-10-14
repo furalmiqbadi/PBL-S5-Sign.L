@@ -1,4 +1,4 @@
-package com.example.pbl_signl
+package com.pbl.sign.L
 
 import io.flutter.embedding.android.FlutterActivity
 

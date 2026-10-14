@@ -6,11 +6,17 @@ import 'controllers/auth_controller.dart';
 import 'controllers/chat_controller.dart';
 import 'controllers/notification_controller.dart';
 import 'views/auth/auth_views.dart';
+import 'views/theme/app_theme.dart';
 
 void main() {
   runApp(const SignLApp());
 }
 
+/// Root aplikasi Sign.L.
+///
+/// Menyediakan controller aplikasi lewat [MultiProvider] dan menampilkan
+/// [LoginPage] sebagai titik awal. Setelah autentikasi (masih mock, belum
+/// terhubung database) user diarahkan ke kerangka utama `MainShell`.
 class SignLApp extends StatelessWidget {
   const SignLApp({super.key});
 
@@ -50,6 +56,7 @@ class SignLApp extends StatelessWidget {
             hintStyle: const TextStyle(fontSize: 11, color: Color(0xFFB9A8B7)),
           ),
         ),
+        theme: AppTheme.light,
         home: const LoginPage(),
       ),
     );

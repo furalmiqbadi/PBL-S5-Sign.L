@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class IsiMateriBottomBar extends StatelessWidget {
   final VoidCallback onPrevious;
@@ -20,9 +22,9 @@ class IsiMateriBottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-      decoration: const BoxDecoration(
-        color: Color(0xF2FCF9F8),
-        border: Border(top: BorderSide(color: Color(0xFFF0EDEC))),
+      decoration: BoxDecoration(
+        color: AppColors.background.withValues(alpha: 0.95),
+        border: const Border(top: BorderSide(color: AppColors.surfaceMuted)),
       ),
       child: Row(
         children: [
@@ -31,7 +33,7 @@ class IsiMateriBottomBar extends StatelessWidget {
               opacity: isFirst ? 0.4 : 1,
               child: _outlineButton(
                 label: 'Sebelumnya',
-                fg: const Color(0xFF8639B4),
+                fg: AppColors.secondary,
                 onTap: isFirst ? () {} : onPrevious,
               ),
             ),
@@ -40,7 +42,7 @@ class IsiMateriBottomBar extends StatelessWidget {
           Expanded(
             child: _outlineButton(
               label: 'Coba Foto',
-              fg: const Color(0xFFDD2A7B),
+              fg: AppColors.primary,
               onTap: onCamera,
             ),
           ),
@@ -53,26 +55,25 @@ class IsiMateriBottomBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [
-                      Color(0xFFDD2A7B),
-                      Color(0xFFB5005F),
-                      Color(0xFF8639B4),
+                      AppColors.primary,
+                      AppColors.primary,
+                      AppColors.secondary,
                     ],
                   ),
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
-                      color: Color(0x3FDD2A7B),
+                      color: AppColors.primary.withValues(alpha: 0.25),
                       blurRadius: 6,
-                      offset: Offset(0, 4),
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Center(
                   child: Text(
                     isLast ? 'Selesai' : 'Lanjut',
-                    style: const TextStyle(
+                    style: AppTextStyles.labelMedium.copyWith(
                       color: Colors.white,
-                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.30,
                     ),
@@ -96,8 +97,8 @@ class IsiMateriBottomBar extends StatelessWidget {
       child: Container(
         height: 44,
         decoration: BoxDecoration(
-          color: const Color(0x4CFFD9E2),
-          border: Border.all(color: const Color(0x33DD2A7B), width: 2),
+          color: AppColors.pinkSoft.withValues(alpha: 0.30),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.20), width: 2),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -110,9 +111,8 @@ class IsiMateriBottomBar extends StatelessWidget {
         child: Center(
           child: Text(
             label,
-            style: TextStyle(
+            style: AppTextStyles.labelMedium.copyWith(
               color: fg,
-              fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
           ),

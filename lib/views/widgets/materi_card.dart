@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/materi_model.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class MateriCard extends StatelessWidget {
   final Materi materi;
@@ -36,10 +38,10 @@ class MateriCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFFFDCC6),
+                  color: AppColors.orangeSoft,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check, color: Color(0xFF311300)),
+                child: const Icon(Icons.check, color: AppColors.textPrimary),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -52,26 +54,18 @@ class MateriCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             materi.title,
-                            style: const TextStyle(
-                              color: Color(0xFF1C1B1B),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: AppTextStyles.titleSmall,
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFDCC6),
+                            color: AppColors.orangeSoft,
                             borderRadius: BorderRadius.circular(9999),
                           ),
                           child: Text(
                             '+${materi.xpReward} XP',
-                            style: const TextStyle(
-                              color: Color(0xFF311300),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: AppTextStyles.labelXSmall.copyWith(color: AppColors.textPrimary),
                           ),
                         ),
                       ],
@@ -79,10 +73,7 @@ class MateriCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       materi.subtitle,
-                      style: const TextStyle(
-                        color: Color(0xFF594047),
-                        fontSize: 12,
-                      ),
+                      style: AppTextStyles.bodySmall,
                     ),
                   ],
                 ),
@@ -95,31 +86,23 @@ class MateriCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.verified, size: 14, color: Color(0xFF964900)),
+                  const Icon(Icons.verified, size: 14, color: AppColors.tertiary),
                   const SizedBox(width: 4),
-                  const Text(
+                  Text(
                     'Selesai Dikuasai',
-                    style: TextStyle(
-                      color: Color(0xFF964900),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTextStyles.labelXSmall.copyWith(color: AppColors.tertiary),
                   ),
                 ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEBE7E7),
+                  color: AppColors.border,
                   borderRadius: BorderRadius.circular(9999),
                 ),
-                child: const Text(
+                child: Text(
                   'Ulas Kembali',
-                  style: TextStyle(
-                    color: Color(0xFF1C1B1B),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -151,10 +134,10 @@ class MateriCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFFFD9E2),
+                  color: AppColors.pinkSoft,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.play_arrow, color: Color(0xFF3E001D)),
+                child: const Icon(Icons.play_arrow, color: AppColors.textPrimary),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -167,44 +150,29 @@ class MateriCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFD92778),
+                            color: AppColors.primary,
                             borderRadius: BorderRadius.circular(9999),
                           ),
-                          child: const Text(
+                          child: Text(
                             'SEDANG DIPELAJARI',
-                            style: TextStyle(
-                              color: Color(0xFFFFFBFF),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: AppTextStyles.labelXSmall.copyWith(color: AppColors.surface),
                           ),
                         ),
                         Text(
                           'Progres ${materi.completedGestures}/${materi.totalGestures}',
-                          style: const TextStyle(
-                            color: Color(0xFFB5005F),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: AppTextStyles.labelXSmall.copyWith(color: AppColors.primary),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       materi.title,
-                      style: const TextStyle(
-                        color: Color(0xFF1C1B1B),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTextStyles.titleSmall,
                     ),
                     const SizedBox(height: 2),
                     Text(
                       materi.subtitle,
-                      style: const TextStyle(
-                        color: Color(0xFF594047),
-                        fontSize: 12,
-                      ),
+                      style: AppTextStyles.bodySmall,
                     ),
                   ],
                 ),
@@ -215,7 +183,7 @@ class MateriCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFF6F3F2),
+              color: AppColors.surfaceMuted,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -224,7 +192,7 @@ class MateriCard extends StatelessWidget {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEBE7E7),
+                    color: AppColors.border,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: ClipRRect(
@@ -234,7 +202,7 @@ class MateriCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => const Icon(
                         Icons.image_not_supported,
-                        color: Color(0xFF8D6F77),
+                        color: AppColors.textMuted,
                       ),
                     ),
                   ),
@@ -244,30 +212,22 @@ class MateriCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Target Saat Ini',
-                        style: TextStyle(
-                          color: Color(0xFF594047),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: AppTextStyles.labelXSmall.copyWith(color: AppColors.textSecondary),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
+                      Text(
                         'Gerakan Huruf H: Dua Jari Horisontal',
-                        style: TextStyle(
-                          color: Color(0xFF1C1B1B),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 8),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(9999),
                         child: LinearProgressIndicator(
                           value: 0.6,
-                          backgroundColor: const Color(0xFFE5E2E1),
-                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFDD2A7B)),
+                          backgroundColor: AppColors.border,
+                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                           minHeight: 6,
                         ),
                       ),
@@ -285,18 +245,14 @@ class MateriCard extends StatelessWidget {
               height: 44,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFF58529), Color(0xFFDD2A7B), Color(0xFF8134AF)],
+                  colors: [AppColors.tertiary, AppColors.primary, AppColors.secondary],
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
                   'Lanjut Belajar',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.titleSmall.copyWith(color: Colors.white),
                 ),
               ),
             ),
@@ -312,7 +268,7 @@ class MateriCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0x99F6F3F2),
+          color: AppColors.surfaceMuted.withValues(alpha: 0.60),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -324,10 +280,10 @@ class MateriCard extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: const BoxDecoration(
-                    color: Color(0xFFF0EDEC),
+                    color: AppColors.surfaceMuted,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.lock, size: 16, color: Color(0xFF8D6F77)),
+                  child: const Icon(Icons.lock, size: 16, color: AppColors.textMuted),
                 ),
                 const SizedBox(width: 12),
                 Column(
@@ -335,19 +291,12 @@ class MateriCard extends StatelessWidget {
                   children: [
                     Text(
                       materi.title,
-                      style: const TextStyle(
-                        color: Color(0xFF1C1B1B),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTextStyles.titleSmall,
                     ),
                     const SizedBox(height: 2),
                     Text(
                       materi.subtitle,
-                      style: const TextStyle(
-                        color: Color(0xFF594047),
-                        fontSize: 12,
-                      ),
+                      style: AppTextStyles.bodySmall,
                     ),
                   ],
                 ),

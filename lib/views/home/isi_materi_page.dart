@@ -6,6 +6,7 @@ import '../widgets/gestur_preview.dart';
 import '../widgets/isi_materi_bottom_bar.dart';
 import '../widgets/isi_materi_header.dart';
 import '../widgets/latihan_progress_bar.dart';
+import '../theme/app_colors.dart';
 
 class IsiMateriPage extends StatefulWidget {
   final int materiId;
@@ -62,14 +63,14 @@ class _IsiMateriPageState extends State<IsiMateriPage> {
       builder: (context, _) {
         final gestur = _controller.gestur;
         return Scaffold(
-          backgroundColor: const Color(0xFFFCF9F8),
+          backgroundColor: AppColors.background,
           body: SafeArea(
             child: Column(
               children: [
                 IsiMateriHeader(onBack: _controller.goBack),
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
                     children: [
                       GesturPreview(assetPath: gestur.assetPath),
                       const SizedBox(height: 12),

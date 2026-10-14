@@ -11,15 +11,29 @@ void main() {
   // Cegah pengunduhan font saat pengujian.
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  testWidgets('Navbar tampil dan berpindah tab saat item ditekan',
-      (WidgetTester tester) async {
+  // Aplikasi mulai di halaman login. Tekan "Masuk" untuk masuk ke kerangka
+  // utama; autentikasi masih mock sehingga kredensial apa pun diterima.
+  Future<void> masukKeAplikasi(WidgetTester tester) async {
     await tester.pumpWidget(const SignLApp());
+    expect(find.text('Masuk  →'), findsOneWidget);
+    await tester.tap(find.text('Masuk  →'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('Login tampil di awal dan membuka kerangka utama',
+      (WidgetTester tester) async {
+    await masukKeAplikasi(tester);
 
     // Navbar dengan 4 item + tombol tengah harus dirender.
     expect(find.byType(AppBottomNavBar), findsOneWidget);
 
     // Beranda aktif sejak awal: judul AppBar menampilkan "Beranda".
     expect(find.text('Beranda'), findsWidgets);
+  });
+
+  testWidgets('Navbar berpindah tab saat item ditekan',
+      (WidgetTester tester) async {
+    await masukKeAplikasi(tester);
 
     // Label hanya muncul saat aktif, jadi tab Kuis ditekan lewat ikonnya.
     await tester.tap(find.byIcon(Icons.assignment_outlined));
@@ -29,7 +43,7 @@ void main() {
 
   testWidgets('Label tombol tengah muncul saat aktif atau ditekan',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const SignLApp());
+    await masukKeAplikasi(tester);
 
     // Beranda aktif -> tab tengah (Materi) tidak berlabel.
     expect(find.text('Materi'), findsNothing);
@@ -54,7 +68,7 @@ void main() {
 
   testWidgets('Item foto profil tidak menampilkan label',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const SignLApp());
+    await masukKeAplikasi(tester);
 
     // Tab Profil di navbar memakai avatar, bukan ikon berlabel.
     expect(

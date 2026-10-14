@@ -38,8 +38,11 @@ class AppColors {
   static const Color danger = Color(0xFFE53950); // Merah (heart)
 
   /// Gradasi khas Sign.L (oranye → pink) — sama dengan tombol tengah navbar.
+  static const Color brandGradientStart = Color(0xFFF57C00);
+  static const Color brandGradientEnd = Color(0xFFD81B60);
+
   static const LinearGradient brandGradient = LinearGradient(
-    colors: [Color(0xFFF57C00), Color(0xFFD81B60)],
+    colors: [brandGradientStart, brandGradientEnd],
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
   );
