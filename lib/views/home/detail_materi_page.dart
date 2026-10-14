@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import '../../controllers/detail_materi_controller.dart';
 import '../widgets/detail_header.dart';
 import '../widgets/materi_card.dart';
+import '../widgets/quiz_card.dart';
 import '../widgets/final_exam_card.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../home/isi_materi_page.dart';
+import '../home/quiz_page.dart';
 
 class DetailMateriPage extends StatefulWidget {
   const DetailMateriPage({super.key});
@@ -52,7 +54,7 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
                 _buildModuleInfo(),
                 const SizedBox(height: 24),
                 _buildSectionA(),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 _buildSectionB(),
                 const SizedBox(height: 20),
               ],
@@ -65,10 +67,10 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
 
   Widget _buildTopBar() {
     return Row(
-      // start: panah sejajar dengan baris "Detail Materi", bukan di tengah
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1C1B1B)),
           icon: const Icon(
             Icons.arrow_back,
             color: AppColors.textPrimary,
@@ -77,9 +79,7 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
           onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            }
+            if (Navigator.canPop(context)) Navigator.pop(context);
           },
         ),
         const SizedBox(width: 4),
@@ -97,8 +97,7 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
             Container(
               width: 8,
               height: 8,
-              decoration:
-                  BoxDecoration(color: dotColor, shape: BoxShape.circle),
+              decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
             ),
             const SizedBox(width: 8),
             Text(
@@ -145,6 +144,7 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
           const SizedBox(height: 12),
           Text(
             'Kuasai 26 gestur ejaan jari alfabet bahasa isyarat & verifikasi langsung kelenturan lekuk jarimu via panduan kamera AI real-time.',
+            style: TextStyle(color: Color(0xFF594047), fontSize: 14, height: 1.63),
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textSecondary,
               height: 1.63,
@@ -154,6 +154,9 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
+              _buildInfoColumn('Total Materi', '5 Sesi', const Color(0xFF1C1B1B)),
+              _buildInfoColumn('Latihan AI', 'Aktif', const Color(0xFFB5005F)),
+              _buildInfoColumn('Kelulusan', 'Tes Refleks', const Color(0xFF964900)),
               _buildInfoColumn(
                   'Total Materi', '5 Sesi', AppColors.textPrimary),
               _buildInfoColumn('Latihan AI', 'Aktif', AppColors.primary),
@@ -209,7 +212,7 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
             child: MateriCard(
               materi: materi,
               onTap: () {
-                if (materi.isLocked) return; // materi terkunci tidak bisa dibuka
+                if (materi.isLocked) return;
                 _controller.continueLearning(materi.id);
                 _bukaIsiMateri(materi.id);
               },
@@ -224,9 +227,29 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _sectionTitle(
+          'B. Kuis untuk Bab 1',
+          const Color(0xFF8D6F77),
+          trailing: const Text(
+            'Siap Dimulai',
+            style: TextStyle(
+              color: Color(0xFFB5005F),
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.4,
+            ),
+          ),
+        ),
         _sectionTitle('B. Ujian Akhir Bab 1', AppColors.textMuted),
         const SizedBox(height: 12),
-        const FinalExamCard(),
+        QuizCard(
+          onStartQuiz: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const QuizPage()),
+            );
+          },
+        ),
       ],
     );
   }

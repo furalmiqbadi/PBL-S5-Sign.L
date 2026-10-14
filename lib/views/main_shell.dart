@@ -81,6 +81,44 @@ class _MainShellState extends State<MainShell> {
   /// URL foto profil pengguna. `null` = pakai foto dummy bawaan.
   static const String? _profilePhotoUrl = null;
 
+  /// Buka layar Chat (tombol DM di header Komunitas dan Profil).
+  void _openChat() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ChatListScreen()),
+    );
+  }
+
+  /// Halaman tiap tab. `late final` agar dibuat sekali, dan bisa memakai
+  /// [_openChat] yang butuh context milik State ini.
+  late final List<Widget> _pages = [
+    const _HeaderPage(
+      header: HomeHeader(),
+      body: _CenteredNote(
+        'Jalur belajar harian (streak, XP, level) tampil di sini.',
+      ),
+    ),
+    // Header Kuis sama persis dengan header Materi, hanya berbeda judul.
+    const _HeaderPage(
+      header: MateriHeader(title: 'Kuis'),
+      body: _CenteredNote('Kuis dan evaluasi pemahaman tampil di sini.'),
+    ),
+    const _HeaderPage(
+      header: MateriHeader(),
+      body: _CenteredNote('Daftar materi bahasa isyarat tampil di sini.'),
+    ),
+    _HeaderPage(
+      header: KomunitasHeader(onMessages: _openChat),
+      body: const _CenteredNote(
+        'Forum diskusi dan latihan bersama tampil di sini.',
+      ),
+    ),
+    _HeaderPage(
+      header: ProfilHeader(onMessages: _openChat),
+      body: const _CenteredNote(
+        'Progres belajar, XP, dan pengaturan akun tampil di sini.',
+      ),
+    ),
+  ];
   /// Halaman tiap tab. Dibuat per-build agar tombol DM pada header Komunitas
   /// dan Profil dapat menyambung ke layar Chat.
   List<Widget> _buildPages(BuildContext context) {
