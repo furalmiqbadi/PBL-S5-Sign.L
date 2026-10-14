@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../main_shell.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 import '../widgets/auth_widgets.dart';
 
 /// Membuka beranda utama aplikasi (MainShell) dan menghapus riwayat halaman auth.
@@ -37,7 +39,6 @@ class _LoginPageState extends State<LoginPage> {
     final emailText = email.text.trim();
     final passText = password.text.trim();
 
-    // Fleksibel di tahap awal: bila input kosong, isi nilai default agar pengujian lancar
     final targetEmail = emailText.isEmpty ? 'budi@gmail.com' : emailText;
     final targetPass = passText.isEmpty ? '123456' : passText;
 
@@ -99,9 +100,9 @@ class _LoginPageState extends State<LoginPage> {
                 context,
                 MaterialPageRoute(builder: (_) => const ForgotPage()),
               ),
-              child: const Text(
+              child: Text(
                 'Lupa kata sandi?',
-                style: TextStyle(fontSize: 10, color: pink, fontWeight: FontWeight.w800),
+                style: AppTextStyles.labelXSmall.copyWith(color: pink, fontWeight: FontWeight.w800),
               ),
             ),
           ),
@@ -141,7 +142,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final email = TextEditingController();
   final password = TextEditingController();
   final confirmation = TextEditingController();
-  bool accepted = true; // Default aktif agar ramah pengujian awal
+  bool accepted = true;
   bool show = false;
 
   @override
@@ -163,7 +164,6 @@ class _RegisterPageState extends State<RegisterPage> {
     final passText = password.text.trim();
     final confirmText = confirmation.text.trim();
 
-    // Validasi konfirmasi sandi jika kedua kolom diisi
     if (confirmText.isNotEmpty && passText.isNotEmpty && passText != confirmText) {
       _message('Konfirmasi kata sandi tidak cocok.');
       return;
@@ -267,10 +267,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   size: 16,
                 ),
                 const SizedBox(width: 6),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Saya menyetujui Syarat & Ketentuan serta Kebijakan Privasi Sign.L.',
-                    style: TextStyle(fontSize: 10, color: muted),
+                    style: AppTextStyles.labelXSmall.copyWith(color: muted),
                   ),
                 ),
               ],
@@ -373,18 +373,18 @@ class _ForgotPageState extends State<ForgotPage> {
           Container(
             padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF0D9),
+              color: AppColors.orangeSoft,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Row(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('💡', style: TextStyle(fontSize: 17)),
-                SizedBox(width: 8),
+                Text('💡', style: AppTextStyles.bodyLarge.copyWith(fontSize: 17)),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Tips Praktis\nCek folder Spam atau Promosi jika tautan belum masuk dalam 2 menit.',
-                    style: TextStyle(fontSize: 10, color: ink, height: 1.5),
+                    style: AppTextStyles.labelXSmall.copyWith(color: AppColors.textPrimary, height: 1.5),
                   ),
                 ),
               ],
@@ -526,14 +526,14 @@ class _ResetPageState extends State<ResetPage> {
               color: const Color(0xFFF8E8F5),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.shield_outlined, color: pink, size: 19),
-                SizedBox(width: 9),
+                const Icon(Icons.shield_outlined, color: pink, size: 19),
+                const SizedBox(width: 9),
                 Expanded(
                   child: Text(
                     'Gunakan minimal 8 karakter, kombinasi huruf dan angka.',
-                    style: TextStyle(fontSize: 10, color: muted),
+                    style: AppTextStyles.labelXSmall.copyWith(color: muted),
                   ),
                 ),
               ],
@@ -551,4 +551,3 @@ class _ResetPageState extends State<ResetPage> {
     );
   }
 }
-

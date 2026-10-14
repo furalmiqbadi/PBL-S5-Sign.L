@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+
 /// URL foto profil dummy yang dipakai bila pengguna belum memasang foto.
 ///
 /// Ganti dengan URL foto/aset milik aplikasi Anda. Bila perangkat sedang
@@ -64,11 +67,11 @@ class NavBarPalette {
   final Color centerGradientEnd;
 
   const NavBarPalette({
-    this.barColor = Colors.white,
-    this.inactiveColor = const Color(0xFF3B2231),
-    this.activeColor = const Color(0xFFC2185B),
-    this.centerGradientStart = const Color(0xFFF57C00),
-    this.centerGradientEnd = const Color(0xFFD81B60),
+    this.barColor = AppColors.surface,
+    this.inactiveColor = AppColors.neutral,
+    this.activeColor = AppColors.primary,
+    this.centerGradientStart = AppColors.brandGradientStart,
+    this.centerGradientEnd = AppColors.brandGradientEnd,
   });
 }
 
@@ -365,9 +368,8 @@ class _NavItemButtonState extends State<_NavItemButton> {
                       child: Text(
                         widget.item.label!,
                         style: widget.labelStyle ??
-                            TextStyle(
+                            AppTextStyles.labelSmall.copyWith(
                               color: widget.activeColor,
-                              fontSize: 11,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 0.2,
                             ),
@@ -498,9 +500,8 @@ class _CenterButtonState extends State<_CenterButton> {
                             padding: const EdgeInsets.only(top: 2),
                             child: Text(
                               widget.label,
-                              style: const TextStyle(
+                              style: AppTextStyles.labelXSmall.copyWith(
                                 color: Colors.white,
-                                fontSize: 10,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),

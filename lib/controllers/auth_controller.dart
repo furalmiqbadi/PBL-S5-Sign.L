@@ -74,15 +74,13 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
     try {
       await action();
-      _isLoading = false;
-      notifyListeners();
       return true;
     } catch (e) {
-      _isLoading = false;
       _errorMessage = e.toString().replaceFirst('Exception: ', '');
-      notifyListeners();
       return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }
-
