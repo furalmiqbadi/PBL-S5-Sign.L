@@ -3,7 +3,6 @@ import '../../controllers/detail_materi_controller.dart';
 import '../widgets/detail_header.dart';
 import '../widgets/materi_card.dart';
 import '../widgets/quiz_card.dart';
-import '../widgets/final_exam_card.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../home/isi_materi_page.dart';
@@ -70,7 +69,6 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1C1B1B)),
           icon: const Icon(
             Icons.arrow_back,
             color: AppColors.textPrimary,
@@ -119,7 +117,7 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -144,7 +142,6 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
           const SizedBox(height: 12),
           Text(
             'Kuasai 26 gestur ejaan jari alfabet bahasa isyarat & verifikasi langsung kelenturan lekuk jarimu via panduan kamera AI real-time.',
-            style: TextStyle(color: Color(0xFF594047), fontSize: 14, height: 1.63),
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textSecondary,
               height: 1.63,
@@ -154,14 +151,9 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildInfoColumn('Total Materi', '5 Sesi', const Color(0xFF1C1B1B)),
-              _buildInfoColumn('Latihan AI', 'Aktif', const Color(0xFFB5005F)),
-              _buildInfoColumn('Kelulusan', 'Tes Refleks', const Color(0xFF964900)),
-              _buildInfoColumn(
-                  'Total Materi', '5 Sesi', AppColors.textPrimary),
+              _buildInfoColumn('Total Materi', '5 Sesi', AppColors.textPrimary),
               _buildInfoColumn('Latihan AI', 'Aktif', AppColors.primary),
-              _buildInfoColumn(
-                  'Kelulusan', 'Tes Refleks', AppColors.tertiary),
+              _buildInfoColumn('Kelulusan', 'Tes Refleks', AppColors.tertiary),
             ],
           ),
         ],
@@ -228,8 +220,8 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _sectionTitle(
-          'B. Kuis untuk Bab 1',
-          const Color(0xFF8D6F77),
+          'B. Ujian Akhir Bab 1',
+          AppColors.textMuted,
           trailing: const Text(
             'Siap Dimulai',
             style: TextStyle(
@@ -240,7 +232,6 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
             ),
           ),
         ),
-        _sectionTitle('B. Ujian Akhir Bab 1', AppColors.textMuted),
         const SizedBox(height: 12),
         QuizCard(
           onStartQuiz: () {

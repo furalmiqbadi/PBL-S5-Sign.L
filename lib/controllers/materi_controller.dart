@@ -5,7 +5,7 @@ enum FilterType { all, inProgress, completed }
 
 class MateriController extends ChangeNotifier {
   FilterType _currentFilter = FilterType.all;
-  List<Bab> _babList = dummyBabList;
+  final List<Bab> _babList = dummyBabList;
 
   FilterType get currentFilter => _currentFilter;
   List<Bab> get filteredBabList {

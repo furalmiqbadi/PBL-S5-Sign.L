@@ -6,7 +6,6 @@ import '../main_shell.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/auth_widgets.dart';
-import '../main_shell.dart';
 
 class BlankHomePage extends StatelessWidget {
   const BlankHomePage({super.key});
