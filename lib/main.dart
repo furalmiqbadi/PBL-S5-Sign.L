@@ -5,8 +5,6 @@ import 'package:provider/provider.dart';
 import 'controllers/auth_controller.dart';
 import 'views/auth/auth_views.dart';
 
-import 'views/main_shell.dart';
-
 void main() {
   runApp(
     ChangeNotifierProvider(
@@ -17,7 +15,9 @@ void main() {
 }
 
 class SignLApp extends StatelessWidget {
-  const SignLApp({super.key});
+  final Widget? home;
+
+  const SignLApp({super.key, this.home});
 
   @override
   Widget build(BuildContext context) {
@@ -39,12 +39,12 @@ class SignLApp extends StatelessWidget {
           hintStyle: const TextStyle(fontSize: 11, color: Color(0xFFB9A8B7)),
         ),
       ),
-      home: const LoginPage(),
+      home: home ?? const LoginPage(),
     );
   }
 }
 
-// Backward-compatible name for the default Flutter widget test.
+// Backward-compatible name for default Flutter widget test runner.
 class MyApp extends SignLApp {
-  const MyApp({super.key});
+  const MyApp({super.key, super.home});
 }

@@ -1,15 +1,45 @@
-// Smoke test untuk kerangka aplikasi Sign.L dan perilaku bottom navbar.
+// Smoke test untuk kerangka aplikasi Sign.L, alur otentikasi, dan bottom navbar.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
+import 'package:sign_l/controllers/auth_controller.dart';
 import 'package:sign_l/main.dart';
+import 'package:sign_l/views/auth/auth_views.dart';
+import 'package:sign_l/views/main_shell.dart';
 import 'package:sign_l/views/widgets/app_bottom_nav_bar.dart';
 
+Widget _createTestApp({Widget? home}) {
+  return ChangeNotifierProvider(
+    create: (_) => AuthController(),
+    child: SignLApp(home: home),
+  );
+}
+
 void main() {
+  testWidgets('Halaman Login tampil secara default dengan input dan tombol',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(_createTestApp());
+
+    // Memastikan halaman Login dirender
+    expect(find.byType(LoginPage), findsOneWidget);
+    expect(find.text('Selamat Datang Kembali! 👋'), findsOneWidget);
+    expect(find.text('Masuk  →'), findsOneWidget);
+    expect(find.text('Daftar Sekarang'), findsOneWidget);
+
+    // Navigasi ke halaman Register dengan memastikan widget terlihat di layar uji
+    await tester.ensureVisible(find.text('Daftar Sekarang'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Daftar Sekarang'));
+    await tester.pumpAndSettle();
+    expect(find.byType(RegisterPage), findsOneWidget);
+  });
+
+
   testWidgets('Navbar tampil dan berpindah tab saat item ditekan',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const SignLApp());
+    await tester.pumpWidget(_createTestApp(home: const MainShell()));
 
     // Navbar dengan 4 item + tombol tengah harus dirender.
     expect(find.byType(AppBottomNavBar), findsOneWidget);
@@ -25,7 +55,7 @@ void main() {
 
   testWidgets('Label tombol tengah muncul saat aktif atau ditekan',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const SignLApp());
+    await tester.pumpWidget(_createTestApp(home: const MainShell()));
 
     // Beranda aktif -> tab tengah (Materi) tidak berlabel.
     expect(find.text('Materi'), findsNothing);
@@ -50,7 +80,7 @@ void main() {
 
   testWidgets('Item foto profil tidak menampilkan label',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const SignLApp());
+    await tester.pumpWidget(_createTestApp(home: const MainShell()));
 
     // Tab Profil di navbar memakai avatar, bukan ikon berlabel.
     expect(
