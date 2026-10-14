@@ -7,6 +7,7 @@ import 'widgets/home_header.dart';
 import 'widgets/komunitas_header.dart';
 import 'widgets/materi_header.dart';
 import 'widgets/profil_header.dart';
+import 'profile/profile_screen.dart';
 
 /// Kerangka utama aplikasi yang menampilkan [AppBottomNavBar] di semua
 /// halaman tab.
@@ -32,10 +33,13 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  int _index = 0;
+  // [DEV MODE] Default index diubah dari 0 ke 4 agar langsung membuka halaman Profil saat tes. 
+  // Nanti kembalikan ke 0 jika sudah selesai mendesain.
+  int _index = 4;
 
   /// Pengendali halaman untuk animasi slide antar tab.
-  final PageController _pageController = PageController();
+  // [DEV MODE] initialPage diubah dari kosong () menjadi (initialPage: 4)
+  final PageController _pageController = PageController(initialPage: 4);
 
   @override
   void dispose() {
@@ -135,6 +139,25 @@ class _MainShellState extends State<MainShell> {
           'Jalur belajar harian (streak, XP, level) tampil di sini.',
         ),
       ),
+    ),
+    // Header Kuis sama persis dengan header Materi, hanya berbeda judul.
+    _HeaderPage(
+      header: MateriHeader(title: 'Kuis'),
+      body: _CenteredNote('Kuis dan evaluasi pemahaman tampil di sini.'),
+    ),
+    _HeaderPage(
+      header: MateriHeader(),
+      body: _CenteredNote('Daftar materi bahasa isyarat tampil di sini.'),
+    ),
+    _HeaderPage(
+      header: KomunitasHeader(),
+      body: _CenteredNote('Forum diskusi dan latihan bersama tampil di sini.'),
+    ),
+    _HeaderPage(
+      header: ProfilHeader(),
+      body: ProfileScreen(),
+    ),
+  ];
       // Header Kuis sama persis dengan header Materi, hanya berbeda judul.
       _HeaderPage(
         header: MateriHeader(title: 'Kuis'),
