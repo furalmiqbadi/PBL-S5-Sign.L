@@ -23,7 +23,7 @@ class BabCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -75,14 +75,14 @@ class BabCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Icon(Icons.menu_book, size: 14, color: AppColors.textSecondary),
+                        const Icon(Icons.menu_book, size: 14, color: AppColors.textSecondary),
                         const SizedBox(width: 4),
                         Text(
                           '${bab.totalMateri} Materi',
                           style: AppTextStyles.labelXSmall.copyWith(color: AppColors.textSecondary),
                         ),
                         const SizedBox(width: 16),
-                        Icon(Icons.access_time, size: 14, color: AppColors.textSecondary),
+                        const Icon(Icons.access_time, size: 14, color: AppColors.textSecondary),
                         const SizedBox(width: 4),
                         Text(
                           bab.durationText,
@@ -125,7 +125,7 @@ class BabCard extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.lock, size: 12, color: AppColors.textMuted),
+                          const Icon(Icons.lock, size: 12, color: AppColors.textMuted),
                           const SizedBox(width: 4),
                           Text(
                             bab.subtitle,
@@ -158,14 +158,14 @@ class BabCard extends StatelessWidget {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(Icons.menu_book, size: 14, color: AppColors.textMuted),
+                          const Icon(Icons.menu_book, size: 14, color: AppColors.textMuted),
                           const SizedBox(width: 4),
                           Text(
                             '${bab.totalMateri} Materi',
                             style: AppTextStyles.labelXSmall.copyWith(fontWeight: FontWeight.w400),
                           ),
                           const SizedBox(width: 16),
-                          Icon(Icons.access_time, size: 14, color: AppColors.textMuted),
+                          const Icon(Icons.access_time, size: 14, color: AppColors.textMuted),
                           const SizedBox(width: 4),
                           Text(
                             bab.durationText,
@@ -281,7 +281,7 @@ class BabCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  Icon(Icons.arrow_forward, size: 14, color: AppColors.primary),
+                  const Icon(Icons.arrow_forward, size: 14, color: AppColors.primary),
                 ],
               ),
             ),

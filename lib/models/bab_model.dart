@@ -35,7 +35,7 @@ class Bab {
 
 // Dummy data - nanti bisa dipindah ke service
 final List<Bab> dummyBabList = [
-  Bab(
+  const Bab(
     id: 1,
     number: '01',
     title: 'Pengenalan & Alfabet A - Z',
@@ -47,7 +47,7 @@ final List<Bab> dummyBabList = [
     status: BabStatus.inProgress,
     progress: 0.65,
   ),
-  Bab(
+  const Bab(
     id: 2,
     number: '02',
     title: 'Angka & Berhitung (1 - 20)',
@@ -59,7 +59,7 @@ final List<Bab> dummyBabList = [
     status: BabStatus.available,
     progress: 0.0,
   ),
-  Bab(
+  const Bab(
     id: 3,
     number: '03',
     title: 'Sapaan Sehari-hari & Etika',
@@ -71,7 +71,7 @@ final List<Bab> dummyBabList = [
     status: BabStatus.locked,
     progress: 0.0,
   ),
-  Bab(
+  const Bab(
     id: 4,
     number: '04',
     title: 'Pengenalan Diri & Kata Benda\nUmum',
@@ -83,7 +83,7 @@ final List<Bab> dummyBabList = [
     status: BabStatus.locked,
     progress: 0.0,
   ),
-  Bab(
+  const Bab(
     id: 5,
     number: '05',
     title: 'Ungkapan Emosi & Tanya Jawab',

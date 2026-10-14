@@ -36,8 +36,8 @@ class TargetCard extends StatelessWidget {
           Container(
             width: 48,
             height: 48,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
                 colors: [AppColors.tertiary, AppColors.primary, AppColors.secondary],
               ),
               shape: BoxShape.circle,

@@ -1,30 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'chat/chat_list_view.dart';
+import 'home/home_page.dart';
 import 'home/materi_page.dart';
+import 'komunitas/komunitas_page.dart'; 
 import 'widgets/app_bottom_nav_bar.dart';
-import 'widgets/home_header.dart';
 import 'widgets/komunitas_header.dart';
 import 'widgets/materi_header.dart';
 import 'widgets/profil_header.dart';
 import 'profile/profile_screen.dart';
 
-/// Kerangka utama aplikasi yang menampilkan [AppBottomNavBar] di semua
-/// halaman tab.
-///
-/// Lima tab dengan urutan visual:
-/// `0 Beranda · 1 Kuis · 2 Materi (tengah) · 3 Komunitas · 4 Profil`.
-///
-/// Semua halaman utama di-host di dalam [PageView], sehingga state tiap
-/// halaman tetap terjaga saat berpindah tab dan navbar selalu terlihat.
-///
-/// Perpindahan tab dianimasikan sebagai *page turn* horizontal (slide),
-/// mengikuti arah urutan tab. Geser manual dinonaktifkan agar navigasi
-/// sepenuhnya lewat navbar.
-///
-/// Catatan: [PlaceholderScreen] di bawah hanya penanda sementara. Ganti
-/// isinya dengan layar asli, mis. `HomeScreen`, `QuizScreen`, `MateriScreen`,
-/// `CommunityScreen`, dan `ProfileScreen` sesuai struktur di `lib/views/`.
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -33,13 +18,8 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  // [DEV MODE] Default index diubah dari 0 ke 4 agar langsung membuka halaman Profil saat tes. 
-  // Nanti kembalikan ke 0 jika sudah selesai mendesain.
-  int _index = 4;
-
-  /// Pengendali halaman untuk animasi slide antar tab.
-  // [DEV MODE] initialPage diubah dari kosong () menjadi (initialPage: 4)
-  final PageController _pageController = PageController(initialPage: 4);
+  int _index = 0;
+  final PageController _pageController = PageController(initialPage: 0);
 
   @override
   void dispose() {
@@ -47,7 +27,6 @@ class _MainShellState extends State<MainShell> {
     super.dispose();
   }
 
-  /// Pindah ke tab [index] dengan animasi slide.
   void _goTo(int index) {
     if (index == _index) return;
     setState(() => _index = index);
@@ -58,9 +37,6 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  // 5 tab dengan urutan visual:
-  // 0 Beranda | 1 Kuis | 2 Materi (tengah) | 3 Komunitas | 4 Profil
-  // `_items` hanya untuk 4 slot kiri/kanan; tengah diatur terpisah.
   static const List<AppNavItem> _items = [
     AppNavItem(
       icon: Icons.home_outlined,
@@ -73,58 +49,14 @@ class _MainShellState extends State<MainShell> {
       label: 'Kuis',
     ),
     AppNavItem(
-      // Ikon Komunitas memakai logo SVG kustom (di-tint otomatis).
       svgAsset: 'assets/images/komunitas.svg',
       label: 'Komunitas',
     ),
-    // Tab Profil memakai foto profil bulat (tanpa label). Isi [_profilePhotoUrl]
-    // dengan foto pengguna; biarkan null untuk memakai foto dummy.
     AppNavItem(imageUrl: _profilePhotoUrl),
   ];
 
-  /// URL foto profil pengguna. `null` = pakai foto dummy bawaan.
   static const String? _profilePhotoUrl = null;
 
-  /// Buka layar Chat (tombol DM di header Komunitas dan Profil).
-  void _openChat() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const ChatListScreen()),
-    );
-  }
-
-  /// Halaman tiap tab. `late final` agar dibuat sekali, dan bisa memakai
-  /// [_openChat] yang butuh context milik State ini.
-  late final List<Widget> _pages = [
-    const _HeaderPage(
-      header: HomeHeader(),
-      body: _CenteredNote(
-        'Jalur belajar harian (streak, XP, level) tampil di sini.',
-      ),
-    ),
-    // Header Kuis sama persis dengan header Materi, hanya berbeda judul.
-    const _HeaderPage(
-      header: MateriHeader(title: 'Kuis'),
-      body: _CenteredNote('Kuis dan evaluasi pemahaman tampil di sini.'),
-    ),
-    const _HeaderPage(
-      header: MateriHeader(),
-      body: _CenteredNote('Daftar materi bahasa isyarat tampil di sini.'),
-    ),
-    _HeaderPage(
-      header: KomunitasHeader(onMessages: _openChat),
-      body: const _CenteredNote(
-        'Forum diskusi dan latihan bersama tampil di sini.',
-      ),
-    ),
-    _HeaderPage(
-      header: ProfilHeader(onMessages: _openChat),
-      body: const _CenteredNote(
-        'Progres belajar, XP, dan pengaturan akun tampil di sini.',
-      ),
-    ),
-  ];
-  /// Halaman tiap tab. Dibuat per-build agar tombol DM pada header Komunitas
-  /// dan Profil dapat menyambung ke layar Chat.
   List<Widget> _buildPages(BuildContext context) {
     void openChat() {
       Navigator.of(context).push(
@@ -133,49 +65,25 @@ class _MainShellState extends State<MainShell> {
     }
 
     return [
-      _HeaderPage(
-        header: HomeHeader(),
-        body: _CenteredNote(
-          'Jalur belajar harian (streak, XP, level) tampil di sini.',
-        ),
+      HomePage(
+        onOpenCommunity: () => _goTo(3), // Indeks 3: Komunitas
+        onOpenProfile: () => _goTo(4),   // Indeks 4: Profil
       ),
-    ),
-    // Header Kuis sama persis dengan header Materi, hanya berbeda judul.
-    _HeaderPage(
-      header: MateriHeader(title: 'Kuis'),
-      body: _CenteredNote('Kuis dan evaluasi pemahaman tampil di sini.'),
-    ),
-    _HeaderPage(
-      header: MateriHeader(),
-      body: _CenteredNote('Daftar materi bahasa isyarat tampil di sini.'),
-    ),
-    _HeaderPage(
-      header: KomunitasHeader(),
-      body: _CenteredNote('Forum diskusi dan latihan bersama tampil di sini.'),
-    ),
-    _HeaderPage(
-      header: ProfilHeader(),
-      body: ProfileScreen(),
-    ),
-  ];
-      // Header Kuis sama persis dengan header Materi, hanya berbeda judul.
-      _HeaderPage(
+      const _HeaderPage(
         header: MateriHeader(title: 'Kuis'),
         body: _CenteredNote('Kuis dan evaluasi pemahaman tampil di sini.'),
       ),
-      _HeaderPage(
+      const _HeaderPage(
         header: MateriHeader(),
-        body: const MateriPage(),
+        body: MateriPage(),
       ),
       _HeaderPage(
         header: KomunitasHeader(onMessages: openChat),
-        body: _CenteredNote('Forum diskusi dan latihan bersama tampil di sini.'),
+        body: const KomunitasPage(),
       ),
-      _HeaderPage(
-        header: ProfilHeader(onMessages: openChat),
-        body: _CenteredNote(
-          'Progres belajar, XP, dan pengaturan akun tampil di sini.',
-        ),
+      const _HeaderPage(
+        header: ProfilHeader(), 
+        body: ProfileScreen(),
       ),
     ];
   }
@@ -183,20 +91,15 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Semua tab memakai header kustom, jadi AppBar bawaan tidak dipakai.
-      //
-      // [PageView] memberi animasi slide antar tab; tiap halaman dibungkus
-      // [_KeepAlivePage] agar state-nya tidak dibuang saat berada di luar layar.
       body: PageView(
         controller: _pageController,
-        // Navigasi hanya lewat navbar, bukan geser manual.
         physics: const NeverScrollableScrollPhysics(),
         children: [
           for (final page in _buildPages(context)) _KeepAlivePage(child: page),
         ],
       ),
       bottomNavigationBar: AppBottomNavBar(
-        items: _items,
+        items: _items,  
         selectedIndex: _index,
         onSelect: _goTo,
         onCenterTap: () => _goTo(AppBottomNavBar.centerIndex),
@@ -207,8 +110,6 @@ class _MainShellState extends State<MainShell> {
   }
 }
 
-/// Membungkus halaman tab agar tetap hidup (state terjaga) meski berada di
-/// luar layar di dalam [PageView].
 class _KeepAlivePage extends StatefulWidget {
   final Widget child;
 
@@ -230,8 +131,6 @@ class _KeepAlivePageState extends State<_KeepAlivePage>
   }
 }
 
-/// Halaman tab yang memakai header kustom: header menempel di atas, konten
-/// mengisi sisa ruang di bawahnya. Header ikut safe-area bagian atas.
 class _HeaderPage extends StatelessWidget {
   final Widget header;
   final Widget body;
@@ -249,7 +148,6 @@ class _HeaderPage extends StatelessWidget {
   }
 }
 
-/// Catatan sementara di tengah area konten.
 class _CenteredNote extends StatelessWidget {
   final String message;
 
@@ -261,61 +159,6 @@ class _CenteredNote extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Text(message, textAlign: TextAlign.center),
-      ),
-    );
-  }
-}
-
-/// Layar penanda sementara untuk mengisi tiap tab.
-///
-/// Ganti dengan layar asli sesuai struktur `lib/views/`.
-class PlaceholderScreen extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String message;
-
-  const PlaceholderScreen({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.message,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: scheme.primary.withValues(alpha: 0.10),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 40, color: scheme.primary),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              title,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-            ),
-          ],
-        ),
       ),
     );
   }

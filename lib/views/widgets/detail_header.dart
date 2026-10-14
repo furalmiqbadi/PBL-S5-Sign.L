@@ -73,7 +73,7 @@ class DetailHeader extends StatelessWidget {
                   border: Border.all(color: AppColors.border.withValues(alpha: 0.30)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 2,
                       offset: const Offset(0, 1),
                     ),
@@ -132,10 +132,10 @@ class DetailHeader extends StatelessWidget {
                       height: 8,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(9999),
-                        child: LinearProgressIndicator(
+                        child: const LinearProgressIndicator(
                           value: 0.42,
                           backgroundColor: AppColors.border,
-                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                         ),
                       ),
                     ),

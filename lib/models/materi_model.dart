@@ -36,7 +36,7 @@ class Materi {
 
 // Dummy data untuk Section A (Ejaan Alfabet)
 final List<Materi> dummyMateriList = [
-  Materi(
+  const Materi(
     id: 1,
     title: 'Huruf A - E: Bentuk Dasar Tangan',
     subtitle: '5 Gestur selesai • Akurasi gestur 98%',
@@ -47,7 +47,7 @@ final List<Materi> dummyMateriList = [
     status: MateriStatus.completed,
     progress: 1.0,
   ),
-  Materi(
+  const Materi(
     id: 2,
     title: 'Huruf F - J: Orientasi & Gerak',
     subtitle: 'Transisi kelenturan jari telunjuk & jempol presisi tinggi.',
@@ -58,7 +58,7 @@ final List<Materi> dummyMateriList = [
     status: MateriStatus.inProgress,
     progress: 0.6,
   ),
-  Materi(
+  const Materi(
     id: 3,
     title: 'Huruf K - O: Variasi Posisi Jari',
     subtitle: '5 Gerakan baru • Belum dimulai',
@@ -69,7 +69,7 @@ final List<Materi> dummyMateriList = [
     status: MateriStatus.locked,
     progress: 0.0,
   ),
-  Materi(
+  const Materi(
     id: 4,
     title: 'Huruf P - T: Kombinasi Gestur Kompleks',
     subtitle: '5 Gerakan • Belum dimulai',
@@ -80,7 +80,7 @@ final List<Materi> dummyMateriList = [
     status: MateriStatus.locked,
     progress: 0.0,
   ),
-  Materi(
+  const Materi(
     id: 5,
     title: 'Huruf U - Z: Penutup Alfabet',
     subtitle: '6 Gerakan • Penutup rangkaian alfabet',

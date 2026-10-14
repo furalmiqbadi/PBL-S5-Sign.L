@@ -512,10 +512,10 @@ class _ProfileCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           // Nama + level (Expanded agar tombol di kanan tidak overflow)
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
                   'Sarah Chen',
                   overflow: TextOverflow.ellipsis,
