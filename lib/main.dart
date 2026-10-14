@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'controllers/auth_controller.dart';
@@ -9,7 +8,20 @@ import 'views/main_shell.dart';
 
 // DIUBAH: provider dipindah ke dalam SignLApp (lihat di bawah).
 void main() => runApp(const SignLApp());
+import 'controllers/chat_controller.dart';
+import 'controllers/notification_controller.dart';
+import 'views/auth/auth_views.dart';
+import 'views/theme/app_theme.dart';
 
+void main() {
+  runApp(const SignLApp());
+}
+
+/// Root aplikasi Sign.L.
+///
+/// Menyediakan controller aplikasi lewat [MultiProvider] dan menampilkan
+/// [LoginPage] sebagai titik awal. Setelah autentikasi (masih mock, belum
+/// terhubung database) user diarahkan ke kerangka utama `MainShell`.
 class SignLApp extends StatelessWidget {
   const SignLApp({super.key});
 
@@ -65,4 +77,19 @@ class SignLApp extends StatelessWidget {
 // Backward-compatible name for the default Flutter widget test.
 class MyApp extends SignLApp {
   const MyApp({super.key});
+}
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthController()),
+        ChangeNotifierProvider(create: (_) => ChatController()),
+        ChangeNotifierProvider(create: (_) => NotificationController()),
+      ],
+      child: MaterialApp(
+        title: 'Sign.L',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        home: const LoginPage(),
+      ),
+    );
+  }
 }

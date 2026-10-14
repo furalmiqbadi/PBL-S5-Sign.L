@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/app_text_styles.dart';
+
 /// Kerangka bersama untuk header bagian (section) di dalam aplikasi.
 ///
 /// Memberi chrome yang konsisten di semua header: judul besar di kiri,
@@ -206,11 +208,9 @@ class _HeaderIconButtonState extends State<HeaderIconButton> {
               child: Text(
                 widget.badge!,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: AppTextStyles.labelSmall.copyWith(
                   color: theme.colorScheme.onPrimary,
-                  fontSize: 11,
                   fontWeight: FontWeight.w800,
-                  height: 1.2,
                 ),
               ),
             ),

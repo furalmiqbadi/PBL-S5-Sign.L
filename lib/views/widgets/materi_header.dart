@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
 import 'section_header.dart';
 import 'stat_pill.dart';
 
@@ -30,9 +31,9 @@ class MateriHeader extends StatelessWidget {
   });
 
   // Warna aksen tiap statistik.
-  static const Color streakAccent = Color(0xFFF97316); // oranye
-  static const Color heartAccent = Color(0xFFE53950); // merah
-  static const Color diamondAccent = Color(0xFF7C3AED); // ungu
+  static const Color streakAccent = AppColors.tertiary; // oranye
+  static const Color heartAccent = AppColors.danger; // merah
+  static const Color diamondAccent = AppColors.secondary; // ungu
 
   @override
   Widget build(BuildContext context) {
