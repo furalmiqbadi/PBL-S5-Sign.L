@@ -103,8 +103,8 @@ class _KomunitasPageState extends State<KomunitasPage> {
         id: '2',
         userName: 'Budi Santoso',
         userRole: 'Streak 30 Hari 🔥',
-        roleColor: const Color(0xFFFFF4E5),
-        roleTextColor: const Color(0xFFE65100),
+        roleColor: AppColors.orangeSoft,
+        roleTextColor: AppColors.tertiary,
         timeText: '2 jam lalu',
         categoryText: 'Cerita Sukses',
         content:
@@ -120,8 +120,8 @@ class _KomunitasPageState extends State<KomunitasPage> {
         id: '3',
         userName: 'Siti Rahma',
         userRole: 'Klub Jakarta',
-        roleColor: const Color(0xFFF3E5F5),
-        roleTextColor: const Color(0xFF7B1FA2),
+        roleColor: AppColors.purpleSoft,
+        roleTextColor: AppColors.secondary,
         timeText: '4 jam lalu',
         categoryText: 'Temu Belajar',
         content:
@@ -238,7 +238,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: selectedCat,
+                    initialValue: selectedCat,
                     decoration: InputDecoration(
                       labelText: 'Pilih Kategori',
                       border: OutlineInputBorder(
@@ -305,7 +305,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
                       },
                       child: const Text(
                         'Kirim Postingan',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -348,7 +348,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: AppColors.border,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -438,8 +438,8 @@ class _KomunitasPageState extends State<KomunitasPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.flag_outlined, color: Colors.red),
-              title: const Text('Laporkan Postingan', style: TextStyle(color: Colors.red)),
+              leading: const Icon(Icons.flag_outlined, color: AppColors.danger),
+              title: const Text('Laporkan Postingan', style: TextStyle(color: AppColors.danger)),
               onTap: () {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -462,8 +462,8 @@ class _KomunitasPageState extends State<KomunitasPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreatePostSheet,
         backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Postingan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        icon: const Icon(Icons.add, color: AppColors.textOnPrimary),
+        label: const Text('Postingan', style: TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold)),
       ),
       body: CustomScrollView(
         slivers: [
@@ -477,7 +477,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
                     child: Center(
                       child: Text(
                         'Tidak ada postingan ditemukan.',
-                        style: AppTextStyles.bodyMedium.copyWith(color: Colors.grey),
+                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textMuted),
                       ),
                     ),
                   ),
@@ -506,12 +506,12 @@ class _KomunitasPageState extends State<KomunitasPage> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           height: 44,
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
+            color: AppColors.surfaceMuted,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             children: [
-              const Icon(Icons.search, color: Color(0xFF9E9E9E), size: 20),
+              const Icon(Icons.search, color: AppColors.textMuted, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: TextField(
@@ -524,7 +524,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
                   decoration: InputDecoration(
                     hintText: 'Cari diskusi, pertanyaan, atau teman...',
                     hintStyle: AppTextStyles.bodyMedium.copyWith(
-                      color: const Color(0xFF9E9E9E),
+                      color: AppColors.textMuted,
                     ),
                     border: InputBorder.none,
                     isDense: true,
@@ -541,7 +541,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
                       _searchQuery = '';
                     });
                   },
-                  child: const Icon(Icons.close, size: 18, color: Colors.grey),
+                  child: const Icon(Icons.close, size: 18, color: AppColors.textMuted),
                 ),
             ],
           ),
@@ -569,13 +569,13 @@ class _KomunitasPageState extends State<KomunitasPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : const Color(0xFFF5F5F5),
+                    color: isSelected ? AppColors.primary : AppColors.surfaceMuted,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     cat,
                     style: AppTextStyles.labelMedium.copyWith(
-                      color: isSelected ? Colors.white : const Color(0xFF757575),
+                      color: isSelected ? AppColors.textOnPrimary : AppColors.textSecondary,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
@@ -593,7 +593,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -657,7 +657,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.more_horiz, color: Color(0xFF9E9E9E)),
+                icon: const Icon(Icons.more_horiz, color: AppColors.textMuted),
                 onPressed: () => _showMoreOptions(post),
               ),
             ],
@@ -675,7 +675,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
           if (post.isEvent)
             _buildEventMedia(post),
           const SizedBox(height: 16),
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          const Divider(height: 1, color: AppColors.border),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -691,13 +691,13 @@ class _KomunitasPageState extends State<KomunitasPage> {
                           Icon(
                             post.isLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined,
                             size: 18,
-                            color: post.isLiked ? AppColors.primary : const Color(0xFF757575),
+                            color: post.isLiked ? AppColors.primary : AppColors.textSecondary,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             '${post.likes} ${post.likeLabel}',
                             style: AppTextStyles.labelMedium.copyWith(
-                              color: post.isLiked ? AppColors.primary : const Color(0xFF757575),
+                              color: post.isLiked ? AppColors.primary : AppColors.textSecondary,
                               fontWeight: post.isLiked ? FontWeight.bold : FontWeight.normal,
                             ),
                           ),
@@ -712,11 +712,11 @@ class _KomunitasPageState extends State<KomunitasPage> {
                       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                       child: Row(
                         children: [
-                          const Icon(Icons.chat_bubble_outline, size: 18, color: Color(0xFF757575)),
+                          const Icon(Icons.chat_bubble_outline, size: 18, color: AppColors.textSecondary),
                           const SizedBox(width: 6),
                           Text(
                             '${post.comments} Komentar',
-                            style: AppTextStyles.labelMedium.copyWith(color: const Color(0xFF757575)),
+                            style: AppTextStyles.labelMedium.copyWith(color: AppColors.textSecondary),
                           ),
                         ],
                       ),
@@ -727,7 +727,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
               IconButton(
                 icon: Icon(
                   post.isSaved ? Icons.bookmark : Icons.bookmark_border,
-                  color: post.isSaved ? AppColors.primary : const Color(0xFF757575),
+                  color: post.isSaved ? AppColors.primary : AppColors.textSecondary,
                   size: 20,
                 ),
                 onPressed: () => _toggleBookmark(post),
@@ -743,7 +743,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
     return Container(
       height: 180,
       decoration: BoxDecoration(
-        color: Colors.black87,
+        color: AppColors.textPrimary,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Stack(
@@ -756,12 +756,12 @@ class _KomunitasPageState extends State<KomunitasPage> {
                 Container(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle),
                 ),
                 const SizedBox(width: 6),
                 Text(
                   title,
-                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: AppColors.textOnPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -769,7 +769,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
           Center(
             child: IconButton(
               iconSize: 48,
-              icon: const Icon(Icons.play_circle_fill, color: Colors.white),
+              icon: const Icon(Icons.play_circle_fill, color: AppColors.textOnPrimary),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Memutar video AI...')),
@@ -782,7 +782,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
             right: 12,
             child: Text(
               duration,
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+              style: const TextStyle(color: AppColors.textOnPrimary, fontSize: 12, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -794,7 +794,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9F5F6),
+        color: AppColors.surfaceMuted,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -819,7 +819,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.green, size: 14),
+                    const Icon(Icons.check_circle, color: AppColors.success, size: 14),
                     const SizedBox(width: 4),
                     Text(
                       'Skor Akurasi AI: $score%',
@@ -839,25 +839,25 @@ class _KomunitasPageState extends State<KomunitasPage> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEEEEEE)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         children: [
           Container(
             height: 100,
             decoration: const BoxDecoration(
-              color: Colors.teal,
+              color: AppColors.secondary,
               borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
             ),
             alignment: Alignment.bottomLeft,
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                const Icon(Icons.location_on, color: Colors.white, size: 16),
+                const Icon(Icons.location_on, color: AppColors.textOnPrimary, size: 16),
                 const SizedBox(width: 4),
                 Text(
                   post.eventLocation ?? '',
-                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: AppColors.textOnPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -879,14 +879,14 @@ class _KomunitasPageState extends State<KomunitasPage> {
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: post.isJoinedEvent ? Colors.grey : AppColors.primary,
+                    backgroundColor: post.isJoinedEvent ? AppColors.textMuted : AppColors.primary,
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   onPressed: () => _toggleJoinEvent(post),
                   child: Text(
                     post.isJoinedEvent ? 'Tergabung ✓' : 'Ikut Sesi',
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: AppColors.textOnPrimary, fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -907,7 +907,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFFFFE0ED), Color(0xFFF3E5FF)],
+                colors: [AppColors.pinkSoft, AppColors.purpleSoft],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),
@@ -918,7 +918,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.surface,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 24),
@@ -932,14 +932,14 @@ class _KomunitasPageState extends State<KomunitasPage> {
                         'Ragu dengan bentuk isyaratmu?',
                         style: AppTextStyles.labelMedium.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF3E1128),
+                          color: AppColors.neutral,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Unggah video singkat dan minta tanggapan hangat dari komunitas dan mentor Tuli.',
                         style: AppTextStyles.bodySmall.copyWith(
-                          color: const Color(0xFF594047),
+                          color: AppColors.textSecondary,
                           height: 1.3,
                         ),
                       ),
