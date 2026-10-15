@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
@@ -12,13 +14,17 @@ class DetailHeader extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Detail Materi',
-              style: AppTextStyles.titleLarge.copyWith(
-                fontWeight: FontWeight.w700,
+            Flexible(
+              child: Text(
+                'Detail Materi',
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.titleLarge.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -28,10 +34,18 @@ class DetailHeader extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.star, size: 12, color: AppColors.textSecondary),
+                      SvgPicture.asset(
+                        'assets/images/diamond_fix.svg',
+                        width: 12,
+                        height: 12,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.secondary,
+                          BlendMode.srcIn,
+                        ),
+                      ),
                       const SizedBox(width: 4),
                       Text(
-                        '190 / 250 XP',
+                        '190 / 250',
                         style: AppTextStyles.labelXSmall.copyWith(
                           color: AppColors.textSecondary,
                           letterSpacing: 0.4,
@@ -80,6 +94,7 @@ class DetailHeader extends StatelessWidget {
                   ],
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       width: 20,
@@ -110,6 +125,7 @@ class DetailHeader extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
@@ -118,17 +134,18 @@ class DetailHeader extends StatelessWidget {
                   border: Border.all(color: AppColors.border.withValues(alpha: 0.20)),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '42% Selesai',
+                      '42%',
                       style: AppTextStyles.labelSmall.copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     SizedBox(
-                      width: 64,
+                      width: 44,
                       height: 8,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(9999),

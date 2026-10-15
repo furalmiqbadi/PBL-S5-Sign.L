@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../edit/edit_profile_screen.dart';
+import '../theme/app_colors.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -16,11 +17,11 @@ class ProfileScreen extends StatelessWidget {
           _buildSectionTitle(
             icon: Icons.military_tech_rounded,
             title: 'Pencapaian Unggulan',
-            iconColor: const Color(0xFFC40083),
+            iconColor: AppColors.primary,
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFE6F3),
+                color: AppColors.pinkSoft,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
@@ -28,7 +29,7 @@ class ProfileScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFFC40083),
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -39,11 +40,11 @@ class ProfileScreen extends StatelessWidget {
           _buildSectionTitle(
             icon: Icons.school_rounded,
             title: 'Modul & Progres Isyarat',
-            iconColor: const Color(0xFFC40083),
+            iconColor: AppColors.primary,
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFF0ECF4),
+                color: AppColors.border,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
@@ -51,7 +52,7 @@ class ProfileScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF826D80),
+                  color: AppColors.textSecondary,
                 ),
               ),
             ),
@@ -68,26 +69,26 @@ class ProfileScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFFC40083),
+                      color: AppColors.primary,
                     ),
                   ),
                 ),
-                Icon(Icons.check, size: 12, color: Color(0xFFC40083)),
+                Icon(Icons.check, size: 12, color: AppColors.primary),
               ],
             ),
             title: 'Alfabet (A - Z)',
             subtitle: '26 Huruf Dasar • Selesai',
             percentText: '100%',
             progressValue: 1.0,
-            progressColor: const Color(0xFFC40083),
-            iconBgColor: const Color(0xFFF9E6F2),
+            progressColor: AppColors.primary,
+            iconBgColor: AppColors.pinkSoft,
           ),
           const SizedBox(height: 12),
           _buildModuleCard(
             iconWidget: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFF7E57C2), width: 1.5),
+                border: Border.all(color: AppColors.secondary, width: 1.5),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: const Text(
@@ -95,7 +96,7 @@ class ProfileScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF7E57C2),
+                  color: AppColors.secondary,
                 ),
               ),
             ),
@@ -103,36 +104,36 @@ class ProfileScreen extends StatelessWidget {
             subtitle: '0 - 100 & Satuan • 15/20 Pelajaran',
             percentText: '75%',
             progressValue: 0.75,
-            progressColor: const Color(0xFF7E57C2),
-            iconBgColor: const Color(0xFFF2E6F9),
+            progressColor: AppColors.secondary,
+            iconBgColor: AppColors.purpleSoft,
           ),
           const SizedBox(height: 12),
           _buildModuleCard(
             iconWidget: const Icon(
               Icons.back_hand_rounded,
-              color: Color(0xFFCA7629),
+              color: AppColors.tertiary,
               size: 20,
             ),
             title: 'Sapaan & Percakapan Dasar',
             subtitle: 'Halo, Terima Kasih, Maaf • 8/20 Pelajaran',
             percentText: '40%',
             progressValue: 0.40,
-            progressColor: const Color(0xFFCA7629),
-            iconBgColor: const Color(0xFFF9EFE6),
+            progressColor: AppColors.tertiary,
+            iconBgColor: AppColors.orangeSoft,
           ),
           const SizedBox(height: 12),
           _buildModuleCard(
             iconWidget: const Icon(
               Icons.sentiment_satisfied_alt_rounded,
-              color: Color(0xFF64B5F6),
+              color: AppColors.info,
               size: 22,
             ),
             title: 'Ekspresi Wajah & Emosi',
             subtitle: 'Gramatika Visual Non-Manual • 3/20 Pelajaran',
             percentText: '15%',
             progressValue: 0.15,
-            progressColor: const Color(0xFF64B5F6),
-            iconBgColor: const Color(0xFFE6F2F9),
+            progressColor: AppColors.info,
+            iconBgColor: AppColors.infoSoft,
           ),
           const SizedBox(height: 24), // Extra padding at bottom
         ],
@@ -150,11 +151,7 @@ class ProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.all(4),
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [Color(0xFFE91E63), Color(0xFFFF9800)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: AppColors.brandGradient,
               ),
               child: Container(
                 padding: const EdgeInsets.all(3),
@@ -179,7 +176,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 child: const Icon(
                   Icons.check_circle,
-                  color: Color(0xFFE91E63),
+                  color: AppColors.primary,
                   size: 20,
                 ),
               ),
@@ -196,7 +193,7 @@ class ProfileScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
-                color: Color(0xFF302036),
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(width: 8),
@@ -216,10 +213,10 @@ class ProfileScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF0FA),
+                    color: AppColors.pinkSoft,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: const Color(0xFFF6D5EC),
+                      color: AppColors.pinkSoft,
                       width: 1.2,
                     ),
                   ),
@@ -229,7 +226,7 @@ class ProfileScreen extends StatelessWidget {
                       Icon(
                         Icons.edit_rounded,
                         size: 14,
-                        color: Color(0xFFC40083),
+                        color: AppColors.primary,
                       ),
                       SizedBox(width: 4),
                       Text(
@@ -237,7 +234,7 @@ class ProfileScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFFC40083),
+                          color: AppColors.primary,
                         ),
                       ),
                     ],
@@ -252,7 +249,7 @@ class ProfileScreen extends StatelessWidget {
           '@sarah.creates',
           style: TextStyle(
             fontSize: 13,
-            color: Color(0xFF826D80),
+            color: AppColors.textSecondary,
           ),
         ),
       ],
@@ -275,7 +272,7 @@ class ProfileScreen extends StatelessWidget {
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF302036),
+              color: AppColors.textPrimary,
             ),
           ),
         ),
@@ -290,27 +287,27 @@ class ProfileScreen extends StatelessWidget {
       children: [
         _buildAchievementCard(
           icon: Icons.stars_rounded,
-          iconBg: const Color(0xFF201625),
+          iconBg: AppColors.neutral,
           iconColor: Colors.white,
           title: 'Perfect 100',
           subtitle: '100% Akurasi',
-          subtitleColor: const Color(0xFFC40083),
+          subtitleColor: AppColors.primary,
         ),
         _buildAchievementCard(
           icon: Icons.local_fire_department_rounded,
-          iconBg: const Color(0xFF201625),
-          iconColor: const Color(0xFFFF9800),
+          iconBg: AppColors.neutral,
+          iconColor: AppColors.tertiary,
           title: '7-Day Streak',
           subtitle: '7 Hari Beruntun',
-          subtitleColor: const Color(0xFFCA7629),
+          subtitleColor: AppColors.tertiary,
         ),
         _buildAchievementCard(
           icon: Icons.bolt_rounded,
-          iconBg: const Color(0xFF201625),
-          iconColor: const Color(0xFFCE93D8),
+          iconBg: AppColors.neutral,
+          iconColor: AppColors.secondary,
           title: 'Fast Signer',
           subtitle: '<1.2s Respons',
-          subtitleColor: const Color(0xFF9C27B0),
+          subtitleColor: AppColors.secondary,
         ),
       ],
     );
@@ -331,12 +328,12 @@ class ProfileScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFF0ECF4), width: 1.5),
-          boxShadow: const [
+          border: Border.all(color: AppColors.border, width: 1.5),
+          boxShadow: [
             BoxShadow(
-              color: Color(0x06000000),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 8,
-              offset: Offset(0, 4),
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -357,7 +354,7 @@ class ProfileScreen extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF302036),
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 4),
@@ -390,12 +387,12 @@ class ProfileScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF0ECF4), width: 1.5),
-        boxShadow: const [
+        border: Border.all(color: AppColors.border, width: 1.5),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x04000000),
+            color: Colors.black.withValues(alpha: 0.016),
             blurRadius: 8,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -423,7 +420,7 @@ class ProfileScreen extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF302036),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -431,7 +428,7 @@ class ProfileScreen extends StatelessWidget {
                       subtitle,
                       style: const TextStyle(
                         fontSize: 10,
-                        color: Color(0xFF826D80),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -453,7 +450,7 @@ class ProfileScreen extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progressValue,
               minHeight: 6,
-              backgroundColor: const Color(0xFFF0ECF4),
+              backgroundColor: AppColors.border,
               valueColor: AlwaysStoppedAnimation<Color>(progressColor),
             ),
           ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../models/materi_model.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -63,9 +65,25 @@ class MateriCard extends StatelessWidget {
                             color: AppColors.orangeSoft,
                             borderRadius: BorderRadius.circular(9999),
                           ),
-                          child: Text(
-                            '+${materi.xpReward} XP',
-                            style: AppTextStyles.labelXSmall.copyWith(color: AppColors.textPrimary),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/images/diamond_fix.svg',
+                                width: 11,
+                                height: 11,
+                                colorFilter: const ColorFilter.mode(
+                                  AppColors.secondary,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                '+${materi.xpReward}',
+                                style: AppTextStyles.labelXSmall.copyWith(
+                                    color: AppColors.textPrimary),
+                              ),
+                            ],
                           ),
                         ),
                       ],

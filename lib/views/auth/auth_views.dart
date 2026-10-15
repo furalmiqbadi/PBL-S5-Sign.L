@@ -7,25 +7,6 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/auth_widgets.dart';
 
-class BlankHomePage extends StatelessWidget {
-  const BlankHomePage({super.key});
-  @override
-  Widget build(BuildContext context) => PopScope<void>(
-        canPop: false,
-        // Beranda masih kosong, jadi tombol back mengembalikan user
-        // ke halaman login sebagai titik awal aplikasi.
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const LoginPage()),
-            (_) => false,
-          );
-        },
-        child: const Scaffold(body: SizedBox.expand()),
-      );
-}
-
 /// Membuka kerangka utama aplikasi setelah autentikasi berhasil.
 void openHome(BuildContext context) => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const MainShell()), (_) => false);
 

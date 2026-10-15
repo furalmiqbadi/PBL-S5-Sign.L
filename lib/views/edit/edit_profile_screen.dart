@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 /// Halaman Edit Profil Sign-L
 /// Sesuai referensi Figma & Stitch:
@@ -15,13 +16,6 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  // Brand Colors
-  static const Color primaryColor = Color(0xFFC40083);
-  static const Color darkTextColor = Color(0xFF302036);
-  static const Color mutedTextColor = Color(0xFF826D80);
-  static const Color lightBgColor = Color(0xFFF8F6F9);
-  static const Color borderColor = Color(0xFFEBE5EE);
-
   // Form Controllers
   late final TextEditingController _nameController;
   late final TextEditingController _usernameController;
@@ -54,8 +48,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'title': 'Perfect 100',
       'desc': 'Akurasi 100% pada 10 sesi evaluasi isyarat berturut-turut',
       'icon': Icons.stars_rounded,
-      'color': const Color(0xFFE91E63),
-      'bg': const Color(0xFFFCE7F3),
+      'color': AppColors.primary,
+      'bg': AppColors.pinkSoft,
       'isUnlocked': true,
       'category': 'Evaluasi',
     },
@@ -64,8 +58,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'title': '7-Day Streak',
       'desc': 'Berlatih isyarat minimal 15 menit setiap hari selama 7 hari',
       'icon': Icons.local_fire_department_rounded,
-      'color': const Color(0xFF7E57C2),
-      'bg': const Color(0xFFF3E8FF),
+      'color': AppColors.secondary,
+      'bg': AppColors.purpleSoft,
       'isUnlocked': true,
       'category': 'Konsistensi',
     },
@@ -74,8 +68,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'title': 'Fast Signer',
       'desc': 'Kecepatan respon isyarat di bawah 1.2 detik saat kuis',
       'icon': Icons.bolt_rounded,
-      'color': const Color(0xFFF57C00),
-      'bg': const Color(0xFFFFEDD5),
+      'color': AppColors.tertiary,
+      'bg': AppColors.orangeSoft,
       'isUnlocked': true,
       'category': 'Kecepatan',
     },
@@ -84,8 +78,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'title': 'Kamus Explorer',
       'desc': 'Mempelajari dan mempraktikkan lebih dari 50 kosakata kamus',
       'icon': Icons.auto_stories_rounded,
-      'color': const Color(0xFF0284C7),
-      'bg': const Color(0xFFE0F2FE),
+      'color': AppColors.info,
+      'bg': AppColors.infoSoft,
       'isUnlocked': true,
       'category': 'Eksplorasi',
     },
@@ -94,8 +88,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'title': 'Komunitas Bintang',
       'desc': 'Aktif berkontribusi di 20 diskusi tanya jawab komunitas',
       'icon': Icons.forum_rounded,
-      'color': const Color(0xFF059669),
-      'bg': const Color(0xFFD1FAE5),
+      'color': AppColors.success,
+      'bg': AppColors.successSoft,
       'isUnlocked': false,
       'category': 'Komunitas',
     },
@@ -104,8 +98,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'title': 'Master Isyarat L3',
       'desc': 'Menyelesaikan seluruh modul kurikulum tingkat mahir',
       'icon': Icons.workspace_premium_rounded,
-      'color': const Color(0xFF9333EA),
-      'bg': const Color(0xFFF3E8FF),
+      'color': AppColors.secondary,
+      'bg': AppColors.purpleSoft,
       'isUnlocked': false,
       'category': 'Kurikulum',
     },
@@ -147,7 +141,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Text('Perubahan profil berhasil disimpan!'),
           ],
         ),
-        backgroundColor: primaryColor,
+        backgroundColor: AppColors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -183,14 +177,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: darkTextColor,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 16),
                 ListTile(
                   leading: const CircleAvatar(
-                    backgroundColor: Color(0xFFFFF0FA),
-                    child: Icon(Icons.photo_camera_rounded, color: primaryColor),
+                    backgroundColor: AppColors.pinkSoft,
+                    child: Icon(Icons.photo_camera_rounded, color: AppColors.primary),
                   ),
                   title: const Text('Ambil Foto Baru', style: TextStyle(fontWeight: FontWeight.w600)),
                   onTap: () {
@@ -202,8 +196,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 ListTile(
                   leading: const CircleAvatar(
-                    backgroundColor: Color(0xFFF3E8FF),
-                    child: Icon(Icons.photo_library_rounded, color: Color(0xFF7E57C2)),
+                    backgroundColor: AppColors.purpleSoft,
+                    child: Icon(Icons.photo_library_rounded, color: AppColors.secondary),
                   ),
                   title: const Text('Pilih dari Galeri', style: TextStyle(fontWeight: FontWeight.w600)),
                   onTap: () {
@@ -215,7 +209,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 ListTile(
                   leading: const CircleAvatar(
-                    backgroundColor: Color(0xFFFFECEC),
+                    backgroundColor: AppColors.pinkSoft,
                     child: Icon(Icons.delete_outline_rounded, color: Colors.red),
                   ),
                   title: const Text('Hapus Foto Profil', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red)),
@@ -280,7 +274,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: darkTextColor,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -288,14 +282,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ListTile(
                     leading: CircleAvatar(
                       backgroundColor: lvl['title'] == _selectedLevel
-                          ? primaryColor
-                          : const Color(0xFFF3E8FF),
+                          ? AppColors.primary
+                          : AppColors.purpleSoft,
                       child: Text(
                         lvl['code']!,
                         style: TextStyle(
                           color: lvl['title'] == _selectedLevel
                               ? Colors.white
-                              : const Color(0xFF7E57C2),
+                              : AppColors.secondary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -306,12 +300,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         fontWeight: lvl['title'] == _selectedLevel
                             ? FontWeight.bold
                             : FontWeight.w600,
-                        color: darkTextColor,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     subtitle: Text(lvl['desc']!, style: const TextStyle(fontSize: 12)),
                     trailing: lvl['title'] == _selectedLevel
-                        ? const Icon(Icons.check_circle_rounded, color: primaryColor)
+                        ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
                         : null,
                     onTap: () {
                       setState(() {
@@ -337,7 +331,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
           children: [
-            Icon(Icons.explore_rounded, color: Color(0xFF8B5CF6)),
+            Icon(Icons.explore_rounded, color: AppColors.secondary),
             SizedBox(width: 8),
             Text(
               'Detail Role: Penjelajah',
@@ -351,7 +345,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           children: [
             Text(
               'Status Sarah Chen:',
-              style: TextStyle(fontWeight: FontWeight.bold, color: darkTextColor),
+              style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             SizedBox(height: 4),
             Text(
@@ -359,14 +353,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               '• Progres menuju Mahir: 65%\n'
               '• Estimasi naik level: 2 bulan lagi dengan latihan rutin\n'
               '• Benefit aktif: Kustomisasi 3 lencana profil publik',
-              style: TextStyle(fontSize: 13, height: 1.5, color: darkTextColor),
+              style: TextStyle(fontSize: 13, height: 1.5, color: AppColors.textPrimary),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Mengerti', style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
+            child: const Text('Mengerti', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -433,12 +427,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFFF0FA),
+                                color: AppColors.pinkSoft,
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: const Icon(
                                 Icons.military_tech_rounded,
-                                color: primaryColor,
+                                color: AppColors.primary,
                                 size: 22,
                               ),
                             ),
@@ -452,7 +446,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w800,
-                                      color: darkTextColor,
+                                      color: AppColors.textPrimary,
                                     ),
                                   ),
                                   SizedBox(height: 2),
@@ -460,7 +454,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     'Pilih maksimal 3 lencana untuk disematkan di profil publik',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: mutedTextColor,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -471,11 +465,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               borderRadius: BorderRadius.circular(20),
                               child: Container(
                                 padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.surfaceMuted,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.close_rounded, size: 18, color: darkTextColor),
+                                child: const Icon(Icons.close_rounded, size: 18, color: AppColors.textPrimary),
                               ),
                             ),
                           ],
@@ -496,13 +490,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
-                                    color: darkTextColor,
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF3E8FF),
+                                    color: AppColors.purpleSoft,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(
@@ -510,7 +504,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     style: const TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF7E22CE),
+                                      color: AppColors.secondary,
                                     ),
                                   ),
                                 ),
@@ -520,7 +514,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               'Batas maksimum: 3',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: mutedTextColor,
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
@@ -542,7 +536,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w800,
-                                    color: mutedTextColor,
+                                    color: AppColors.textSecondary,
                                     letterSpacing: 0.5,
                                   ),
                                 ),
@@ -550,7 +544,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   '6 Total Lencana',
                                   style: TextStyle(
                                     fontSize: 10,
-                                    color: mutedTextColor,
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                               ],
@@ -596,7 +590,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
-                                color: mutedTextColor,
+                                color: AppColors.textSecondary,
                                 letterSpacing: 0.5,
                               ),
                             ),
@@ -604,13 +598,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
-                                color: lightBgColor,
+                                color: AppColors.background,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: borderColor),
+                                border: Border.all(color: AppColors.border),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.layers_outlined, size: 16, color: primaryColor),
+                                  const Icon(Icons.layers_outlined, size: 16, color: AppColors.primary),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
@@ -618,11 +612,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       style: const TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        color: darkTextColor,
+                                        color: AppColors.textPrimary,
                                       ),
                                     ),
                                   ),
-                                  const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: mutedTextColor),
+                                  const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppColors.textSecondary),
                                 ],
                               ),
                             ),
@@ -637,13 +631,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFAF5FF),
+                            color: AppColors.purpleSoft,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE9D5FF)),
+                            border: Border.all(color: AppColors.border),
                           ),
                           child: const Row(
                             children: [
-                              Icon(Icons.check_circle_rounded, color: Color(0xFF9333EA), size: 18),
+                              Icon(Icons.check_circle_rounded, color: AppColors.secondary, size: 18),
                               SizedBox(width: 10),
                               Expanded(
                                 child: Column(
@@ -654,14 +648,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: darkTextColor,
+                                        color: AppColors.textPrimary,
                                       ),
                                     ),
                                     Text(
                                       'Akses kustomisasi 3 lencana profil aktif',
                                       style: TextStyle(
                                         fontSize: 10,
-                                        color: mutedTextColor,
+                                        color: AppColors.textSecondary,
                                       ),
                                     ),
                                   ],
@@ -672,7 +666,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF7E22CE),
+                                  color: AppColors.secondary,
                                 ),
                               ),
                             ],
@@ -702,7 +696,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 border: Border.all(
                                   color: isSelected
                                       ? (badge['color'] as Color)
-                                      : borderColor,
+                                      : AppColors.border,
                                   width: isSelected ? 1.5 : 1,
                                 ),
                                 boxShadow: [
@@ -744,7 +738,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                   style: const TextStyle(
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.bold,
-                                                    color: darkTextColor,
+                                                    color: AppColors.textPrimary,
                                                   ),
                                                 ),
                                                 Container(
@@ -752,7 +746,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                   decoration: BoxDecoration(
                                                     color: isSelected
                                                         ? (badge['color'] as Color).withValues(alpha: 0.15)
-                                                        : Colors.grey.shade100,
+                                                        : AppColors.surfaceMuted,
                                                     borderRadius: BorderRadius.circular(8),
                                                   ),
                                                   child: Text(
@@ -764,7 +758,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                       fontWeight: FontWeight.w700,
                                                       color: isSelected
                                                           ? (badge['color'] as Color)
-                                                          : mutedTextColor,
+                                                          : AppColors.textSecondary,
                                                     ),
                                                   ),
                                                 ),
@@ -775,7 +769,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                               badge['desc'] as String,
                                               style: const TextStyle(
                                                 fontSize: 11,
-                                                color: mutedTextColor,
+                                                color: AppColors.textSecondary,
                                                 height: 1.3,
                                               ),
                                             ),
@@ -785,7 +779,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     ],
                                   ),
                                   const SizedBox(height: 10),
-                                  const Divider(height: 1, thickness: 0.8, color: Color(0xFFF3EDF5)),
+                                  const Divider(height: 1, thickness: 0.8, color: AppColors.border),
                                   const SizedBox(height: 8),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -795,7 +789,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                           Icon(
                                             isUnlocked ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
                                             size: 14,
-                                            color: isUnlocked ? const Color(0xFF10B981) : Colors.grey,
+                                            color: isUnlocked ? AppColors.success : AppColors.textMuted,
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
@@ -803,7 +797,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             style: TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.w600,
-                                              color: isUnlocked ? const Color(0xFF10B981) : Colors.grey,
+                                              color: isUnlocked ? AppColors.success : AppColors.textMuted,
                                             ),
                                           ),
                                         ],
@@ -847,14 +841,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                           },
                                           child: const Row(
                                             children: [
-                                              Icon(Icons.add_circle_outline_rounded, size: 14, color: primaryColor),
+                                              Icon(Icons.add_circle_outline_rounded, size: 14, color: AppColors.primary),
                                               SizedBox(width: 4),
                                               Text(
                                                 'Pilih Ini',
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.bold,
-                                                  color: primaryColor,
+                                                  color: AppColors.primary,
                                                 ),
                                               ),
                                             ],
@@ -866,7 +860,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w600,
-                                            color: Colors.grey,
+                                            color: AppColors.textMuted,
                                           ),
                                         ),
                                     ],
@@ -899,7 +893,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? primaryColor : Colors.grey.shade100,
+          color: isSelected ? AppColors.primary : AppColors.surfaceMuted,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -907,7 +901,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.bold,
-            color: isSelected ? Colors.white : darkTextColor,
+            color: isSelected ? Colors.white : AppColors.textPrimary,
           ),
         ),
       ),
@@ -917,18 +911,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFBF9FC),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: darkTextColor),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Edit Profil',
           style: TextStyle(
-            color: darkTextColor,
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.w800,
             fontSize: 18,
           ),
@@ -939,11 +933,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             padding: const EdgeInsets.only(right: 12),
             child: TextButton.icon(
               onPressed: _saveProfile,
-              icon: const Icon(Icons.check_rounded, color: primaryColor, size: 18),
+              icon: const Icon(Icons.check_rounded, color: AppColors.primary, size: 18),
               label: const Text(
                 'Simpan',
                 style: TextStyle(
-                  color: primaryColor,
+                  color: AppColors.primary,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
@@ -993,11 +987,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 padding: const EdgeInsets.all(4),
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFE91E63), Color(0xFFFF9800)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: AppColors.brandGradient,
                 ),
                 child: Container(
                   padding: const EdgeInsets.all(3),
@@ -1019,7 +1009,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: primaryColor,
+                      color: AppColors.primary,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),
@@ -1043,14 +1033,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.edit_rounded, color: primaryColor, size: 14),
+                Icon(Icons.edit_rounded, color: AppColors.primary, size: 14),
                 SizedBox(width: 6),
                 Text(
                   'Ubah Foto Profil',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: primaryColor,
+                    color: AppColors.primary,
                   ),
                 ),
               ],
@@ -1100,7 +1090,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
-                  color: mutedTextColor,
+                  color: AppColors.textSecondary,
                 ),
               ),
             ],
@@ -1123,7 +1113,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             prefixIcon: Icons.mail_outline_rounded,
             suffixIcon: const Icon(
               Icons.check_circle_rounded,
-              color: primaryColor,
+              color: AppColors.primary,
               size: 20,
             ),
           ),
@@ -1156,10 +1146,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF0FA),
+                  color: AppColors.pinkSoft,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.military_tech_rounded, color: primaryColor, size: 20),
+                child: const Icon(Icons.military_tech_rounded, color: AppColors.primary, size: 20),
               ),
               const SizedBox(width: 10),
               const Expanded(
@@ -1171,13 +1161,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
-                        color: darkTextColor,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     SizedBox(height: 2),
                     Text(
                       'Maksimal 3 lencana disematkan di profil',
-                      style: TextStyle(fontSize: 11, color: mutedTextColor),
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -1185,7 +1175,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFE4F2),
+                  color: AppColors.pinkSoft,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -1193,7 +1183,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: primaryColor,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -1207,13 +1197,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               padding: const EdgeInsets.all(16),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: lightBgColor,
+                color: AppColors.background,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
                 'Belum ada lencana yang disematkan.\nPilih dari daftar di bawah!',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: mutedTextColor),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
             )
           else
@@ -1235,15 +1225,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF4FA),
+                color: AppColors.pinkSoft,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFFE2F1)),
+                border: Border.all(color: AppColors.pinkSoft),
               ),
               child: const Row(
                 children: [
                   CircleAvatar(
                     radius: 16,
-                    backgroundColor: Color(0xFFC40083),
+                    backgroundColor: AppColors.primary,
                     child: Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 18),
                   ),
                   SizedBox(width: 12),
@@ -1256,18 +1246,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: darkTextColor,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         SizedBox(height: 2),
                         Text(
                           '4 Terbuka, 2 Terkunci • Pilih & Ganti lencana',
-                          style: TextStyle(fontSize: 10, color: mutedTextColor),
+                          style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.chevron_right_rounded, color: primaryColor),
+                  Icon(Icons.chevron_right_rounded, color: AppColors.primary),
                 ],
               ),
             ),
@@ -1285,7 +1275,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: primaryColor.withValues(alpha: 0.6),
+                  color: AppColors.primary.withValues(alpha: 0.6),
                   width: 1.2,
                 ),
               ),
@@ -1293,14 +1283,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add_circle_outline_rounded, size: 15, color: primaryColor),
+                    Icon(Icons.add_circle_outline_rounded, size: 15, color: AppColors.primary),
                     SizedBox(width: 6),
                     Text(
                       'Kelola Lencana Lainnya',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: primaryColor,
+                        color: AppColors.primary,
                       ),
                     ),
                   ],
@@ -1361,7 +1351,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: darkTextColor,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         Container(
@@ -1386,7 +1376,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       badge['desc'] as String,
                       style: const TextStyle(
                         fontSize: 11,
-                        color: mutedTextColor,
+                        color: AppColors.textSecondary,
                         height: 1.3,
                       ),
                     ),
@@ -1401,14 +1391,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.check_circle_rounded, size: 14, color: primaryColor),
+                  Icon(Icons.check_circle_rounded, size: 14, color: AppColors.primary),
                   SizedBox(width: 4),
                   Text(
                     'Selesai • Ditampilkan di profil',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: primaryColor,
+                      color: AppColors.primary,
                     ),
                   ),
                 ],
@@ -1432,7 +1422,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: mutedTextColor,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -1452,7 +1442,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           _buildCardHeader(
             icon: Icons.back_hand_rounded,
             title: 'Preferensi Isyarat',
-            iconColor: const Color(0xFFE65100),
+            iconColor: AppColors.tertiary,
           ),
           const SizedBox(height: 16),
 
@@ -1465,15 +1455,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFFFBF9FF),
+                color: AppColors.background,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFD8B4FE)),
+                border: Border.all(color: AppColors.border),
               ),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 16,
-                    backgroundColor: const Color(0xFF7E57C2),
+                    backgroundColor: AppColors.secondary,
                     child: Text(
                       _selectedLevelCode,
                       style: const TextStyle(
@@ -1493,18 +1483,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: darkTextColor,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           _selectedLevelDesc,
-                          style: const TextStyle(fontSize: 11, color: mutedTextColor),
+                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF7E57C2)),
+                  const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.secondary),
                 ],
               ),
             ),
@@ -1518,11 +1508,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildMotivationChip('Komunikasi Keluarga', const Color(0xFFC40083), Colors.white),
-              _buildMotivationChip('Pekerjaan', const Color(0xFFF3E8FF), const Color(0xFF7E22CE)),
-              _buildMotivationChip('Teman Tuli', const Color(0xFFFFEDD5), const Color(0xFFC2410C)),
-              _buildMotivationChip('Advokasi Sosial', lightBgColor, darkTextColor),
-              _buildMotivationChip('Hobi & Edukasi', lightBgColor, darkTextColor),
+              _buildMotivationChip('Komunikasi Keluarga', AppColors.primary, Colors.white),
+              _buildMotivationChip('Pekerjaan', AppColors.purpleSoft, AppColors.secondary),
+              _buildMotivationChip('Teman Tuli', AppColors.orangeSoft, AppColors.tertiary),
+              _buildMotivationChip('Advokasi Sosial', AppColors.background, AppColors.textPrimary),
+              _buildMotivationChip('Hobi & Edukasi', AppColors.background, AppColors.textPrimary),
             ],
           ),
         ],
@@ -1547,10 +1537,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? bgColor : lightBgColor,
+          color: isSelected ? bgColor : AppColors.background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? Colors.transparent : borderColor,
+            color: isSelected ? Colors.transparent : AppColors.border,
           ),
         ),
         child: Row(
@@ -1559,7 +1549,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Icon(
               isSelected ? Icons.check_rounded : Icons.add_rounded,
               size: 14,
-              color: isSelected ? textColor : mutedTextColor,
+              color: isSelected ? textColor : AppColors.textSecondary,
             ),
             const SizedBox(width: 4),
             Text(
@@ -1567,7 +1557,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? textColor : mutedTextColor,
+                color: isSelected ? textColor : AppColors.textSecondary,
               ),
             ),
           ],
@@ -1586,10 +1576,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3E8FF),
+                  color: AppColors.purpleSoft,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.workspace_premium_outlined, color: Color(0xFF7E57C2), size: 20),
+                child: const Icon(Icons.workspace_premium_outlined, color: AppColors.secondary, size: 20),
               ),
               const SizedBox(width: 10),
               const Expanded(
@@ -1601,13 +1591,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
-                        color: darkTextColor,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     SizedBox(height: 2),
                     Text(
                       'Loyalitas & Masa Pakai Sign-L',
-                      style: TextStyle(fontSize: 11, color: mutedTextColor),
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -1615,7 +1605,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3E8FF),
+                  color: AppColors.purpleSoft,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Text(
@@ -1623,7 +1613,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF7E22CE),
+                    color: AppColors.secondary,
                   ),
                 ),
               ),
@@ -1635,9 +1625,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFFDF2F8),
+              color: AppColors.pinkSoft,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFFCE7F3)),
+              border: Border.all(color: AppColors.pinkSoft),
             ),
             child: Column(
               children: [
@@ -1654,14 +1644,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: darkTextColor,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                             const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF7E22CE),
+                                color: AppColors.secondary,
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Text(
@@ -1678,7 +1668,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         const SizedBox(height: 2),
                         const Text(
                           'Bergabung 4 bulan lalu • Menuju Mahir',
-                          style: TextStyle(fontSize: 10, color: mutedTextColor),
+                          style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -1690,12 +1680,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF7E22CE),
+                            color: AppColors.secondary,
                           ),
                         ),
                         Text(
                           '2 bulan lagi',
-                          style: TextStyle(fontSize: 9, color: mutedTextColor),
+                          style: TextStyle(fontSize: 9, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -1707,8 +1697,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: const LinearProgressIndicator(
                     value: 0.65,
                     minHeight: 7,
-                    color: primaryColor,
-                    backgroundColor: Color(0xFFF0E5F3),
+                    color: AppColors.primary,
+                    backgroundColor: AppColors.purpleSoft,
                   ),
                 ),
               ],
@@ -1719,25 +1709,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           // Timeline Langkah Role
           _buildRoleTimelineStep(
             icon: Icons.check_rounded,
-            iconBgColor: const Color(0xFF10B981),
+            iconBgColor: AppColors.success,
             title: 'Pemula',
             subtitle: 'Baru bergabung di Sign-L',
             badgeText: 'Tercapai ✓',
-            badgeBgColor: const Color(0xFFD1FAE5),
-            badgeTextColor: const Color(0xFF065F46),
+            badgeBgColor: AppColors.successSoft,
+            badgeTextColor: AppColors.success,
             isDone: true,
             hasLine: true,
-            lineColor: const Color(0xFF10B981),
+            lineColor: AppColors.success,
           ),
           _buildRoleTimelineStep(
             icon: Icons.explore_rounded,
-            iconBgColor: const Color(0xFF8B5CF6),
+            iconBgColor: AppColors.secondary,
             title: 'Penjelajah',
             activePill: true,
             subtitle: 'Aktif 1 - 6 Bulan & menjelajahi kamus\nStatus Sarah Chen: Progres 65% menuju Mahir',
             badgeText: '1 - 6 Bulan',
-            badgeBgColor: const Color(0xFFF3E8FF),
-            badgeTextColor: const Color(0xFF7E22CE),
+            badgeBgColor: AppColors.purpleSoft,
+            badgeTextColor: AppColors.secondary,
             actionLink: 'Ketuk detail',
             onActionTap: _showRoleDetailDialog,
             isDone: true,
@@ -1751,8 +1741,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             title: 'Mahir',
             subtitle: 'Aktif 1 - 2 Tahun & kontributor latihan',
             badgeText: '🔒 Belum Terbuka',
-            badgeBgColor: Colors.grey.shade100,
-            badgeTextColor: mutedTextColor,
+            badgeBgColor: AppColors.surfaceMuted,
+            badgeTextColor: AppColors.textSecondary,
             isDone: false,
             hasLine: true,
             lineColor: Colors.grey.shade300,
@@ -1764,8 +1754,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             title: 'Master Signer',
             subtitle: 'Aktif 3+ Tahun & mentor duta aksesibilitas',
             badgeText: '🔒 Belum Terbuka',
-            badgeBgColor: Colors.grey.shade100,
-            badgeTextColor: mutedTextColor,
+            badgeBgColor: AppColors.surfaceMuted,
+            badgeTextColor: AppColors.textSecondary,
             isDone: false,
             hasLine: false,
           ),
@@ -1834,7 +1824,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: darkTextColor,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           if (activePill) ...[
@@ -1842,7 +1832,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF7E22CE),
+                                color: AppColors.secondary,
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Text(
@@ -1879,7 +1869,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     subtitle,
                     style: const TextStyle(
                       fontSize: 11,
-                      color: mutedTextColor,
+                      color: AppColors.textSecondary,
                       height: 1.3,
                     ),
                   ),
@@ -1892,7 +1882,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF7E22CE),
+                          color: AppColors.secondary,
                           decoration: TextDecoration.underline,
                         ),
                       ),
@@ -1907,48 +1897,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildBottomSaveButton() {
-    return Container(
-      width: double.infinity,
-      height: 52,
-      decoration: BoxDecoration(
-        color: primaryColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0xFF8E005F),
-            offset: Offset(0, 4),
-            blurRadius: 0,
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _saveProfile,
-          borderRadius: BorderRadius.circular(16),
-          child: const Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.save_rounded, color: Colors.white, size: 20),
-                SizedBox(width: 8),
-                Text(
-                  'Simpan Perubahan',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   // Helper Widgets
   Widget _buildContainerCard({required Widget child}) {
     return Container(
@@ -1957,7 +1905,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: borderColor),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -1973,7 +1921,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildCardHeader({
     required IconData icon,
     required String title,
-    Color iconColor = primaryColor,
+    Color iconColor = AppColors.primary,
   }) {
     return Row(
       children: [
@@ -1991,7 +1939,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w800,
-            color: darkTextColor,
+            color: AppColors.textPrimary,
           ),
         ),
       ],
@@ -2004,7 +1952,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       style: const TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w700,
-        color: darkTextColor,
+        color: AppColors.textPrimary,
       ),
     );
   }
@@ -2019,9 +1967,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: lightBgColor,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor),
+        border: Border.all(color: AppColors.border),
       ),
       child: TextField(
         controller: controller,
@@ -2033,19 +1981,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         style: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: darkTextColor,
+          color: AppColors.textPrimary,
         ),
         decoration: InputDecoration(
           filled: false,
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          prefixIcon: Icon(prefixIcon, color: mutedTextColor, size: 18),
+          prefixIcon: Icon(prefixIcon, size: 18, color: AppColors.textSecondary),
           suffixIcon: suffixIcon,
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: primaryColor, width: 1.2),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
           ),
         ),
       ),

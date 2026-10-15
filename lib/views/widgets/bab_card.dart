@@ -229,8 +229,8 @@ class BabCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              'https://placehold.co/80x80.png',
+            child: Image.asset(
+              'assets/images/bisindo.jpg',
               fit: BoxFit.cover,
               // Bila gambar gagal dimuat, biarkan warna latar kartu terlihat.
               errorBuilder: (_, __, ___) => const SizedBox.expand(),
