@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../controllers/chat_controller.dart';
 import 'chat/chat_list_view.dart';
 import 'home/home_page.dart';
 import 'home/kuis_page.dart';
@@ -336,7 +338,12 @@ class _MainShellState extends State<MainShell> {
       body: MateriPage(),
     ),
     _HeaderPage(
-      header: KomunitasHeader(onMessages: _openChat),
+      header: Consumer<ChatController>(
+        builder: (context, chat, _) => KomunitasHeader(
+          unreadCount: chat.totalUnreadMessages,
+          onMessages: _openChat,
+        ),
+      ),
       body: const KomunitasPage(),
     ),
     const _HeaderPage(

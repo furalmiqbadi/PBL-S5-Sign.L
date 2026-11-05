@@ -6,6 +6,9 @@ library;
 /// Kategori notifikasi (dipakai untuk filter dan pemilihan ikon di View).
 enum NotificationCategory { komunitas, belajar, pencapaian }
 
+/// Halaman tujuan saat notifikasi dibuka.
+enum NotificationTarget { community, learning, achievement }
+
 extension NotificationCategoryX on NotificationCategory {
   /// Label Indonesia untuk ditampilkan pada tag kategori.
   String get label {
@@ -54,6 +57,18 @@ class AppNotification {
   final String? avatarUrl;
 
   bool get hasAction => actionLabel != null && actionLabel!.isNotEmpty;
+
+  /// Tujuan navigasi yang diturunkan dari kategori notifikasi.
+  NotificationTarget get target {
+    switch (category) {
+      case NotificationCategory.komunitas:
+        return NotificationTarget.community;
+      case NotificationCategory.belajar:
+        return NotificationTarget.learning;
+      case NotificationCategory.pencapaian:
+        return NotificationTarget.achievement;
+    }
+  }
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
     return AppNotification(

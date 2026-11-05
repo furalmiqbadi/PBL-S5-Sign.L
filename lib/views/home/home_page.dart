@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+
+import '../../controllers/chat_controller.dart';
+import '../../controllers/notification_controller.dart';
 import '../chat/chat_list_view.dart';
 import '../komunitas/komunitas_page.dart';
 import 'detail_materi_page.dart';
@@ -12,7 +16,7 @@ class HomePage extends StatefulWidget {
   final VoidCallback? onOpenProfile; // <-- TAMBAHAN CALLBACK PROFIL
 
   const HomePage({
-    super.key, 
+    super.key,
     this.onOpenCommunity,
     this.onOpenProfile,
   });
@@ -104,6 +108,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHeader() {
+    final notificationUnread =
+        context.watch<NotificationController>().unreadCount;
+    final chatUnread = context.watch<ChatController>().totalUnreadMessages;
+
     return Row(
       children: [
         Container(
@@ -113,7 +121,8 @@ class _HomePageState extends State<HomePage> {
             color: AppColors.pinkSoft,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.sign_language, color: AppColors.primary, size: 20),
+          child: const Icon(Icons.sign_language,
+              color: AppColors.primary, size: 20),
         ),
         const SizedBox(width: 12),
         Text(
@@ -136,19 +145,20 @@ class _HomePageState extends State<HomePage> {
               ),
               onPressed: _openNotifications,
             ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.surface, width: 2),
+            if (notificationUnread > 0)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.surface, width: 2),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
         Stack(
@@ -166,21 +176,26 @@ class _HomePageState extends State<HomePage> {
               ),
               onPressed: _openChat,
             ),
-            Positioned(
-              right: 4,
-              top: 4,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: const Text(
-                  '3',
-                  style: TextStyle(color: AppColors.textOnPrimary, fontSize: 10, fontWeight: FontWeight.bold),
+            if (chatUnread > 0)
+              Positioned(
+                right: 4,
+                top: 4,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    chatUnread > 9 ? '9+' : '$chatUnread',
+                    style: const TextStyle(
+                      color: AppColors.textOnPrimary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
         const SizedBox(width: 8),
@@ -189,7 +204,8 @@ class _HomePageState extends State<HomePage> {
           onTap: _openProfile,
           child: CircleAvatar(
             radius: 16,
-            backgroundImage: const NetworkImage('https://i.pravatar.cc/100?img=5'),
+            backgroundImage:
+                const NetworkImage('https://i.pravatar.cc/100?img=5'),
             onBackgroundImageError: (_, __) {},
           ),
         ),
@@ -208,7 +224,8 @@ class _HomePageState extends State<HomePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildStatItem(Icons.local_fire_department, AppColors.tertiary, 'Streak', '7 Hari'),
+          _buildStatItem(Icons.local_fire_department, AppColors.tertiary,
+              'Streak', '7 Hari'),
           Container(width: 1, height: 32, color: AppColors.border),
           _buildStatItem(Icons.favorite, AppColors.primary, 'Nyawa', '5/5'),
           Container(width: 1, height: 32, color: AppColors.border),
@@ -218,7 +235,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildStatItem(IconData icon, Color iconColor, String label, String value) {
+  Widget _buildStatItem(
+      IconData icon, Color iconColor, String label, String value) {
     return Row(
       children: [
         Container(
@@ -235,11 +253,13 @@ class _HomePageState extends State<HomePage> {
           children: [
             Text(
               label,
-              style: AppTextStyles.labelSmall.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.labelSmall
+                  .copyWith(color: AppColors.textSecondary),
             ),
             Text(
               value,
-              style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.bold),
+              style: AppTextStyles.labelLarge
+                  .copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -270,7 +290,8 @@ class _HomePageState extends State<HomePage> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.play_circle_outline, color: AppColors.primary, size: 20),
+                  const Icon(Icons.play_circle_outline,
+                      color: AppColors.primary, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     'LANJUTKAN BELAJAR',
@@ -284,19 +305,22 @@ class _HomePageState extends State<HomePage> {
               ),
               Text(
                 '68% Selesai',
-                style: AppTextStyles.labelMedium.copyWith(color: AppColors.textSecondary),
+                style: AppTextStyles.labelMedium
+                    .copyWith(color: AppColors.textSecondary),
               ),
             ],
           ),
           const SizedBox(height: 16),
           Text(
             'Bab 1: Alfabet Isyarat',
-            style: AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.bold),
+            style:
+                AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
           Text(
             'Materi Terakhir: Huruf J s/d R & Latihan Refleks',
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.bodyMedium
+                .copyWith(color: AppColors.textSecondary),
           ),
           const SizedBox(height: 20),
           Row(
@@ -328,14 +352,16 @@ class _HomePageState extends State<HomePage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.textOnPrimary,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   elevation: 0,
                 ),
                 icon: const Icon(Icons.play_arrow, size: 18),
-                label: const Text('Lanjut', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text('Lanjut',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -363,7 +389,8 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(width: 8),
                   Text(
                     'Komunitas',
-                    style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold),
+                    style: AppTextStyles.titleMedium
+                        .copyWith(fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -380,7 +407,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(Icons.arrow_forward, color: AppColors.primary, size: 16),
+                    const Icon(Icons.arrow_forward,
+                        color: AppColors.primary, size: 16),
                   ],
                 ),
               ),
@@ -410,7 +438,9 @@ class _HomePageState extends State<HomePage> {
                 width: _currentCommunityPage == index ? 24 : 8,
                 height: 8,
                 decoration: BoxDecoration(
-                  color: _currentCommunityPage == index ? AppColors.primary : AppColors.border,
+                  color: _currentCommunityPage == index
+                      ? AppColors.primary
+                      : AppColors.border,
                   borderRadius: BorderRadius.circular(4),
                 ),
               );
@@ -438,26 +468,30 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   CircleAvatar(
                     radius: 12,
-                    backgroundImage: const NetworkImage('https://i.pravatar.cc/100?img=11'),
+                    backgroundImage:
+                        const NetworkImage('https://i.pravatar.cc/100?img=11'),
                     onBackgroundImageError: (_, __) {},
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Rian Pratama',
-                    style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold),
+                    style: AppTextStyles.labelMedium
+                        .copyWith(fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
               Text(
                 '10m lalu',
-                style: AppTextStyles.labelSmall.copyWith(color: AppColors.textSecondary),
+                style: AppTextStyles.labelSmall
+                    .copyWith(color: AppColors.textSecondary),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             "Ada yang tahu perbedaan gestur 'Terima Kasih' vs 'Sama-Sama' di BISINDO daerah...",
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textPrimary),
+            style:
+                AppTextStyles.bodySmall.copyWith(color: AppColors.textPrimary),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -466,11 +500,16 @@ class _HomePageState extends State<HomePage> {
             children: [
               const Icon(Icons.favorite, color: AppColors.primary, size: 14),
               const SizedBox(width: 4),
-              Text('24 suka', style: AppTextStyles.labelSmall.copyWith(color: AppColors.primary)),
+              Text('24 suka',
+                  style: AppTextStyles.labelSmall
+                      .copyWith(color: AppColors.primary)),
               const SizedBox(width: 16),
-              const Icon(Icons.chat_bubble_outline, color: AppColors.textMuted, size: 14),
+              const Icon(Icons.chat_bubble_outline,
+                  color: AppColors.textMuted, size: 14),
               const SizedBox(width: 4),
-              Text('8 balasan', style: AppTextStyles.labelSmall.copyWith(color: AppColors.textSecondary)),
+              Text('8 balasan',
+                  style: AppTextStyles.labelSmall
+                      .copyWith(color: AppColors.textSecondary)),
             ],
           ),
         ],
@@ -495,12 +534,14 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: Row(
                   children: [
-                    const Icon(Icons.emoji_events_outlined, color: AppColors.tertiary),
+                    const Icon(Icons.emoji_events_outlined,
+                        color: AppColors.tertiary),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Papan Peringkat\nPekan Ini',
-                        style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold),
+                        style: AppTextStyles.titleMedium
+                            .copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -519,7 +560,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(Icons.arrow_forward, color: AppColors.primary, size: 16),
+                    const Icon(Icons.arrow_forward,
+                        color: AppColors.primary, size: 16),
                   ],
                 ),
               ),
@@ -534,23 +576,31 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildLeaderboardItem(int rank, String name, String xp, bool isCurrentUser) {
+  Widget _buildLeaderboardItem(
+      int rank, String name, String xp, bool isCurrentUser) {
     Widget medalIcon;
     if (rank == 1) {
-      medalIcon = const Icon(Icons.military_tech, color: AppColors.warning, size: 28);
+      medalIcon =
+          const Icon(Icons.military_tech, color: AppColors.warning, size: 28);
     } else if (rank == 2) {
-      medalIcon = const Icon(Icons.military_tech, color: AppColors.textMuted, size: 28);
+      medalIcon =
+          const Icon(Icons.military_tech, color: AppColors.textMuted, size: 28);
     } else {
-      medalIcon = const Icon(Icons.military_tech, color: AppColors.tertiary, size: 28);
+      medalIcon =
+          const Icon(Icons.military_tech, color: AppColors.tertiary, size: 28);
     }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isCurrentUser ? AppColors.pinkSoft.withValues(alpha: 0.3) : AppColors.surface,
+        color: isCurrentUser
+            ? AppColors.pinkSoft.withValues(alpha: 0.3)
+            : AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: isCurrentUser ? Border.all(color: AppColors.primary.withValues(alpha: 0.5)) : null,
+        border: isCurrentUser
+            ? Border.all(color: AppColors.primary.withValues(alpha: 0.5))
+            : null,
         boxShadow: isCurrentUser
             ? null
             : [
@@ -582,29 +632,39 @@ class _HomePageState extends State<HomePage> {
                       name,
                       style: AppTextStyles.labelLarge.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isCurrentUser ? AppColors.primary : AppColors.textPrimary,
+                        color: isCurrentUser
+                            ? AppColors.primary
+                            : AppColors.textPrimary,
                       ),
                     ),
                     if (isCurrentUser) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
                           'Kamu',
-                          style: TextStyle(color: AppColors.textOnPrimary, fontSize: 10, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: AppColors.textOnPrimary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
                   ],
                 ),
                 Text(
-                  isCurrentUser ? 'Peringkat $rank (+2 posisi hari ini)' : 'Peringkat $rank',
+                  isCurrentUser
+                      ? 'Peringkat $rank (+2 posisi hari ini)'
+                      : 'Peringkat $rank',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: isCurrentUser ? AppColors.primary.withValues(alpha: 0.8) : AppColors.textSecondary,
+                    color: isCurrentUser
+                        ? AppColors.primary.withValues(alpha: 0.8)
+                        : AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -612,10 +672,14 @@ class _HomePageState extends State<HomePage> {
           ),
           Row(
             children: [
-              Icon(Icons.bolt, color: isCurrentUser ? AppColors.primary : AppColors.secondary, size: 16),
+              Icon(Icons.bolt,
+                  color:
+                      isCurrentUser ? AppColors.primary : AppColors.secondary,
+                  size: 16),
               Text(
                 xp,
-                style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold),
+                style: AppTextStyles.labelMedium
+                    .copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
