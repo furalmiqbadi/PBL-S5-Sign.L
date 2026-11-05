@@ -11,8 +11,7 @@ enum ChatFilter { semua, belumDibaca, grup }
 /// Hanya mengelola state UI dan mendelegasikan pengambilan data ke
 /// [ChatService]. Tidak boleh memuat logika berat / akses database langsung.
 class ChatController extends ChangeNotifier {
-  ChatController({ChatService? service})
-      : _service = service ?? ChatService();
+  ChatController({ChatService? service}) : _service = service ?? ChatService();
 
   final ChatService _service;
 
@@ -23,11 +22,18 @@ class ChatController extends ChangeNotifier {
   ChatFilter filter = ChatFilter.semua;
   String query = '';
 
+  // --- State daftar kontak untuk pesan baru ---
+  List<ChatContact> contacts = [];
+  bool isLoadingContacts = false;
+
   // --- State ruang percakapan aktif ---
   ChatRoom? activeRoom;
   List<ChatMessage> activeMessages = [];
   bool isLoadingMessages = false;
   bool isSending = false;
+  String? roomErrorMessage;
+
+  final Set<String> _mutedRoomIds = {};
 
   /// Daftar percakapan setelah difilter (kategori + kata kunci pencarian).
   List<ChatRoom> get rooms {
@@ -63,6 +69,8 @@ class ChatController extends ChangeNotifier {
   int get totalUnreadMessages =>
       _rooms.fold(0, (sum, room) => sum + room.unreadCount);
 
+  bool isMuted(String roomId) => _mutedRoomIds.contains(roomId);
+
   Future<void> loadRooms() async {
     isLoading = true;
     errorMessage = null;
@@ -74,6 +82,20 @@ class ChatController extends ChangeNotifier {
       errorMessage = 'Gagal memuat percakapan. Silakan coba lagi.';
     } finally {
       isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadContacts() async {
+    isLoadingContacts = true;
+    notifyListeners();
+
+    try {
+      contacts = await _service.getContacts();
+    } catch (e) {
+      contacts = [];
+    } finally {
+      isLoadingContacts = false;
       notifyListeners();
     }
   }
@@ -91,20 +113,42 @@ class ChatController extends ChangeNotifier {
 
   /// Membuka ruang percakapan dan memuat riwayat pesannya.
   Future<void> openRoom(ChatRoom room) async {
-    activeRoom = room;
+    final current = _rooms.firstWhere(
+      (item) => item.id == room.id,
+      orElse: () => room,
+    );
+    activeRoom = current;
     activeMessages = [];
+    roomErrorMessage = null;
     isLoadingMessages = true;
     notifyListeners();
 
     try {
-      activeMessages = await _service.getMessages(room.id);
-      _markRoomAsRead(room.id);
+      activeMessages = await _service.getMessages(current.id);
+      _markRoomAsRead(current.id);
+      await _service.markRoomRead(current.id);
     } catch (e) {
-      errorMessage = 'Gagal memuat pesan. Silakan coba lagi.';
+      roomErrorMessage = 'Gagal memuat pesan. Silakan coba lagi.';
     } finally {
       isLoadingMessages = false;
       notifyListeners();
     }
+  }
+
+  /// Memulai percakapan dengan sebuah kontak, membuat ruang baru bila perlu.
+  Future<ChatRoom> startChat(ChatContact contact) async {
+    for (final room in _rooms) {
+      if (room.name.toLowerCase() == contact.name.toLowerCase()) {
+        await openRoom(room);
+        return room;
+      }
+    }
+
+    final room = await _service.createRoom(contact);
+    _rooms = [room, ..._rooms];
+    notifyListeners();
+    await openRoom(room);
+    return room;
   }
 
   /// Mengirim pesan baru pada ruang aktif.
@@ -114,6 +158,7 @@ class ChatController extends ChangeNotifier {
     if (trimmed.isEmpty || room == null || isSending) return;
 
     isSending = true;
+    roomErrorMessage = null;
     notifyListeners();
 
     try {
@@ -124,19 +169,33 @@ class ChatController extends ChangeNotifier {
       activeMessages = [...activeMessages, message];
       _updateRoomPreview(room.id, trimmed);
     } catch (e) {
-      errorMessage = 'Pesan gagal terkirim.';
+      roomErrorMessage = 'Pesan gagal terkirim.';
     } finally {
       isSending = false;
       notifyListeners();
     }
   }
 
+  /// Menghapus seluruh riwayat pada ruang aktif.
+  Future<void> clearActiveMessages() async {
+    final room = activeRoom;
+    if (room == null) return;
+    await _service.clearMessages(room.id);
+    activeMessages = [];
+    notifyListeners();
+  }
+
+  void toggleMute(String roomId) {
+    if (!_mutedRoomIds.remove(roomId)) {
+      _mutedRoomIds.add(roomId);
+    }
+    notifyListeners();
+  }
+
   void _markRoomAsRead(String roomId) {
     _rooms = _rooms
         .map(
-          (room) => room.id == roomId
-              ? room.copyWith(unreadCount: 0)
-              : room,
+          (room) => room.id == roomId ? room.copyWith(unreadCount: 0) : room,
         )
         .toList();
   }
