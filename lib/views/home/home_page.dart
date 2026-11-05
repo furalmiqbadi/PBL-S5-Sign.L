@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../chat/chat_list_view.dart';
 import '../komunitas/komunitas_page.dart';
+import '../widgets/leaderboard.dart';
 import 'detail_materi_page.dart';
 import '../notification/notification_view.dart';
 import '../theme/app_colors.dart';
@@ -67,10 +68,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openLeaderboard() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Membuka Papan Peringkat Lengkap...')),
-    );
+    showLeaderboardSheet(context);
   }
+
 
   void _openNotifications() {
     Navigator.push(
