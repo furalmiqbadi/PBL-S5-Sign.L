@@ -22,3 +22,26 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+
+subprojects {
+    val configureAction = Action<Project> {
+        plugins.withId("com.android.library") {
+            extensions.configure<com.android.build.gradle.LibraryExtension>("android") {
+                compileSdk = 36
+            }
+        }
+    }
+    if (state.executed) {
+        configureAction.execute(this)
+    } else {
+        afterEvaluate(configureAction)
+    }
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.tensorflow" && requested.name.startsWith("tensorflow-lite")) {
+                useVersion("2.16.1")
+            }
+        }
+    }
+}
+

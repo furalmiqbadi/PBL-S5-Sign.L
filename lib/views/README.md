@@ -18,7 +18,11 @@ Folder ini berisi seluruh tampilan antarmuka (User Interface) aplikasi. Ditulis 
 ---
 
 ## 📂 Sub-Folder di Dalam `views/`:
-- `auth/`: Halaman Login, Register, Lupa Password, dan Onboarding.
-- `camera/`: Halaman Kamera untuk pendeteksian gestur bahasa isyarat secara real-time / jepretan.
-- `home/`: Halaman Utama menampilkan jalur modul belajar (learning path), info Level, XP, dan Streak.
-- `widgets/`: Komponen UI kustom yang dapat digunakan berulang kali di berbagai halaman (seperti tombol 3D Duolingo, bar progress, dialog hasil).
+- `auth/`: Halaman Login, Register, Lupa Password, dan Reset Password. 
+- `home/`: Halaman Beranda — jalur belajar (learning path), streak, XP, level.
+- `camera/`: Halaman Kamera — preview kamera + bounding box + hasil AI. 
+- `komunitas/`: Halaman Komunitas — forum diskusi, latihan bersama, leaderboard.
+- `profile/`: Halaman Profil — identitas user, statistik, badge/pencapaian.  
+- `setting/`: Halaman Pengaturan — preferensi, notifikasi, akun, logout. 
+- `edit/`: Halaman Edit Profil — form ubah foto, nama, username, bio, password.
+- `widgets/`: Komponen UI kustom reusable (tombol 3D Duolingo, bar progress, header, dll).

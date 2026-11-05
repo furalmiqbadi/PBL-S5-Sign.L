@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'app_bottom_nav_bar.dart' show kDummyAvatarUrl;
+import '../theme/app_colors.dart';
 import 'section_header.dart';
 
 /// Header halaman Beranda: logo aplikasi + nama "Sign.L" di kiri, lalu di
@@ -70,11 +71,7 @@ class _AppLogo extends StatelessWidget {
       height: 34,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFF57C00), Color(0xFFD81B60)],
-        ),
+        gradient: AppColors.brandGradient,
       ),
       child: const Icon(
         Icons.sign_language_rounded,

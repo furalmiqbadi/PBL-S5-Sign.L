@@ -8,6 +8,7 @@ android {
     namespace = "com.pbl.sign.L" 
     // Beberapa plugin (camera_android, sqflite_android, dll.) butuh compileSdk 36.
     compileSdk = 36
+    compileSdk = 36 // Compatible dengan Android 15
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -24,6 +25,8 @@ android {
         minSdk = 31
         // Target Android 15 (API 35).
         targetSdk = 35
+        minSdk = 29 // Minimal Android 10 (API 29). 
+        targetSdk = 36 // Target Android 15 
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
         // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
