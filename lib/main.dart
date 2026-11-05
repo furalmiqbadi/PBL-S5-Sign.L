@@ -54,8 +54,10 @@ class SignLApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),
-        ChangeNotifierProvider(create: (_) => ChatController()),
-        ChangeNotifierProvider(create: (_) => NotificationController()),
+        ChangeNotifierProvider(create: (_) => ChatController()..loadRooms()),
+        ChangeNotifierProvider(
+          create: (_) => NotificationController()..load(),
+        ),
         // `..load()` membaca preferensi tersimpan (mis. ukuran teks) saat app dibuka.
         ChangeNotifierProvider(create: (_) => SettingsController()..load()),
       ],

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../controllers/chat_controller.dart';
 import 'chat/chat_list_view.dart';
 import 'home/home_page.dart';
 import 'home/materi_page.dart';
@@ -287,6 +289,57 @@ class _MainShellState extends State<MainShell> {
           centerIcon: Icons.menu_book_rounded,
           centerLabel: 'Materi',
         ),
+  /// Halaman tiap tab. `late final` agar dibuat sekali, dan bisa memakai
+  /// callback yang butuh context milik State ini.
+  late final List<Widget> _pages = [
+    // Beranda punya header sendiri di dalam ListView-nya (logo, notifikasi,
+    // DM, avatar), jadi tidak dibungkus _HeaderPage. Header itu ikut
+    // tergulir bersama konten.
+    HomePage(
+      onOpenCommunity: () => _goTo(_komunitasTabIndex),
+      onOpenProfile: () => _goTo(_profilTabIndex),
+    ),
+    // Header Kuis sama persis dengan header Materi, hanya berbeda judul.
+    const _HeaderPage(
+      header: MateriHeader(title: 'Kuis'),
+      body: KuisPage(),
+    ),
+    const _HeaderPage(
+      header: MateriHeader(),
+      body: MateriPage(),
+    ),
+    _HeaderPage(
+      header: Consumer<ChatController>(
+        builder: (context, chat, _) => KomunitasHeader(
+          unreadCount: chat.totalUnreadMessages,
+          onMessages: _openChat,
+        ),
+      ),
+      body: const KomunitasPage(),
+    ),
+    const _HeaderPage(
+      header: ProfilHeader(),
+      body: ProfileScreen(),
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: PageView(
+        controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(),
+        children: [
+          for (final page in _pages) _KeepAlivePage(child: page),
+        ],
+      ),
+      bottomNavigationBar: AppBottomNavBar(
+        items: _items,
+        selectedIndex: _index,
+        onSelect: _goTo,
+        onCenterTap: () => _goTo(AppBottomNavBar.centerIndex),
+        centerIcon: Icons.menu_book_rounded,
+        centerLabel: 'Materi',
       ),
     );
   }
