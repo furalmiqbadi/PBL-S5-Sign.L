@@ -6,17 +6,11 @@ import '../../controllers/settings_controller.dart';
 import '../../models/app_settings.dart';
 import '../auth/auth_views.dart';
 import '../edit/edit_profile_screen.dart';
+import '../theme/app_colors.dart';
 
 // ============================================================================
 // 1. KONSTANTA
 // ============================================================================
-
-// Palet brand Sign.L (sama dengan halaman Profil & Edit Profil).
-const Color _primary = Color(0xFFC40083);
-const Color _ink = Color(0xFF302036);
-const Color _muted = Color(0xFF826D80);
-const Color _border = Color(0xFFF0ECF4);
-const Color _bg = Color(0xFFFFF7FC);
 
 /// Versi mengikuti `pubspec.yaml` (1.0.0+1). Ganti bila versi dinaikkan.
 const String _appVersion = 'Versi 1.0.0 (Build 1)';
@@ -123,7 +117,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: AppColors.textMuted,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -133,7 +127,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: _ink,
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -144,12 +138,13 @@ class _SettingScreenState extends State<SettingScreen> {
                     style: TextStyle(
                       fontWeight:
                           o.value == selected ? FontWeight.w800 : FontWeight.w600,
-                      color: _ink,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   subtitle: o.subtitle == null ? null : Text(o.subtitle!),
                   trailing: o.value == selected
-                      ? const Icon(Icons.check_circle_rounded, color: _primary)
+                      ? const Icon(Icons.check_circle_rounded,
+                          color: AppColors.primary)
                       : null,
                   onTap: () => Navigator.pop(ctx, o.value),
                 ),
@@ -171,12 +166,14 @@ class _SettingScreenState extends State<SettingScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal', style: TextStyle(color: _muted)),
+            child: const Text('Batal',
+                style: TextStyle(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Keluar',
-                style: TextStyle(color: _primary, fontWeight: FontWeight.w800)),
+                style: TextStyle(
+                    color: AppColors.primary, fontWeight: FontWeight.w800)),
           ),
         ],
       ),
@@ -212,8 +209,8 @@ class _SettingScreenState extends State<SettingScreen> {
           _Row(
             child: _NavTile(
               icon: Icons.sign_language_rounded,
-              iconColor: _primary,
-              iconBg: const Color(0xFFFFE6F3),
+              iconColor: AppColors.primary,
+              iconBg: AppColors.pinkSoft,
               title: 'Dialek Isyarat Utama',
               subtitle: s.dialect == 'SIBI'
                   ? 'SIBI (Sistem Isyarat Bahasa Indonesia)'
@@ -224,8 +221,8 @@ class _SettingScreenState extends State<SettingScreen> {
           _Row(
             child: _SwitchTile(
               icon: Icons.flip_rounded,
-              iconColor: const Color(0xFFCA7629),
-              iconBg: const Color(0xFFF9EFE6),
+              iconColor: AppColors.tertiary,
+              iconBg: AppColors.orangeSoft,
               title: 'Mode Cermin (Mirror View)',
               subtitle: 'Membalikkan arah peragaan video',
               value: s.mirrorMode,
@@ -240,8 +237,8 @@ class _SettingScreenState extends State<SettingScreen> {
           _Row(
             child: _SwitchTile(
               icon: Icons.schedule_rounded,
-              iconColor: const Color(0xFF7E57C2),
-              iconBg: const Color(0xFFF2E6F9),
+              iconColor: AppColors.secondary,
+              iconBg: AppColors.purpleSoft,
               title: 'Pengingat Latihan Harian',
               subtitleWidget: Row(
                 children: [
@@ -253,7 +250,7 @@ class _SettingScreenState extends State<SettingScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF0ECF4),
+                        color: AppColors.border,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -261,14 +258,15 @@ class _SettingScreenState extends State<SettingScreen> {
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: _muted,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 6),
                   const Text('Setiap Hari',
-                      style: TextStyle(fontSize: 11, color: _muted)),
+                      style: TextStyle(
+                          fontSize: 11, color: AppColors.textSecondary)),
                 ],
               ),
               value: s.dailyReminder,
@@ -278,8 +276,8 @@ class _SettingScreenState extends State<SettingScreen> {
           _Row(
             child: _SwitchTile(
               icon: Icons.local_fire_department_rounded,
-              iconColor: const Color(0xFFCA7629),
-              iconBg: const Color(0xFFF9EFE6),
+              iconColor: AppColors.tertiary,
+              iconBg: AppColors.orangeSoft,
               title: 'Peringatan Streak 7 Hari',
               subtitle: 'Kabar capaian dan lencana baru',
               value: s.streakReminder,
@@ -294,8 +292,8 @@ class _SettingScreenState extends State<SettingScreen> {
           _Row(
             child: _NavTile(
               icon: Icons.text_fields_rounded,
-              iconColor: _ink,
-              iconBg: const Color(0xFFF0ECF4),
+              iconColor: AppColors.textPrimary,
+              iconBg: AppColors.border,
               title: 'Ukuran Teks & Kontras Tinggi',
               subtitle: '${s.textSize.label} (Optimal untuk Pembelajar Tuli)',
               onTap: () => _pickTextSize(c),
@@ -304,8 +302,8 @@ class _SettingScreenState extends State<SettingScreen> {
           _Row(
             child: _SwitchTile(
               icon: Icons.vibration_rounded,
-              iconColor: _ink,
-              iconBg: const Color(0xFFF0ECF4),
+              iconColor: AppColors.textPrimary,
+              iconBg: AppColors.border,
               title: 'Getaran Responsif (Haptic Feedback)',
               subtitle: 'Getaran halus saat isyarat berhasil',
               value: s.haptic,
@@ -320,8 +318,8 @@ class _SettingScreenState extends State<SettingScreen> {
           _Row(
             child: _NavTile(
               icon: Icons.lock_outline_rounded,
-              iconColor: _ink,
-              iconBg: const Color(0xFFF0ECF4),
+              iconColor: AppColors.textPrimary,
+              iconBg: AppColors.border,
               title: 'Kata Sandi & Keamanan',
               subtitle: 'Ubah kata sandi akun',
               onTap: () => _toast('Halaman ubah kata sandi belum tersedia.'),
@@ -330,8 +328,8 @@ class _SettingScreenState extends State<SettingScreen> {
           _Row(
             child: _NavTile(
               icon: Icons.language_rounded,
-              iconColor: _ink,
-              iconBg: const Color(0xFFF0ECF4),
+              iconColor: AppColors.textPrimary,
+              iconBg: AppColors.border,
               title: 'Bahasa Aplikasi',
               subtitle: c.languageLabel,
               onTap: () => _pickLanguage(c),
@@ -345,8 +343,8 @@ class _SettingScreenState extends State<SettingScreen> {
           _Row(
             child: _NavTile(
               icon: Icons.help_outline_rounded,
-              iconColor: _ink,
-              iconBg: const Color(0xFFF0ECF4),
+              iconColor: AppColors.textPrimary,
+              iconBg: AppColors.border,
               title: 'Pusat Bantuan & Komunitas',
               subtitle: 'Tutorial isyarat & FAQ',
               onTap: () => _toast('Pusat Bantuan belum tersedia.'),
@@ -355,8 +353,8 @@ class _SettingScreenState extends State<SettingScreen> {
           _Row(
             child: _NavTile(
               icon: Icons.info_outline_rounded,
-              iconColor: _ink,
-              iconBg: const Color(0xFFF0ECF4),
+              iconColor: AppColors.textPrimary,
+              iconBg: AppColors.border,
               title: 'Tentang Sign.L',
               subtitle: _appVersion,
               onTap: () => showAboutDialog(
@@ -382,10 +380,10 @@ class _SettingScreenState extends State<SettingScreen> {
     final sections = _sections(c);
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        foregroundColor: _ink,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0.5,
         centerTitle: true,
         leading: IconButton(
@@ -430,7 +428,7 @@ class _SettingScreenState extends State<SettingScreen> {
               child: Text(
                 'Sign.L Indonesia  •  Bersama Membuka Akses Komunikasi',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 10, color: _muted),
+                style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
               ),
             ),
           ],
@@ -483,11 +481,7 @@ class _ProfileCard extends StatelessWidget {
             padding: const EdgeInsets.all(2.5),
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [Color(0xFFE91E63), Color(0xFFFF9800)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              gradient: AppColors.brandGradient,
             ),
             child: Container(
               padding: const EdgeInsets.all(2),
@@ -503,8 +497,8 @@ class _ProfileCard extends StatelessWidget {
                   errorBuilder: (_, __, ___) => Container(
                     width: 48,
                     height: 48,
-                    color: const Color(0xFFF0ECF4),
-                    child: const Icon(Icons.person, color: _muted),
+                    color: AppColors.border,
+                    child: const Icon(Icons.person, color: AppColors.textSecondary),
                   ),
                 ),
               ),
@@ -522,14 +516,15 @@ class _ProfileCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
-                    color: _ink,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 SizedBox(height: 4),
                 Text(
                   'Level 8 Signer',
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, color: _muted),
+                  style: TextStyle(
+                      fontSize: 11, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -542,7 +537,7 @@ class _ProfileCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFE6F3),
+                color: AppColors.pinkSoft,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Text(
@@ -550,7 +545,7 @@ class _ProfileCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
-                  color: _primary,
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -583,7 +578,7 @@ class _SectionLabel extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.4,
-                color: _ink,
+                color: AppColors.textPrimary,
               ),
             ),
           ),
@@ -593,7 +588,7 @@ class _SectionLabel extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
-                color: _primary,
+                color: AppColors.primary,
               ),
             ),
         ],
@@ -605,9 +600,12 @@ class _SectionLabel extends StatelessWidget {
 BoxDecoration _cardDecoration() => BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: _border, width: 1.5),
-      boxShadow: const [
-        BoxShadow(color: Color(0x06000000), blurRadius: 8, offset: Offset(0, 4)),
+      border: Border.all(color: AppColors.border, width: 1.5),
+      boxShadow: [
+        BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 4)),
       ],
     );
 
@@ -623,7 +621,8 @@ class _SettingsCard extends StatelessWidget {
       child: Column(
         children: [
           for (var i = 0; i < rows.length; i++) ...[
-            if (i > 0) const Divider(height: 1, thickness: 1, color: _border),
+            if (i > 0)
+              const Divider(height: 1, thickness: 1, color: AppColors.border),
             rows[i].child,
           ],
         ],
@@ -665,14 +664,15 @@ class _TileText extends StatelessWidget {
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w800,
-              color: _ink,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 3),
           subtitleWidget ??
               Text(
                 subtitle ?? '',
-                style: const TextStyle(fontSize: 11, color: _muted, height: 1.3),
+                style: const TextStyle(
+                    fontSize: 11, color: AppColors.textSecondary, height: 1.3),
               ),
         ],
       );
@@ -710,7 +710,8 @@ class _NavTile extends StatelessWidget {
               _TileIcon(icon: icon, color: iconColor, bg: iconBg),
               const SizedBox(width: 12),
               Expanded(child: _TileText(title: title, subtitle: subtitle)),
-              const Icon(Icons.chevron_right_rounded, color: _muted),
+              const Icon(Icons.chevron_right_rounded,
+                  color: AppColors.textSecondary),
             ],
           ),
         ),
@@ -760,9 +761,9 @@ class _SwitchTile extends StatelessWidget {
             value: value,
             onChanged: onChanged,
             activeThumbColor: Colors.white,
-            activeTrackColor: _primary,
+            activeTrackColor: AppColors.primary,
             inactiveThumbColor: Colors.white,
-            inactiveTrackColor: const Color(0xFFD9CFD8),
+            inactiveTrackColor: AppColors.border,
             trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
           ),
         ],
@@ -789,9 +790,9 @@ class _LogoutButton extends StatelessWidget {
         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
       ),
       style: OutlinedButton.styleFrom(
-        foregroundColor: _primary,
+        foregroundColor: AppColors.primary,
         minimumSize: const Size(double.infinity, 48),
-        side: const BorderSide(color: _primary, width: 1.4),
+        side: const BorderSide(color: AppColors.primary, width: 1.4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
     );

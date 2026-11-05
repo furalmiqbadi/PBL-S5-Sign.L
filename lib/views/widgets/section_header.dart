@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
 /// Kerangka bersama untuk header bagian (section) di dalam aplikasi.
 ///
 /// Memberi chrome yang konsisten di semua header: judul besar di kiri,
-/// deretan aksi di kanan, dan garis pemisah halus di bawahnya. Dipakai oleh
-/// header Materi, Komunitas, dan Profil agar tinggi serta gayanya seragam.
-///
-/// Seluruh warna diambil dari [ColorScheme] sehingga header otomatis cocok
-/// saat mode gelap diaktifkan.
+/// deretan aksi di kanan. Latar header sengaja disamakan dengan latar halaman
+/// ([AppColors.background]) agar menyatu dengan konten di bawahnya. Dipakai
+/// oleh header Materi, Komunitas, dan Profil agar tinggi serta gayanya
+/// seragam.
 class SectionHeader extends StatelessWidget {
   /// Tinggi tetap area konten header.
   ///
@@ -58,20 +58,12 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
       // Padding vertikal lega supaya header terasa lapang dan seimbang
       // dengan tinggi tombol aksi (48px).
       padding: const EdgeInsets.fromLTRB(20, 14, 12, 14),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
-          ),
-        ),
-      ),
+      // Latar sama dengan latar halaman agar header menyatu dengan konten.
+      color: AppColors.background,
       child: SizedBox(
         height: contentHeight,
         child: Row(

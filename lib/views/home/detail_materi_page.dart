@@ -90,21 +90,30 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              text,
-              style: AppTextStyles.titleLarge,
-            ),
-          ],
+        Expanded(
+          child: Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration:
+                    BoxDecoration(color: dotColor, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  text,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.titleLarge,
+                ),
+              ),
+            ],
+          ),
         ),
-        if (trailing != null) trailing,
+        if (trailing != null) ...[
+          const SizedBox(width: 8),
+          trailing,
+        ],
       ],
     );
   }
@@ -222,12 +231,10 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
         _sectionTitle(
           'B. Ujian Akhir Bab 1',
           AppColors.textMuted,
-          trailing: const Text(
+          trailing: Text(
             'Siap Dimulai',
-            style: TextStyle(
-              color: Color(0xFFB5005F),
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
+            style: AppTextStyles.labelXSmall.copyWith(
+              color: AppColors.primary,
               letterSpacing: 0.4,
             ),
           ),

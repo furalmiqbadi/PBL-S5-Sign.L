@@ -131,6 +131,8 @@ class _LoginPageState extends State<LoginPage> {
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
+/// Membuka kerangka utama aplikasi setelah autentikasi berhasil.
+void openHome(BuildContext context) => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const MainShell()), (_) => false);
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();

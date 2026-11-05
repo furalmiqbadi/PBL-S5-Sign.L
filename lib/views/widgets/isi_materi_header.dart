@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
@@ -43,15 +45,31 @@ class IsiMateriHeader extends StatelessWidget {
               _badge(
                 bg: AppColors.orangeSoft.withValues(alpha: 0.60),
                 fg: AppColors.tertiary,
-                icon: Icons.local_fire_department,
+                leading: SvgPicture.asset(
+                  'assets/images/streak_fix.svg',
+                  width: 12,
+                  height: 12,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.tertiary,
+                    BlendMode.srcIn,
+                  ),
+                ),
                 text: '7',
               ),
               const SizedBox(width: 8),
               _badge(
                 bg: AppColors.pinkSoft.withValues(alpha: 0.50),
-                fg: AppColors.primary,
-                icon: Icons.star,
-                text: '+15 XP',
+                fg: AppColors.secondary,
+                leading: SvgPicture.asset(
+                  'assets/images/diamond_fix.svg',
+                  width: 12,
+                  height: 12,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.secondary,
+                    BlendMode.srcIn,
+                  ),
+                ),
+                text: '+15',
               ),
             ],
           ),
@@ -63,7 +81,7 @@ class IsiMateriHeader extends StatelessWidget {
   Widget _badge({
     required Color bg,
     required Color fg,
-    required IconData icon,
+    required Widget leading,
     required String text,
   }) {
     return Container(
@@ -74,7 +92,7 @@ class IsiMateriHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 12, color: fg),
+          leading,
           const SizedBox(width: 4),
           Text(
             text,
