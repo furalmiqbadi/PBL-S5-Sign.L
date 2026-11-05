@@ -67,7 +67,7 @@ class NavBarPalette {
   final Color centerGradientEnd;
 
   const NavBarPalette({
-    this.barColor = AppColors.surface,
+    this.barColor = AppColors.background,
     this.inactiveColor = AppColors.neutral,
     this.activeColor = AppColors.primary,
     this.centerGradientStart = AppColors.brandGradientStart,

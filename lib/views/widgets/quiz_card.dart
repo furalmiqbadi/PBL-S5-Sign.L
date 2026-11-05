@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class QuizCard extends StatelessWidget {
   final String title;
@@ -37,12 +38,12 @@ class QuizCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFD9E2),
+                  color: AppColors.pinkSoft,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.quiz_outlined,
-                  color: Color(0xFFB5005F),
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(width: 12),
@@ -53,7 +54,7 @@ class QuizCard extends StatelessWidget {
                     Text(
                       title,
                       style: const TextStyle(
-                        color: Color(0xFF1C1B1B),
+                        color: AppColors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -62,7 +63,7 @@ class QuizCard extends StatelessWidget {
                     Text(
                       '$jumlahSoal soal',
                       style: const TextStyle(
-                        color: Color(0xFF594047),
+                        color: AppColors.textSecondary,
                         fontSize: 12,
                       ),
                     ),
@@ -75,7 +76,7 @@ class QuizCard extends StatelessWidget {
           Text(
             subtitle,
             style: const TextStyle(
-              color: Color(0xFF594047),
+              color: AppColors.textSecondary,
               fontSize: 14,
               height: 1.5,
             ),
@@ -86,7 +87,7 @@ class QuizCard extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onStartQuiz,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFB5005F),
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(

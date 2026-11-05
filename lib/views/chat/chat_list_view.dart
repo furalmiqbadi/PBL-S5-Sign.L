@@ -3,14 +3,12 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/chat_controller.dart';
 import '../../models/chat_model.dart';
-import '../notification/notification_view.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/app_screen_header.dart';
 import '../widgets/chat_list_tile.dart';
 import '../widgets/filter_chip_row.dart';
 import '../widgets/section_header.dart';
-import '../widgets/signl_nav_bar.dart';
 import 'chat_room_view.dart';
 
 /// Layar daftar percakapan (Chat).
@@ -41,16 +39,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
             child: AppScreenHeader(
               title: 'Chat',
               actions: [
-                HeaderIconButton(
-                  icon: Icons.notifications_none_rounded,
-                  semanticLabel: 'Notifikasi',
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const NotificationScreen(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
                 HeaderIconButton(
                   icon: Icons.edit_square,
                   semanticLabel: 'Tulis pesan baru',
@@ -93,7 +81,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const SignlNavBar(selectedIndex: 3),
     );
   }
 

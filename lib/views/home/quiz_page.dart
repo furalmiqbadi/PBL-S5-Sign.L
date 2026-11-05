@@ -1,5 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+import '../theme/app_colors.dart';
 
 class _Soal {
   final String target;
@@ -15,12 +18,6 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
-  static const Color _pink = Color(0xFFB5005F);
-  static const Color _bg = Color(0xFFFCF9F8);
-  static const Color _dark = Color(0xFF1C1B1B);
-  static const Color _grey = Color(0xFF594047);
-  static const Color _orange = Color(0xFF964900);
-
   // Huruf yang dipakai untuk soal (10 soal). Sesuaikan dengan gambar yang kamu punya.
   static const List<String> _hurufList = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'
@@ -91,7 +88,7 @@ class _QuizPageState extends State<QuizPage> {
     });
   }
 
-    void _tampilHasil() {
+  void _tampilHasil() {
     final lulus = _benar >= (_soal.length * 0.6).ceil();
     final String pesan = lulus
         ? 'Hebat! Kamu sudah menguasai alfabet BISINDO.'
@@ -132,7 +129,7 @@ class _QuizPageState extends State<QuizPage> {
                   Text(
                     lulus ? 'Lulus!' : 'Belum Lulus',
                     style: TextStyle(
-                      color: lulus ? _pink : _dark,
+                      color: lulus ? AppColors.primary : AppColors.textPrimary,
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.5,
@@ -143,18 +140,36 @@ class _QuizPageState extends State<QuizPage> {
                     pesan,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                        color: _grey, fontSize: 14, height: 1.5),
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                        height: 1.5),
                   ),
                   const SizedBox(height: 20),
                   Row(
                     children: [
-                      _statBox(Icons.check_circle, 'BENAR',
-                          '$_benar/${_soal.length}', _pink),
+                      _statBox(
+                        const Icon(Icons.check_circle,
+                            color: AppColors.primary, size: 22),
+                        'BENAR',
+                        '$_benar/${_soal.length}',
+                        AppColors.primary,
+                      ),
                       const SizedBox(width: 8),
-                      _statBox(Icons.bolt, 'XP', '$_xp', _orange),
+                      _statBox(
+                        _svgIcon(
+                            'assets/images/diamond_fix.svg', 22, AppColors.secondary),
+                        'DIAMOND',
+                        '$_xp',
+                        AppColors.secondary,
+                      ),
                       const SizedBox(width: 8),
-                      _statBox(Icons.favorite, 'HATI', '$_hearts',
-                          const Color(0xFF8134AF)),
+                      _statBox(
+                        _svgIcon(
+                            'assets/images/heart_fix.svg', 22, AppColors.danger),
+                        'HATI',
+                        '$_hearts',
+                        AppColors.danger,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -175,9 +190,9 @@ class _QuizPageState extends State<QuizPage> {
                                 Navigator.pop(context);
                               },
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: _dark,
+                                foregroundColor: AppColors.textPrimary,
                                 side: const BorderSide(
-                                    color: Color(0xFFE5E2E1), width: 2),
+                                    color: AppColors.border, width: 2),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -209,18 +224,8 @@ class _QuizPageState extends State<QuizPage> {
               height: 88,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: lulus
-                    ? const LinearGradient(
-                        colors: [
-                          Color(0xFFF58529),
-                          Color(0xFFDD2A7B),
-                          Color(0xFF8134AF),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null,
-                color: lulus ? null : _grey,
+                gradient: lulus ? AppColors.brandGradient : null,
+                color: lulus ? null : AppColors.textSecondary,
                 border: Border.all(color: Colors.white, width: 5),
                 boxShadow: [
                   BoxShadow(
@@ -242,7 +247,17 @@ class _QuizPageState extends State<QuizPage> {
     );
   }
 
-  Widget _statBox(IconData icon, String label, String value, Color color) {
+  /// Ikon SVG yang di-tint sesuai [color] agar konsisten dengan token tema.
+  Widget _svgIcon(String asset, double size, Color color) {
+    return SvgPicture.asset(
+      asset,
+      width: size,
+      height: size,
+      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+    );
+  }
+
+  Widget _statBox(Widget icon, String label, String value, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -253,7 +268,7 @@ class _QuizPageState extends State<QuizPage> {
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 22),
+            icon,
             const SizedBox(height: 4),
             Text(
               value,
@@ -264,7 +279,7 @@ class _QuizPageState extends State<QuizPage> {
             Text(
               label,
               style: const TextStyle(
-                color: _grey,
+                color: AppColors.textSecondary,
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.6,
@@ -281,17 +296,11 @@ class _QuizPageState extends State<QuizPage> {
       height: 48,
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFFF58529),
-            Color(0xFFDD2A7B),
-            Color(0xFF8134AF),
-          ],
-        ),
+        gradient: AppColors.brandGradient,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: _pink.withValues(alpha: 0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -320,7 +329,7 @@ class _QuizPageState extends State<QuizPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -358,7 +367,7 @@ class _QuizPageState extends State<QuizPage> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.close, color: _dark),
+            icon: const Icon(Icons.close, color: AppColors.textPrimary),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
             onPressed: () => Navigator.pop(context),
@@ -370,23 +379,28 @@ class _QuizPageState extends State<QuizPage> {
               child: LinearProgressIndicator(
                 value: (_index + (_checked ? 1 : 0)) / _soal.length,
                 minHeight: 12,
-                backgroundColor: const Color(0xFFE5E2E1),
-                valueColor: const AlwaysStoppedAnimation<Color>(_pink),
+                backgroundColor: AppColors.border,
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                    AppColors.primary),
               ),
             ),
           ),
           const SizedBox(width: 12),
-          const Icon(Icons.favorite, color: _pink, size: 18),
+          _svgIcon('assets/images/heart_fix.svg', 18, AppColors.danger),
           const SizedBox(width: 4),
           Text('$_hearts',
               style: const TextStyle(
-                  color: _dark, fontSize: 14, fontWeight: FontWeight.w700)),
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700)),
           const SizedBox(width: 12),
-          const Icon(Icons.bolt, color: _orange, size: 20),
-          const SizedBox(width: 2),
+          _svgIcon('assets/images/diamond_fix.svg', 18, AppColors.secondary),
+          const SizedBox(width: 4),
           Text('$_xp',
               style: const TextStyle(
-                  color: _orange, fontSize: 14, fontWeight: FontWeight.w700)),
+                  color: AppColors.secondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -401,13 +415,13 @@ class _QuizPageState extends State<QuizPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
               decoration: BoxDecoration(
-                color: const Color(0xFFF0EDEC),
+                color: AppColors.border,
                 borderRadius: BorderRadius.circular(9999),
               ),
               child: const Text(
                 'ALFABET BISINDO',
                 style: TextStyle(
-                  color: _pink,
+                  color: AppColors.primary,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.4,
@@ -418,7 +432,9 @@ class _QuizPageState extends State<QuizPage> {
             Text(
               'Pertanyaan ${_index + 1} dari ${_soal.length}',
               style: const TextStyle(
-                  color: _grey, fontSize: 12, fontWeight: FontWeight.w500),
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -426,7 +442,7 @@ class _QuizPageState extends State<QuizPage> {
         const Text(
           'Manakah gestur tangan untuk huruf:',
           style: TextStyle(
-            color: _dark,
+            color: AppColors.textPrimary,
             fontSize: 22,
             fontWeight: FontWeight.w700,
             height: 1.27,
@@ -444,7 +460,7 @@ class _QuizPageState extends State<QuizPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF0EDEC)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -462,7 +478,7 @@ class _QuizPageState extends State<QuizPage> {
               const Text(
                 'HURUF TARGET',
                 style: TextStyle(
-                  color: _grey,
+                  color: AppColors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.8,
@@ -472,7 +488,7 @@ class _QuizPageState extends State<QuizPage> {
               Text(
                 '"${_current.target}"',
                 style: const TextStyle(
-                  color: _dark,
+                  color: AppColors.textPrimary,
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.7,
@@ -484,11 +500,11 @@ class _QuizPageState extends State<QuizPage> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: _pink.withValues(alpha: 0.05),
+              color: AppColors.primary.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              icon: const Icon(Icons.volume_up, color: _pink),
+              icon: const Icon(Icons.volume_up, color: AppColors.primary),
               onPressed: () {
                 // TODO: putar audio huruf
               },
@@ -520,12 +536,12 @@ class _QuizPageState extends State<QuizPage> {
         Color accent = Colors.transparent;
         if (_checked) {
           if (isCorrect) {
-            accent = Colors.green;
+            accent = AppColors.success;
           } else if (selected) {
-            accent = Colors.redAccent;
+            accent = AppColors.danger;
           }
         } else if (selected) {
-          accent = _pink;
+          accent = AppColors.primary;
         }
         final bool aktif = accent != Colors.transparent;
 
@@ -554,9 +570,9 @@ class _QuizPageState extends State<QuizPage> {
                     _imgPath(huruf),
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
-                      color: const Color(0xFFF0EDEC),
+                      color: AppColors.border,
                       child: const Icon(Icons.pan_tool_alt_outlined,
-                          color: _grey, size: 40),
+                          color: AppColors.textSecondary, size: 40),
                     ),
                   ),
                   Positioned(
@@ -567,14 +583,14 @@ class _QuizPageState extends State<QuizPage> {
                       height: 26,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: aktif ? accent : const Color(0xFFE5E2E1),
+                        color: aktif ? accent : AppColors.border,
                         shape: BoxShape.circle,
                       ),
                       child: Text(
                         // Label A-D sesuai posisi, bukan huruf aslinya
                         String.fromCharCode(65 + i),
                         style: TextStyle(
-                          color: aktif ? Colors.white : _dark,
+                          color: aktif ? Colors.white : AppColors.textPrimary,
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                         ),
@@ -615,21 +631,26 @@ class _QuizPageState extends State<QuizPage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: (benar ? Colors.green : Colors.redAccent).withValues(alpha: 0.1),
+        color: (benar ? AppColors.success : AppColors.danger)
+            .withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
           Icon(benar ? Icons.check_circle : Icons.cancel,
-              color: benar ? Colors.green : Colors.redAccent),
+              color: benar ? AppColors.success : AppColors.danger),
           const SizedBox(width: 8),
+          if (benar) ...[
+            _svgIcon('assets/images/diamond_fix.svg', 14, AppColors.secondary),
+            const SizedBox(width: 4),
+          ],
           Expanded(
             child: Text(
               benar
-                  ? 'Benar! +10 XP'
+                  ? 'Benar! +10'
                   : 'Kurang tepat. Jawaban yang benar ditandai hijau.',
               style: TextStyle(
-                color: benar ? Colors.green.shade800 : Colors.red.shade800,
+                color: benar ? AppColors.success : AppColors.danger,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -652,10 +673,10 @@ class _QuizPageState extends State<QuizPage> {
       child: ElevatedButton(
         onPressed: _checked ? _lanjut : (bisaPeriksa ? _periksa : null),
         style: ElevatedButton.styleFrom(
-          backgroundColor: _pink,
+          backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: const Color(0xFFE5E2E1),
-          disabledForegroundColor: _grey,
+          disabledBackgroundColor: AppColors.border,
+          disabledForegroundColor: AppColors.textSecondary,
           elevation: 1,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -681,11 +702,11 @@ class _QuizPageState extends State<QuizPage> {
     return const Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.info_outline, size: 14, color: _grey),
+        Icon(Icons.info_outline, size: 14, color: AppColors.textSecondary),
         SizedBox(width: 6),
         Text(
           'Bahasa Isyarat Indonesia (BISINDO)',
-          style: TextStyle(color: _grey, fontSize: 12),
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
         ),
       ],
     );

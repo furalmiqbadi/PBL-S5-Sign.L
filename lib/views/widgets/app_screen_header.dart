@@ -50,17 +50,8 @@ class _BackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(left: 4),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context)
-                .colorScheme
-                .outlineVariant
-                .withValues(alpha: 0.45),
-          ),
-        ),
-      ),
+      // Latar mengikuti header section agar bilah ini menyatu.
+      color: AppColors.background,
       child: Center(
         child: IconButton(
           onPressed: onTap,
