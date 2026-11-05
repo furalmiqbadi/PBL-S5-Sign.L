@@ -79,6 +79,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
     Navigator.of(context).push(route);
   }
 
+  static final OutlineInputBorder _softFieldBorder = OutlineInputBorder(
+    borderRadius: BorderRadius.circular(16),
+    borderSide: BorderSide.none,
+  );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -120,6 +125,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               color: AppColors.textMuted,
                             ),
                             isDense: true,
+                            filled: true,
+                            fillColor: AppColors.fieldFill,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            border: _softFieldBorder,
+                            enabledBorder: _softFieldBorder,
+                            focusedBorder: _softFieldBorder,
                             suffixIcon: controller.query.isEmpty
                                 ? null
                                 : IconButton(
@@ -181,8 +195,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
             onPressed: controller.markAllAsRead,
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              minimumSize: const Size(0, 32),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              minimumSize: const Size(0, 48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
             child: Text(
               'Tandai semua dibaca',
@@ -251,7 +267,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
       children: [
         if (today.isNotEmpty) ...[
           _buildSectionLabel('Hari ini'),
@@ -274,7 +290,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Widget _buildSectionLabel(String label) {
     return Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 10),
+      padding: const EdgeInsets.only(top: 12, bottom: 12),
       child: Text(label, style: AppTextStyles.titleMedium),
     );
   }

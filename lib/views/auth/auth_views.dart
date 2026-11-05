@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
-import '../../services/supabase_config.dart';
 import '../main_shell.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -40,18 +39,14 @@ class _LoginPageState extends State<LoginPage> {
     final emailText = email.text.trim();
     final passText = password.text.trim();
 
-    // Jika Supabase sudah aktif di runtime, lakukan validasi input wajib terisi
-    if (SupabaseConfig.isInitialized && (emailText.isEmpty || passText.isEmpty)) {
+    if (emailText.isEmpty || passText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Email dan kata sandi wajib diisi.')),
       );
       return;
     }
 
-    final targetEmail = emailText.isEmpty ? 'budi@gmail.com' : emailText;
-    final targetPass = passText.isEmpty ? '123456' : passText;
-
-    final ok = await c.login(email: targetEmail, password: targetPass);
+    final ok = await c.login(email: emailText, password: passText);
     if (!mounted) return;
 
     if (ok) {
@@ -69,13 +64,13 @@ class _LoginPageState extends State<LoginPage> {
       child: Column(
         children: [
           const AuthHeader(
-            title: 'Selamat Datang Kembali! 👋',
+            title: 'Selamat datang kembali',
             subtitle: 'Masuk untuk melanjutkan perjalanan belajar bahasa isyaratmu.',
           ),
           const SizedBox(height: 27),
           AuthField(
             label: 'Email atau Username',
-            hint: 'cth. budi@gmail.com atau budi',
+            hint: 'Masukkan email atau username',
             icon: Icons.alternate_email_rounded,
             controller: email,
           ),
@@ -90,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
                 onPressed: c.togglePasswordVisibility,
                 icon: Icon(
                   c.showPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                  size: 16,
+                  size: 20,
                   color: muted,
                 ),
               ),
@@ -111,7 +106,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
           Consumer<AuthController>(
             builder: (_, c, __) => GradientButton(
-              text: c.isLoading ? 'Memproses...' : 'Masuk  →',
+              text: c.isLoading ? 'Memproses...' : 'Masuk',
               onTap: c.isLoading ? null : submit,
             ),
           ),
@@ -143,7 +138,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final email = TextEditingController();
   final password = TextEditingController();
   final confirmation = TextEditingController();
-  bool accepted = true;
+  bool accepted = false;
   bool show = false;
 
   @override
@@ -161,25 +156,37 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> submit() async {
     final c = context.read<AuthController>();
     final nameText = name.text.trim();
-    final userText = username.text.trim();
+    final userText = username.text.trim().toLowerCase();
     final emailText = email.text.trim();
     final passText = password.text.trim();
     final confirmText = confirmation.text.trim();
 
-    if (nameText.isEmpty) {
-      _message('Nama lengkap wajib diisi.');
+    if (nameText.length < 3) {
+      _message('Nama lengkap minimal 3 karakter.');
+      return;
+    }
+    if (userText.isEmpty) {
+      _message('Username wajib diisi.');
+      return;
+    }
+    if (!RegExp(r'^[a-z0-9._]{3,20}$').hasMatch(userText)) {
+      _message('Username 3-20 karakter, hanya huruf, angka, titik, atau garis bawah.');
       return;
     }
     if (emailText.isEmpty) {
       _message('Email wajib diisi.');
       return;
     }
+    if (!RegExp(r'^[\w.+-]+@[\w-]+\.[\w.-]+$').hasMatch(emailText)) {
+      _message('Format email tidak valid.');
+      return;
+    }
     if (passText.isEmpty) {
       _message('Kata sandi wajib diisi.');
       return;
     }
-    if (passText.length < 6) {
-      _message('Kata sandi minimal 6 karakter.');
+    if (passText.length < 8) {
+      _message('Kata sandi minimal 8 karakter.');
       return;
     }
     if (passText != confirmText) {
@@ -199,14 +206,38 @@ class _RegisterPageState extends State<RegisterPage> {
     );
     if (!mounted) return;
 
-    if (ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pendaftaran berhasil!')),
-      );
-      openHome(context);
-    } else if (c.errorMessage != null) {
-      _message(c.errorMessage!);
+    if (!ok) {
+      if (c.errorMessage != null) _message(c.errorMessage!);
+      return;
     }
+
+    if (c.isLoggedIn) {
+      openHome(context);
+      return;
+    }
+
+    // Supabase meminta konfirmasi email: jangan buka beranda tanpa session.
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cek Email'),
+        content: const Text(
+          'Pendaftaran berhasil. Klik tautan verifikasi di email kamu, lalu masuk.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Mengerti'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (_) => false,
+    );
   }
 
   void _navigateBack() {
@@ -229,31 +260,31 @@ class _RegisterPageState extends State<RegisterPage> {
       child: Column(
         children: [
           const AuthHeader(
-            title: 'Mulai Perjalanan Isyaratmu ✋',
+            title: 'Mulai perjalanan isyaratmu',
             subtitle: 'Bergabung bersama ribuan pembelajar bahasa isyarat di seluruh Indonesia!',
           ),
           const SizedBox(height: 22),
           AuthField(
             label: 'Nama Lengkap',
-            hint: 'cth. Budi Pratama',
+            hint: 'Masukkan nama lengkap',
             icon: Icons.person_outline_rounded,
             controller: name,
           ),
           AuthField(
             label: 'Username',
-            hint: 'cth. budi_isyarat',
+            hint: 'Masukkan username',
             icon: Icons.alternate_email_rounded,
             controller: username,
           ),
           AuthField(
             label: 'Email',
-            hint: 'cth. budi@gmail.com',
+            hint: 'Masukkan email',
             icon: Icons.mail_outline_rounded,
             controller: email,
           ),
           AuthField(
-            label: 'Kata Sandi',
-            hint: 'BelajarBisa24!',
+            label: 'Kata Sandi (min. 8 karakter)',
+            hint: 'Masukkan kata sandi',
             icon: Icons.lock_outline_rounded,
             controller: password,
             password: !show,
@@ -261,16 +292,25 @@ class _RegisterPageState extends State<RegisterPage> {
               onPressed: () => setState(() => show = !show),
               icon: Icon(
                 show ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                size: 16,
+                size: 20,
+                color: muted,
               ),
             ),
           ),
           AuthField(
             label: 'Konfirmasi Kata Sandi',
-            hint: 'Ulangi kata sandi',
+            hint: 'Masukkan ulang kata sandi',
             icon: Icons.lock_outline_rounded,
             controller: confirmation,
             password: !show,
+            suffix: IconButton(
+              onPressed: () => setState(() => show = !show),
+              icon: Icon(
+                show ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                size: 20,
+                color: muted,
+              ),
+            ),
           ),
           InkWell(
             onTap: () => setState(() => accepted = !accepted),
@@ -295,7 +335,7 @@ class _RegisterPageState extends State<RegisterPage> {
           const SizedBox(height: 16),
           Consumer<AuthController>(
             builder: (_, c, __) => GradientButton(
-              text: c.isLoading ? 'Memproses...' : 'Buat Akun  ✨',
+              text: c.isLoading ? 'Memproses...' : 'Buat akun',
               onTap: c.isLoading ? null : submit,
             ),
           ),
@@ -342,21 +382,49 @@ class _ForgotPageState extends State<ForgotPage> {
   Future<void> submit() async {
     final c = context.read<AuthController>();
     final emailText = email.text.trim();
-    final targetEmail = emailText.isEmpty ? 'budi@gmail.com' : emailText;
 
-    final ok = await c.sendResetLink(targetEmail);
+    if (emailText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email wajib diisi.')),
+      );
+      return;
+    }
+    if (!RegExp(r'^[\w.+-]+@[\w-]+\.[\w.-]+$').hasMatch(emailText)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Format email tidak valid.')),
+      );
+      return;
+    }
+
+    final ok = await c.sendResetLink(emailText);
     if (!mounted) return;
 
-    if (ok) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ResetPage()),
-      );
-    } else if (c.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(c.errorMessage!)),
-      );
+    if (!ok) {
+      if (c.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(c.errorMessage!)),
+        );
+      }
+      return;
     }
+
+    // Jangan langsung membuka ResetPage. Reset hanya boleh setelah
+    // pengguna mengklik tautan recovery yang dikirim ke email.
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cek Email'),
+        content: const Text(
+          'Tautan reset sudah dikirim. Buka email kamu dan klik tautan tersebut untuk membuat kata sandi baru.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Mengerti'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -373,13 +441,13 @@ class _ForgotPageState extends State<ForgotPage> {
           const SizedBox(height: 28),
           AuthField(
             label: 'Email Terdaftar',
-            hint: 'cth. budi@gmail.com',
+            hint: 'Masukkan email terdaftar',
             icon: Icons.mail_outline_rounded,
             controller: email,
           ),
           Consumer<AuthController>(
             builder: (_, c, __) => GradientButton(
-              text: c.isLoading ? 'Mengirim...' : 'Kirim Tautan Reset  ✈',
+              text: c.isLoading ? 'Mengirim...' : 'Kirim tautan reset',
               onTap: c.isLoading ? null : submit,
             ),
           ),
@@ -452,17 +520,26 @@ class _ResetPageState extends State<ResetPage> {
     final passText = password.text.trim();
     final confirmText = confirmation.text.trim();
 
-    if (passText.isNotEmpty && confirmText.isNotEmpty && passText != confirmText) {
+    if (passText.isEmpty || confirmText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kata sandi baru dan konfirmasi wajib diisi.')),
+      );
+      return;
+    }
+    if (passText.length < 8) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kata sandi baru minimal 8 karakter.')),
+      );
+      return;
+    }
+    if (passText != confirmText) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Konfirmasi kata sandi tidak cocok.')),
       );
       return;
     }
 
-    final targetPass = passText.isEmpty ? 'SandiBaru123!' : passText;
-    final targetConfirm = confirmText.isEmpty ? targetPass : confirmText;
-
-    final ok = await c.resetPassword(password: targetPass, confirmation: targetConfirm);
+    final ok = await c.resetPassword(password: passText, confirmation: confirmText);
     if (!mounted) return;
 
     if (ok) {
@@ -471,7 +548,7 @@ class _ResetPageState extends State<ResetPage> {
         barrierDismissible: false,
         builder: (_) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Berhasil! 🎉', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text('Berhasil!', style: TextStyle(fontWeight: FontWeight.bold)),
           content: const Text('Kata sandi kamu sudah berhasil diperbarui. Silakan masuk atau lanjutkan ke beranda.'),
           actions: [
             TextButton(
@@ -514,8 +591,8 @@ class _ResetPageState extends State<ResetPage> {
           ),
           const SizedBox(height: 28),
           AuthField(
-            label: 'Kata Sandi Baru',
-            hint: 'Minimal 8 karakter',
+            label: 'Kata Sandi Baru (min. 8 karakter)',
+            hint: 'Masukkan kata sandi baru',
             icon: Icons.lock_outline_rounded,
             controller: password,
             password: !show,
@@ -529,7 +606,7 @@ class _ResetPageState extends State<ResetPage> {
           ),
           AuthField(
             label: 'Konfirmasi Kata Sandi',
-            hint: 'Ulangi kata sandi baru',
+            hint: 'Masukkan ulang kata sandi baru',
             icon: Icons.lock_outline_rounded,
             controller: confirmation,
             password: !show,

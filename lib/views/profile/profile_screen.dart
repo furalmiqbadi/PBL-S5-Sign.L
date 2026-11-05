@@ -19,7 +19,7 @@ class ProfileScreen extends StatelessWidget {
             title: 'Pencapaian Unggulan',
             iconColor: AppColors.primary,
             trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.pinkSoft,
                 borderRadius: BorderRadius.circular(12),
@@ -42,9 +42,9 @@ class ProfileScreen extends StatelessWidget {
             title: 'Modul & Progres Isyarat',
             iconColor: AppColors.primary,
             trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.border,
+                color: AppColors.fieldFill,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
@@ -149,15 +149,22 @@ class ProfileScreen extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: AppColors.brandGradient,
+                color: AppColors.pinkSoft,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Container(
                 padding: const EdgeInsets.all(3),
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white,
+                  color: AppColors.surface,
                 ),
                 child: const CircleAvatar(
                   radius: 40,
@@ -171,7 +178,7 @@ class ProfileScreen extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(2),
                 decoration: const BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surface,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -201,7 +208,7 @@ class ProfileScreen extends StatelessWidget {
             Material(
               color: Colors.transparent,
               child: InkWell(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(16),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -211,14 +218,11 @@ class ProfileScreen extends StatelessWidget {
                   );
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  height: 48,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
                     color: AppColors.pinkSoft,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppColors.pinkSoft,
-                      width: 1.2,
-                    ),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
@@ -287,15 +291,15 @@ class ProfileScreen extends StatelessWidget {
       children: [
         _buildAchievementCard(
           icon: Icons.stars_rounded,
-          iconBg: AppColors.neutral,
-          iconColor: Colors.white,
+          iconBg: AppColors.pinkSoft,
+          iconColor: AppColors.primary,
           title: 'Perfect 100',
           subtitle: '100% Akurasi',
           subtitleColor: AppColors.primary,
         ),
         _buildAchievementCard(
           icon: Icons.local_fire_department_rounded,
-          iconBg: AppColors.neutral,
+          iconBg: AppColors.orangeSoft,
           iconColor: AppColors.tertiary,
           title: '7-Day Streak',
           subtitle: '7 Hari Beruntun',
@@ -303,7 +307,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         _buildAchievementCard(
           icon: Icons.bolt_rounded,
-          iconBg: AppColors.neutral,
+          iconBg: AppColors.purpleSoft,
           iconColor: AppColors.secondary,
           title: 'Fast Signer',
           subtitle: '<1.2s Respons',
@@ -326,13 +330,12 @@ class ProfileScreen extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 4),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, width: 1.5),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 20,
               offset: const Offset(0, 4),
             ),
           ],
@@ -352,7 +355,7 @@ class ProfileScreen extends StatelessWidget {
               title,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
               ),
@@ -362,7 +365,7 @@ class ProfileScreen extends StatelessWidget {
               subtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 9,
+                fontSize: 10,
                 fontWeight: FontWeight.w700,
                 color: subtitleColor,
               ),
@@ -383,15 +386,14 @@ class ProfileScreen extends StatelessWidget {
     required Color iconBgColor,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 1.5),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.016),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
             offset: const Offset(0, 4),
           ),
         ],
@@ -405,7 +407,7 @@ class ProfileScreen extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   color: iconBgColor,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 alignment: Alignment.center,
                 child: iconWidget,
@@ -450,7 +452,7 @@ class ProfileScreen extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progressValue,
               minHeight: 6,
-              backgroundColor: AppColors.border,
+              backgroundColor: AppColors.fieldFill,
               valueColor: AlwaysStoppedAnimation<Color>(progressColor),
             ),
           ),

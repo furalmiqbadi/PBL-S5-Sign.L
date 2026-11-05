@@ -20,15 +20,15 @@ class MateriCard extends StatelessWidget {
 
   Widget _buildCompletedCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -43,7 +43,7 @@ class MateriCard extends StatelessWidget {
                   color: AppColors.orangeSoft,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check, color: AppColors.textPrimary),
+                child: const Icon(Icons.check_rounded, color: AppColors.textPrimary),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -60,9 +60,9 @@ class MateriCard extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.orangeSoft,
+                            color: AppColors.purpleSoft,
                             borderRadius: BorderRadius.circular(9999),
                           ),
                           child: Row(
@@ -104,7 +104,7 @@ class MateriCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.verified, size: 14, color: AppColors.tertiary),
+                  const Icon(Icons.verified_rounded, size: 16, color: AppColors.tertiary),
                   const SizedBox(width: 4),
                   Text(
                     'Selesai Dikuasai',
@@ -113,9 +113,11 @@ class MateriCard extends StatelessWidget {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                constraints: const BoxConstraints(minHeight: 40),
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: AppColors.fieldFill,
                   borderRadius: BorderRadius.circular(9999),
                 ),
                 child: Text(
@@ -132,15 +134,15 @@ class MateriCard extends StatelessWidget {
 
   Widget _buildInProgressCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -155,7 +157,7 @@ class MateriCard extends StatelessWidget {
                   color: AppColors.pinkSoft,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.play_arrow, color: AppColors.textPrimary),
+                child: const Icon(Icons.play_arrow_rounded, color: AppColors.primary),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -166,7 +168,7 @@ class MateriCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: AppColors.primary,
                             borderRadius: BorderRadius.circular(9999),
@@ -199,10 +201,10 @@ class MateriCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.surfaceMuted,
-              borderRadius: BorderRadius.circular(8),
+              color: AppColors.pinkSofter,
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
               children: [
@@ -211,15 +213,15 @@ class MateriCard extends StatelessWidget {
                   height: 56,
                   decoration: BoxDecoration(
                     color: AppColors.border,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                     child: Image.asset(
                       'assets/images/bisindo.jpg',
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => const Icon(
-                        Icons.image_not_supported,
+                        Icons.image_not_supported_rounded,
                         color: AppColors.textMuted,
                       ),
                     ),
@@ -244,9 +246,9 @@ class MateriCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(9999),
                         child: const LinearProgressIndicator(
                           value: 0.6,
-                          backgroundColor: AppColors.border,
+                          backgroundColor: AppColors.pinkSoft,
                           valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                          minHeight: 6,
+                          minHeight: 8,
                         ),
                       ),
                     ],
@@ -260,12 +262,17 @@ class MateriCard extends StatelessWidget {
             onTap: onTap,
             child: Container(
               width: double.infinity,
-              height: 44,
+              height: 48,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.tertiary, AppColors.primary, AppColors.secondary],
-                ),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.28),
+                    blurRadius: 24,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
               child: Center(
                 child: Text(
@@ -284,10 +291,10 @@ class MateriCard extends StatelessWidget {
     return Opacity(
       opacity: 0.75,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.surfaceMuted.withValues(alpha: 0.60),
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.fieldFill,
+          borderRadius: BorderRadius.circular(24),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -298,10 +305,10 @@ class MateriCard extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: const BoxDecoration(
-                    color: AppColors.surfaceMuted,
+                    color: AppColors.surface,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.lock, size: 16, color: AppColors.textMuted),
+                  child: const Icon(Icons.lock_rounded, size: 18, color: AppColors.textMuted),
                 ),
                 const SizedBox(width: 12),
                 Column(

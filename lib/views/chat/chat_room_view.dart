@@ -83,7 +83,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             top: false,
             child: Column(
               children: [
-                const Divider(height: 1),
                 Expanded(child: _buildMessages(controller)),
                 _buildInputBar(controller),
               ],
@@ -98,10 +97,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final muted = controller.isMuted(widget.room.id);
 
     return AppBar(
+      backgroundColor: AppColors.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
       titleSpacing: 0,
-      leading: IconButton(
-        onPressed: () => Navigator.of(context).maybePop(),
-        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+      toolbarHeight: 72,
+      leadingWidth: 72,
+      leading: Center(
+        child: _buildSoftIconButton(
+          icon: Icons.arrow_back_ios_new_rounded,
+          iconSize: 20,
+          tooltip: 'Kembali',
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
       ),
       title: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -156,12 +165,50 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               color: AppColors.textMuted,
             ),
           ),
-        IconButton(
+        _buildSoftIconButton(
+          icon: Icons.more_vert_rounded,
           tooltip: 'Opsi percakapan',
           onPressed: () => _showRoomMenu(controller),
-          icon: const Icon(Icons.more_vert_rounded),
         ),
+        const SizedBox(width: 16),
       ],
+    );
+  }
+
+  Widget _buildSoftIconButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+    double iconSize = 24,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(16),
+            child: Center(
+              child: Icon(icon, size: iconSize, color: AppColors.textPrimary),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -171,8 +218,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
     showModalBottomSheet<void>(
       context: context,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetContext) {
         return SafeArea(
@@ -240,8 +288,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final room = widget.room;
     showModalBottomSheet<void>(
       context: context,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetContext) {
         return SafeArea(
@@ -280,6 +329,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      side: const BorderSide(color: AppColors.border),
+                    ),
                     onPressed: () {
                       Navigator.pop(sheetContext);
                       controller.toggleMute(room.id);
@@ -313,6 +369,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Bersihkan riwayat?'),
         content: const Text(
           'Semua pesan pada percakapan ini akan dihapus dari perangkat.',
@@ -339,6 +398,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text('Blokir ${widget.room.name}?'),
         content: const Text(
           'Kamu tidak akan menerima pesan dari kontak ini lagi. '
@@ -403,10 +465,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       }
 
       return Center(
-        child: Text(
-          'Mulai percakapan dengan sapaan hangat 👋',
-          style:
-              AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.waving_hand_rounded,
+              size: 40,
+              color: AppColors.tertiary,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Mulai percakapan dengan sapaan hangat',
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: AppColors.textSecondary),
+            ),
+          ],
         ),
       );
     }
@@ -428,12 +501,23 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
+  static final OutlineInputBorder _pillBorder = OutlineInputBorder(
+    borderRadius: BorderRadius.circular(28),
+    borderSide: BorderSide.none,
+  );
+
   Widget _buildInputBar(ChatController controller) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-      decoration: const BoxDecoration(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+      decoration: BoxDecoration(
         color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
@@ -445,24 +529,29 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => _handleSend(controller),
                 style: AppTextStyles.bodyMedium,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Tulis pesan...',
                   isDense: true,
+                  filled: true,
+                  fillColor: AppColors.fieldFill,
                   contentPadding:
-                      EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  border: _pillBorder,
+                  enabledBorder: _pillBorder,
+                  focusedBorder: _pillBorder,
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             GestureDetector(
               onTap:
                   controller.isSending ? null : () => _handleSend(controller),
               child: Container(
                 width: 48,
                 height: 48,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.primary,
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: controller.isSending
                     ? const Padding(

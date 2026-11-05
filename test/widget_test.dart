@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:sign_l/main.dart';
 import 'package:sign_l/views/auth/auth_views.dart';
+import 'package:sign_l/views/main_shell.dart';
 import 'package:sign_l/views/widgets/app_bottom_nav_bar.dart';
 
 void main() {
@@ -20,14 +21,13 @@ void main() {
     HttpOverrides.global = _MockHttpOverrides();
   });
 
-  // Aplikasi mulai di halaman login. Tekan "Masuk" untuk masuk ke kerangka
-  // utama; autentikasi masih mock sehingga kredensial apa pun diterima.
-  Future<void> masukKeAplikasi(WidgetTester tester) async {
-    await tester.pumpWidget(const SignLApp());
-    expect(find.text('Masuk  →'), findsOneWidget);
-    await tester.tap(find.text('Masuk  →'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+  // Buka kerangka utama langsung, tanpa melewati autentikasi Supabase.
+  // Pengujian alur login tetap dilakukan terpisah di halaman login.
+  Future<void> bukaMainShell(WidgetTester tester) async {
+    await tester.pumpWidget(const SignLApp(home: MainShell()));
+    // Tunggu timer dummy ChatService (350 ms) dan NotificationService (300 ms)
+    // selesai supaya tidak tertinggal sebagai pending timer saat test berakhir.
+    await tester.pump(const Duration(milliseconds: 600));
     await tester.pumpAndSettle();
   }
 
@@ -37,9 +37,11 @@ void main() {
 
     // Memastikan halaman Login dirender
     expect(find.byType(LoginPage), findsOneWidget);
-    expect(find.text('Selamat Datang Kembali! 👋'), findsOneWidget);
-    expect(find.text('Masuk  →'), findsOneWidget);
+    expect(find.text('Selamat datang kembali'), findsOneWidget);
+    expect(find.text('Masuk'), findsOneWidget);
     expect(find.text('Daftar Sekarang'), findsOneWidget);
+    expect(find.text('Masukkan email atau username'), findsOneWidget);
+    expect(find.text('Masukkan kata sandi'), findsOneWidget);
 
     // Navigasi ke halaman Register dengan memastikan widget terlihat di layar uji
     await tester.ensureVisible(find.text('Daftar Sekarang'));
@@ -49,9 +51,34 @@ void main() {
     expect(find.byType(RegisterPage), findsOneWidget);
   });
 
-  testWidgets('Login tampil di awal dan membuka kerangka utama',
+  testWidgets('Login menolak email dan kata sandi kosong',
       (WidgetTester tester) async {
-    await masukKeAplikasi(tester);
+    await tester.pumpWidget(const SignLApp());
+
+    await tester.ensureVisible(find.text('Masuk'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Masuk'));
+    await tester.pump();
+
+    expect(find.text('Email dan kata sandi wajib diisi.'), findsOneWidget);
+    expect(find.byType(MainShell), findsNothing);
+
+    // Habiskan durasi SnackBar agar tidak ada pending timer saat test selesai.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('Tautan reset kata sandi membuka halaman kata sandi baru',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const SignLApp(openedFromRecovery: true));
+
+    expect(find.byType(ResetPage), findsOneWidget);
+    expect(find.text('Buat Kata Sandi Baru'), findsOneWidget);
+  });
+
+  testWidgets('Kerangka utama tampil dengan navbar',
+      (WidgetTester tester) async {
+    await bukaMainShell(tester);
 
     // Navbar dengan 4 item + tombol tengah harus dirender.
     expect(find.byType(AppBottomNavBar), findsOneWidget);
@@ -62,7 +89,7 @@ void main() {
 
   testWidgets('Navbar berpindah tab saat item ditekan',
       (WidgetTester tester) async {
-    await masukKeAplikasi(tester);
+    await bukaMainShell(tester);
 
     // Label hanya muncul saat aktif, jadi tab Kuis ditekan lewat ikonnya.
     await tester.tap(find.byIcon(Icons.assignment_outlined));
@@ -72,7 +99,7 @@ void main() {
 
   testWidgets('Label tombol tengah muncul saat aktif atau ditekan',
       (WidgetTester tester) async {
-    await masukKeAplikasi(tester);
+    await bukaMainShell(tester);
 
     // Beranda aktif -> tab tengah (Materi) tidak berlabel.
     expect(find.text('Materi'), findsNothing);
@@ -97,7 +124,7 @@ void main() {
 
   testWidgets('Item foto profil tidak menampilkan label',
       (WidgetTester tester) async {
-    await masukKeAplikasi(tester);
+    await bukaMainShell(tester);
 
     // Tab Profil di navbar memakai avatar, bukan ikon berlabel.
     expect(

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../controllers/chat_controller.dart';
 import 'chat/chat_list_view.dart';
 import 'home/home_page.dart';
 import 'home/materi_page.dart';
@@ -9,6 +7,7 @@ import 'home/quiz_page.dart';
 import 'komunitas/komunitas_page.dart';
 import 'profile/profile_screen.dart';
 import 'setting/setting_screen.dart';
+import 'theme/app_colors.dart';
 import 'widgets/app_bottom_nav_bar.dart';
 import 'widgets/komunitas_header.dart';
 import 'widgets/materi_header.dart';
@@ -32,8 +31,8 @@ class _MainShellState extends State<MainShell> {
   late int _index;
   late final PageController _pageController;
 
-  static const Color _pink = Color(0xFFC40083);
-  static const Color _cardBorder = Color(0xFFF2D9EB);
+  static const Color _pink = AppColors.primary;
+
 
   @override
   void initState() {
@@ -102,19 +101,15 @@ class _MainShellState extends State<MainShell> {
       padding: const EdgeInsets.all(16),
       children: [
         Container(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFFC40083), Color(0xFF9825B4)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: const [
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x33C40083),
-                blurRadius: 10,
-                offset: Offset(0, 4),
+                color: AppColors.primary.withValues(alpha: 0.28),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
               ),
             ],
           ),
@@ -139,12 +134,14 @@ class _MainShellState extends State<MainShell> {
                     ),
                   ),
                   const Spacer(),
-                  const Text('⭐ +100 XP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  const Icon(Icons.star_rounded, color: Colors.white, size: 18),
+                  const SizedBox(width: 4),
+                  const Text('+100 XP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ],
               ),
               const SizedBox(height: 12),
               const Text(
-                'Kuis Tebak Gestur Isyarat (A - J) ✋',
+                'Kuis tebak gestur isyarat (A - J)',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -163,13 +160,14 @@ class _MainShellState extends State<MainShell> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: _pink,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   onPressed: () => _openQuiz(context),
                   icon: const Icon(Icons.play_arrow_rounded, size: 22),
                   label: const Text(
-                    'Mulai Kuis Sekarang  ▶',
+                    'Mulai kuis sekarang',
                     style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
                   ),
                 ),
@@ -179,21 +177,21 @@ class _MainShellState extends State<MainShell> {
         ),
         const SizedBox(height: 16),
         _buildActionCard(
-          title: 'Kuis Harian Gestur 🎯',
+          title: 'Kuis harian gestur',
           description: 'Uji daya ingat 10 gestur acak hari ini dan dapatkan 50 XP!',
           buttonText: 'Mulai Kuis Harian',
           onTap: () => _openQuiz(context),
         ),
         const SizedBox(height: 14),
         _buildActionCard(
-          title: 'Tantangan Kilat 60 Detik ⚡',
+          title: 'Tantangan kilat 60 detik',
           description: 'Bentuk sebanyak mungkin gestur isyarat yang diminta sebelum waktu habis.',
           buttonText: 'Mulai Tantangan',
           onTap: () => _openQuiz(context),
         ),
         const SizedBox(height: 14),
         _buildActionCard(
-          title: 'Evaluasi Modul Huruf Vokal 📝',
+          title: 'Evaluasi modul huruf vokal',
           description: 'Selesaikan evaluasi untuk klaim sertifikat modul pemula.',
           buttonText: 'Mulai Evaluasi',
           onTap: () => _openQuiz(context),
@@ -209,11 +207,17 @@ class _MainShellState extends State<MainShell> {
     required VoidCallback onTap,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _cardBorder),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,7 +230,9 @@ class _MainShellState extends State<MainShell> {
             style: ElevatedButton.styleFrom(
               backgroundColor: _pink,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+              minimumSize: const Size(0, 48),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
             onPressed: onTap,
             child: Text(buttonText, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -289,57 +295,6 @@ class _MainShellState extends State<MainShell> {
           centerIcon: Icons.menu_book_rounded,
           centerLabel: 'Materi',
         ),
-  /// Halaman tiap tab. `late final` agar dibuat sekali, dan bisa memakai
-  /// callback yang butuh context milik State ini.
-  late final List<Widget> _pages = [
-    // Beranda punya header sendiri di dalam ListView-nya (logo, notifikasi,
-    // DM, avatar), jadi tidak dibungkus _HeaderPage. Header itu ikut
-    // tergulir bersama konten.
-    HomePage(
-      onOpenCommunity: () => _goTo(_komunitasTabIndex),
-      onOpenProfile: () => _goTo(_profilTabIndex),
-    ),
-    // Header Kuis sama persis dengan header Materi, hanya berbeda judul.
-    const _HeaderPage(
-      header: MateriHeader(title: 'Kuis'),
-      body: KuisPage(),
-    ),
-    const _HeaderPage(
-      header: MateriHeader(),
-      body: MateriPage(),
-    ),
-    _HeaderPage(
-      header: Consumer<ChatController>(
-        builder: (context, chat, _) => KomunitasHeader(
-          unreadCount: chat.totalUnreadMessages,
-          onMessages: _openChat,
-        ),
-      ),
-      body: const KomunitasPage(),
-    ),
-    const _HeaderPage(
-      header: ProfilHeader(),
-      body: ProfileScreen(),
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: [
-          for (final page in _pages) _KeepAlivePage(child: page),
-        ],
-      ),
-      bottomNavigationBar: AppBottomNavBar(
-        items: _items,
-        selectedIndex: _index,
-        onSelect: _goTo,
-        onCenterTap: () => _goTo(AppBottomNavBar.centerIndex),
-        centerIcon: Icons.menu_book_rounded,
-        centerLabel: 'Materi',
       ),
     );
   }

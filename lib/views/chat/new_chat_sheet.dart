@@ -44,6 +44,11 @@ class _NewChatSheetState extends State<NewChatSheet> {
         .toList();
   }
 
+  static final OutlineInputBorder _softFieldBorder = OutlineInputBorder(
+    borderRadius: BorderRadius.circular(16),
+    borderSide: BorderSide.none,
+  );
+
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<ChatController>();
@@ -64,7 +69,7 @@ class _NewChatSheetState extends State<NewChatSheet> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(4),
                 ),
               ),
               Padding(
@@ -97,6 +102,15 @@ class _NewChatSheetState extends State<NewChatSheet> {
                       color: AppColors.textMuted,
                     ),
                     isDense: true,
+                    filled: true,
+                    fillColor: AppColors.fieldFill,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    border: _softFieldBorder,
+                    enabledBorder: _softFieldBorder,
+                    focusedBorder: _softFieldBorder,
                     suffixIcon: _query.isEmpty
                         ? null
                         : IconButton(
@@ -127,14 +141,23 @@ class _NewChatSheetState extends State<NewChatSheet> {
                             ),
                           )
                         : ListView.separated(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 8,
+                            ),
                             itemCount: contacts.length,
                             separatorBuilder: (_, __) =>
-                                const Divider(height: 1),
+                                const SizedBox(height: 4),
                             itemBuilder: (context, index) {
                               final contact = contacts[index];
                               return ListTile(
-                                contentPadding: EdgeInsets.zero,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
                                 leading: UserAvatar(
                                   imageUrl: contact.avatarUrl,
                                   name: contact.name,

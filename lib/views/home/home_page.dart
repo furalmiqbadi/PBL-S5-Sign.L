@@ -10,6 +10,7 @@ import 'detail_materi_page.dart';
 import '../notification/notification_view.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/auth_widgets.dart' show SignLogo, SignWordmark;
 
 class HomePage extends StatefulWidget {
   final VoidCallback? onOpenCommunity;
@@ -86,7 +87,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.surface,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -107,6 +108,45 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Bayangan lembut yang sama untuk semua elemen melayang di Beranda.
+  static final List<BoxShadow> _softShadow = [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.05),
+      blurRadius: 20,
+      offset: const Offset(0, 4),
+    ),
+  ];
+
+  Widget _buildHeaderButton(String asset, VoidCallback onPressed) {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: _softShadow,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onPressed,
+          child: Center(
+            child: SvgPicture.asset(
+              asset,
+              width: 22,
+              height: 22,
+              colorFilter: const ColorFilter.mode(
+                AppColors.textPrimary,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeader() {
     final notificationUnread =
         context.watch<NotificationController>().unreadCount;
@@ -114,37 +154,15 @@ class _HomePageState extends State<HomePage> {
 
     return Row(
       children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: AppColors.pinkSoft,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(Icons.sign_language,
-              color: AppColors.primary, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          'Sign.L',
-          style: AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.bold),
-        ),
+        const SignLogo(size: 40, showText: false),
+        const SizedBox(width: 10),
+        const SignWordmark(fontSize: 22),
         const Spacer(),
         Stack(
           clipBehavior: Clip.none,
           children: [
-            IconButton(
-              icon: SvgPicture.asset(
-                'assets/images/notifikasi_fix.svg',
-                width: 22,
-                height: 22,
-                colorFilter: const ColorFilter.mode(
-                  AppColors.textPrimary,
-                  BlendMode.srcIn,
-                ),
-              ),
-              onPressed: _openNotifications,
-            ),
+            _buildHeaderButton(
+                'assets/images/notifikasi_fix.svg', _openNotifications),
             if (notificationUnread > 0)
               Positioned(
                 right: 8,
@@ -161,21 +179,11 @@ class _HomePageState extends State<HomePage> {
               ),
           ],
         ),
+        const SizedBox(width: 8),
         Stack(
           clipBehavior: Clip.none,
           children: [
-            IconButton(
-              icon: SvgPicture.asset(
-                'assets/images/dm_fix.svg',
-                width: 22,
-                height: 22,
-                colorFilter: const ColorFilter.mode(
-                  AppColors.textPrimary,
-                  BlendMode.srcIn,
-                ),
-              ),
-              onPressed: _openChat,
-            ),
+            _buildHeaderButton('assets/images/dm_fix.svg', _openChat),
             if (chatUnread > 0)
               Positioned(
                 right: 4,
@@ -215,55 +223,70 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildStatsBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
       decoration: BoxDecoration(
         color: AppColors.pinkSofter,
         border: Border.all(color: AppColors.pinkSoft),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildStatItem(Icons.local_fire_department, AppColors.tertiary,
+          _buildStatItem(Icons.local_fire_department_rounded, AppColors.tertiary,
               'Streak', '7 Hari'),
-          Container(width: 1, height: 32, color: AppColors.border),
-          _buildStatItem(Icons.favorite, AppColors.primary, 'Nyawa', '5/5'),
-          Container(width: 1, height: 32, color: AppColors.border),
-          _buildStatItem(Icons.diamond, AppColors.secondary, 'Diamond', '420'),
+          _buildStatDivider(),
+          _buildStatItem(
+              Icons.favorite_rounded, AppColors.danger, 'Nyawa', '5/5'),
+          _buildStatDivider(),
+          _buildStatItem(
+              Icons.diamond_rounded, AppColors.secondary, 'Diamond', '420'),
+          _buildStatDivider(),
+          _buildStatItem(Icons.bolt_rounded, AppColors.primary, 'EXP', '350'),
         ],
       ),
     );
   }
 
+  Widget _buildStatDivider() =>
+      Container(width: 1, height: 28, color: AppColors.border);
+
+  /// Satu statistik; [FittedBox] mengecilkan isi bila layar sempit.
   Widget _buildStatItem(
       IconData icon, Color iconColor, String label, String value) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: iconColor.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
+    return Expanded(
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 16),
+              ),
+              const SizedBox(width: 6),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: AppTextStyles.labelSmall.copyWith(
+                        color: AppColors.textSecondary, fontSize: 10),
+                  ),
+                  Text(
+                    value,
+                    style: AppTextStyles.labelMedium
+                        .copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ],
           ),
-          child: Icon(icon, color: iconColor, size: 20),
         ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: AppTextStyles.labelSmall
-                  .copyWith(color: AppColors.textSecondary),
-            ),
-            Text(
-              value,
-              style: AppTextStyles.labelLarge
-                  .copyWith(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 
@@ -271,14 +294,13 @@ class _HomePageState extends State<HomePage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.pinkSoft),
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: AppColors.primary.withValues(alpha: 0.28),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -291,12 +313,12 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   const Icon(Icons.play_circle_outline,
-                      color: AppColors.primary, size: 20),
+                      color: AppColors.textOnPrimary, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     'LANJUTKAN BELAJAR',
                     style: AppTextStyles.labelMedium.copyWith(
-                      color: AppColors.primary,
+                      color: AppColors.textOnPrimary,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
                     ),
@@ -305,22 +327,26 @@ class _HomePageState extends State<HomePage> {
               ),
               Text(
                 '68% Selesai',
-                style: AppTextStyles.labelMedium
-                    .copyWith(color: AppColors.textSecondary),
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: AppColors.textOnPrimary.withValues(alpha: 0.85),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 16),
           Text(
             'Bab 1: Alfabet Isyarat',
-            style:
-                AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.bold),
+            style: AppTextStyles.titleLarge.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textOnPrimary,
+            ),
           ),
           const SizedBox(height: 6),
           Text(
             'Materi Terakhir: Huruf J s/d R & Latihan Refleks',
-            style: AppTextStyles.bodyMedium
-                .copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textOnPrimary.withValues(alpha: 0.85),
+            ),
           ),
           const SizedBox(height: 20),
           Row(
@@ -330,7 +356,7 @@ class _HomePageState extends State<HomePage> {
                   height: 8,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
-                    color: AppColors.border,
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.25),
                   ),
                   child: FractionallySizedBox(
                     alignment: Alignment.centerLeft,
@@ -338,9 +364,7 @@ class _HomePageState extends State<HomePage> {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(4),
-                        gradient: const LinearGradient(
-                          colors: [AppColors.secondary, AppColors.primary],
-                        ),
+                        color: AppColors.textOnPrimary,
                       ),
                     ),
                   ),
@@ -350,8 +374,8 @@ class _HomePageState extends State<HomePage> {
               ElevatedButton.icon(
                 onPressed: _continueLearning,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.textOnPrimary,
+                  backgroundColor: AppColors.surface,
+                  foregroundColor: AppColors.primary,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(

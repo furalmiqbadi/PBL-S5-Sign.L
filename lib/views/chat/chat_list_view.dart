@@ -87,14 +87,27 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
+  static final OutlineInputBorder _softFieldBorder = OutlineInputBorder(
+    borderRadius: BorderRadius.circular(16),
+    borderSide: BorderSide.none,
+  );
+
   Widget _buildSearchField(ChatController controller) {
     return TextField(
       onChanged: controller.search,
       style: AppTextStyles.bodyMedium,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         hintText: 'Cari teman atau grup belajar...',
-        prefixIcon: Icon(Icons.search_rounded, color: AppColors.textMuted),
+        prefixIcon:
+            const Icon(Icons.search_rounded, color: AppColors.textMuted),
         isDense: true,
+        filled: true,
+        fillColor: AppColors.fieldFill,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: _softFieldBorder,
+        enabledBorder: _softFieldBorder,
+        focusedBorder: _softFieldBorder,
       ),
     );
   }
@@ -140,9 +153,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
       itemCount: rooms.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final room = rooms[index];
         return ChatListTile(
@@ -163,8 +176,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final contact = await showModalBottomSheet<ChatContact>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => const NewChatSheet(),
     );
@@ -219,20 +233,27 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return GestureDetector(
       onTap: () => _openCommunity(context),
       child: Container(
-        margin: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+        margin: const EdgeInsets.fromLTRB(20, 12, 20, 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.pinkSoft,
-          borderRadius: BorderRadius.circular(18),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              width: 44,
-              height: 44,
-              decoration: const BoxDecoration(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
                 color: AppColors.primary,
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(16),
               ),
               child: const Icon(
                 Icons.campaign_rounded,
@@ -247,7 +268,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 children: [
                   Text('Belajar lebih seru bersama!',
                       style: AppTextStyles.titleSmall),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     'Temukan teman latihan di komunitas.',
                     style: AppTextStyles.bodySmall,
