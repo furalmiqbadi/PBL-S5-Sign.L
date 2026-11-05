@@ -1,27 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'controllers/auth_controller.dart';
 import 'controllers/chat_controller.dart';
 import 'controllers/notification_controller.dart';
 import 'controllers/settings_controller.dart';
+import 'services/supabase_config.dart';
 import 'views/auth/auth_views.dart';
+import 'views/main_shell.dart';
 import 'views/theme/app_colors.dart';
 import 'views/theme/app_theme.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Inisialisasi Supabase bila konfigurasi Project URL & Anon Key sudah diisi
+  if (SupabaseConfig.isConfigured) {
+    try {
+      await Supabase.initialize(
+        url: SupabaseConfig.supabaseUrl,
+        anonKey: SupabaseConfig.supabaseAnonKey,
+      );
+    } catch (e) {
+      debugPrint('[Supabase] Gagal inisialisasi: $e');
+    }
+  }
+
   runApp(const SignLApp());
 }
 
 /// Root aplikasi Sign.L.
 ///
 /// Menyediakan seluruh controller lewat [MultiProvider] dan menampilkan
-/// [LoginPage] sebagai titik awal. Setelah autentikasi (masih mock, belum
-/// terhubung database) user diarahkan ke kerangka utama `MainShell`.
+/// [LoginPage] sebagai titik awal (atau [MainShell] bila sudah login).
 class SignLApp extends StatelessWidget {
   final Widget? home;
 
   const SignLApp({super.key, this.home});
+
+  Widget _determineInitialHome() {
+    if (home != null) return home!;
+    try {
+      if (Supabase.instance.client.auth.currentSession != null) {
+        return const MainShell();
+      }
+    } catch (_) {}
+    return const LoginPage();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,19 +77,7 @@ class SignLApp extends StatelessWidget {
             child: child!,
           );
         },
-
-        theme: AppTheme.light,
-        home: home ?? const LoginPage(),
-      ),
-    );
-  }
-}
-
-// Backward-compatible name for default Flutter widget test runner.
-class MyApp extends SignLApp {
-  const MyApp({super.key, super.home});
-}
-        home: const LoginPage(),
+        home: _determineInitialHome(),
       ),
     );
   }
@@ -71,15 +85,10 @@ class MyApp extends SignLApp {
 
 /// Nama lama agar widget test bawaan Flutter tetap kompatibel.
 class MyApp extends SignLApp {
-  const MyApp({super.key});
+  const MyApp({super.key, super.home});
 }
 
 /// Perilaku scroll tanpa efek "karet" (stretch overscroll) di Android.
-///
-/// Secara default Flutter 3.x memakai [StretchingOverscrollIndicator] pada
-/// Android 12+, sehingga konten terlihat melar seperti karet lalu memantul
-/// saat mencapai ujung daftar. Kita ganti dengan indikator glow agar scroll
-/// terasa normal dan tidak ada distorsi.
 class _NoStretchScrollBehavior extends MaterialScrollBehavior {
   const _NoStretchScrollBehavior();
 
