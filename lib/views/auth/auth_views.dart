@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
+import '../admin/admin_panel_page.dart';
 import '../main_shell.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -13,15 +14,66 @@ void openHome(BuildContext context) => Navigator.pushAndRemoveUntil(context, Mat
 class LoginPage extends StatefulWidget { const LoginPage({super.key}); @override State<LoginPage> createState() => _LoginPageState(); }
 class _LoginPageState extends State<LoginPage> {
   final email = TextEditingController(); final password = TextEditingController();
+  bool asAdmin = false;
+  bool adminLoading = false;
   @override void dispose() { email.dispose(); password.dispose(); super.dispose(); }
-  Future<void> submit() async { final c = context.read<AuthController>(); await c.login(email: email.text, password: password.text); if (mounted) openHome(context); }
+
+  void setRole(bool admin) => setState(() { asAdmin = admin; password.clear(); });
+
+  Future<void> submit() async {
+    if (asAdmin) { await submitAdmin(); return; }
+    final c = context.read<AuthController>(); await c.login(email: email.text, password: password.text); if (mounted) openHome(context);
+  }
+
+  // Login admin (mock) — field dibiarkan kosong tetap bisa masuk.
+  Future<void> submitAdmin() async {
+    setState(() => adminLoading = true);
+    await Future.delayed(const Duration(milliseconds: 600)); // simulasi jaringan
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const AdminPanelPage()), (_) => false);
+  }
+
+  Widget roleToggle() => Container(
+    padding: const EdgeInsets.all(4),
+    decoration: BoxDecoration(color: AppColors.surfaceMuted, borderRadius: BorderRadius.circular(14)),
+    child: Row(children: [
+      roleTab('Pengguna', Icons.person_outline_rounded, !asAdmin, () => setRole(false)),
+      roleTab('Admin', Icons.shield_outlined, asAdmin, () => setRole(true)),
+    ]),
+  );
+
+  Widget roleTab(String label, IconData icon, bool selected, VoidCallback onTap) => Expanded(
+    child: GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(color: selected ? AppColors.primary : Colors.transparent, borderRadius: BorderRadius.circular(10)),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(icon, size: 16, color: selected ? AppColors.textOnPrimary : AppColors.textSecondary),
+          const SizedBox(width: 6),
+          Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold, color: selected ? AppColors.textOnPrimary : AppColors.textSecondary))),
+        ]),
+      ),
+    ),
+  );
+
   @override Widget build(BuildContext context) => AuthScaffold(child: Column(children: [
-    const AuthHeader(title: 'Selamat Datang Kembali! 👋', subtitle: 'Masuk untuk melanjutkan perjalanan belajar bahasa isyaratmu.'), const SizedBox(height: 27),
-    AuthField(label: 'Email atau Username', hint: 'cth. budi@gmail.com atau budi', icon: Icons.alternate_email_rounded, controller: email),
+    AuthHeader(
+      title: asAdmin ? 'Masuk sebagai Admin 🛡️' : 'Selamat Datang Kembali! 👋',
+      subtitle: asAdmin ? 'Gunakan akun admin untuk membuka panel pengelolaan.' : 'Masuk untuk melanjutkan perjalanan belajar bahasa isyaratmu.',
+    ), const SizedBox(height: 20),
+    roleToggle(), const SizedBox(height: 20),
+    AuthField(label: asAdmin ? 'Email Admin' : 'Email atau Username', hint: asAdmin ? 'cth. admin@signl.id' : 'cth. budi@gmail.com atau budi', icon: Icons.alternate_email_rounded, controller: email),
     Consumer<AuthController>(builder: (_, c, __) => AuthField(label: 'Kata Sandi', hint: 'Masukkan kata sandi', icon: Icons.lock_outline_rounded, controller: password, password: !c.showPassword, suffix: IconButton(onPressed: c.togglePasswordVisibility, icon: Icon(c.showPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 16, color: muted)))),
-    Align(alignment: Alignment.centerRight, child: TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPage())), child: Text('Lupa kata sandi?', style: AppTextStyles.labelXSmall.copyWith(color: pink, fontWeight: FontWeight.w800)))),
-    Consumer<AuthController>(builder: (_, c, __) => GradientButton(text: c.isLoading ? 'Memproses...' : 'Masuk  →', onTap: c.isLoading ? null : submit)), const DividerWithText(text: 'atau masuk dengan'),
-    GoogleButton(onTap: () => openHome(context)), const SizedBox(height: 22), FooterText(prefix: 'Belum punya akun? ', action: 'Daftar Sekarang', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage()))),
+    if (!asAdmin) Align(alignment: Alignment.centerRight, child: TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPage())), child: Text('Lupa kata sandi?', style: AppTextStyles.labelXSmall.copyWith(color: pink, fontWeight: FontWeight.w800)))),
+    Consumer<AuthController>(builder: (_, c, __) {
+      final busy = asAdmin ? adminLoading : c.isLoading;
+      return GradientButton(text: busy ? 'Memproses...' : (asAdmin ? 'Masuk sebagai Admin  →' : 'Masuk  →'), onTap: busy ? null : submit);
+    }),
+    if (!asAdmin) ...[
+      const SizedBox(height: 22), FooterText(prefix: 'Belum punya akun? ', action: 'Daftar Sekarang', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage()))),
+    ],
   ]));
 }
 
@@ -36,9 +88,10 @@ class _RegisterPageState extends State<RegisterPage> {
     AuthField(label: 'Nama Lengkap', hint: 'cth. Budi Pratama', icon: Icons.person_outline_rounded, controller: name), AuthField(label: 'Username', hint: 'cth. budi_isyarat', icon: Icons.alternate_email_rounded, controller: username), AuthField(label: 'Email', hint: 'cth. budi@gmail.com', icon: Icons.mail_outline_rounded, controller: email),
     AuthField(label: 'Kata Sandi', hint: 'BelajarBisa24!', icon: Icons.lock_outline_rounded, controller: password, password: !show, suffix: IconButton(onPressed: () => setState(() => show = !show), icon: Icon(show ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 16))), AuthField(label: 'Konfirmasi Kata Sandi', hint: 'Ulangi kata sandi', icon: Icons.lock_outline_rounded, controller: confirmation, password: !show),
     InkWell(onTap: () => setState(() => accepted = !accepted), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(accepted ? Icons.check_box : Icons.check_box_outline_blank, color: pink, size: 16), const SizedBox(width: 6), Expanded(child: Text('Saya menyetujui Syarat & Ketentuan serta Kebijakan Privasi Sign.L.', style: AppTextStyles.labelXSmall.copyWith(color: muted)))])), const SizedBox(height: 16),
-    Consumer<AuthController>(builder: (_, c, __) => GradientButton(text: 'Buat Akun  ✨', onTap: c.isLoading ? null : submit)), const DividerWithText(text: 'atau daftar dengan'), GoogleButton(onTap: () => openHome(context)), const SizedBox(height: 18), FooterText(prefix: 'Sudah punya akun? ', action: 'Masuk', onTap: () => Navigator.pop(context)),
+    Consumer<AuthController>(builder: (_, c, __) => GradientButton(text: 'Buat Akun  ✨', onTap: c.isLoading ? null : submit)), const DividerWithText(text: 'atau daftar dengan'), const SizedBox(height: 18), FooterText(prefix: 'Sudah punya akun? ', action: 'Masuk', onTap: () => Navigator.pop(context)),
   ]));
 }
+
 
 class ForgotPage extends StatefulWidget { const ForgotPage({super.key}); @override State<ForgotPage> createState() => _ForgotPageState(); }
 class _ForgotPageState extends State<ForgotPage> {

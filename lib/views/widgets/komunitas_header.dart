@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'leaderboard.dart';
 import 'section_header.dart';
 
 /// Header halaman Komunitas: judul di kiri, lalu di kanan tombol papan
@@ -27,7 +28,7 @@ class KomunitasHeader extends StatelessWidget {
         HeaderIconButton(
           svgAsset: 'assets/images/leaderboard_fix.svg',
           semanticLabel: 'Papan peringkat',
-          onTap: onLeaderboard,
+          onTap: onLeaderboard ?? () => showLeaderboardSheet(context),
         ),
         const SizedBox(width: 8),
         HeaderIconButton(
