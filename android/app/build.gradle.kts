@@ -6,6 +6,8 @@ plugins {
 
 android {
     namespace = "com.pbl.sign.L" 
+    // Beberapa plugin (camera_android, sqflite_android, dll.) butuh compileSdk 36.
+    compileSdk = 36
     compileSdk = 36 // Compatible dengan Android 15
     ndkVersion = flutter.ndkVersion
 
@@ -17,6 +19,12 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.pbl.sign.L"
+        // Minimal Android 12 (API 31).
+        // Requirement minSdk tertinggi dari semua plugin hanya 24 (camera_android,
+        // shared_preferences_android, flutter_plugin_android_lifecycle), jadi 31 aman.
+        minSdk = 31
+        // Target Android 15 (API 35).
+        targetSdk = 35
         minSdk = 29 // Minimal Android 10 (API 29). 
         targetSdk = 36 // Target Android 15 
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
