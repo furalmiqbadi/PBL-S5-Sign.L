@@ -3,6 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/notification_controller.dart';
 import '../../models/notification_model.dart';
+import '../common/pushed_page.dart';
+import '../home/detail_materi_page.dart';
+import '../komunitas/komunitas_page.dart';
+import '../profile/profile_screen.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/app_screen_header.dart';
@@ -20,12 +24,59 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  bool _searching = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NotificationController>().load();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _searching = !_searching;
+      if (!_searching) {
+        _searchController.clear();
+        context.read<NotificationController>().search('');
+      }
+    });
+  }
+
+  void _openNotification(
+    BuildContext context,
+    NotificationController controller,
+    AppNotification notification,
+  ) {
+    controller.markAsRead(notification.id);
+
+    final route = switch (notification.target) {
+      NotificationTarget.community => MaterialPageRoute<void>(
+          builder: (_) => const PushedPage(
+            title: 'Komunitas',
+            child: KomunitasPage(),
+          ),
+        ),
+      NotificationTarget.learning => MaterialPageRoute<void>(
+          builder: (_) => const DetailMateriPage(),
+        ),
+      NotificationTarget.achievement => MaterialPageRoute<void>(
+          builder: (_) => const PushedPage(
+            title: 'Profil',
+            child: ProfileScreen(),
+          ),
+        ),
+    };
+
+    Navigator.of(context).push(route);
   }
 
   @override
@@ -40,9 +91,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
               title: 'Notifikasi',
               actions: [
                 HeaderIconButton(
-                  icon: Icons.search_rounded,
-                  semanticLabel: 'Cari notifikasi',
-                  onTap: () {},
+                  icon: _searching ? Icons.close_rounded : Icons.search_rounded,
+                  semanticLabel:
+                      _searching ? 'Tutup pencarian' : 'Cari notifikasi',
+                  onTap: _toggleSearch,
                 ),
               ],
             ),
@@ -53,6 +105,33 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (_searching)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                        child: TextField(
+                          controller: _searchController,
+                          autofocus: true,
+                          onChanged: controller.search,
+                          style: AppTextStyles.bodyMedium,
+                          decoration: InputDecoration(
+                            hintText: 'Cari notifikasi...',
+                            prefixIcon: const Icon(
+                              Icons.search_rounded,
+                              color: AppColors.textMuted,
+                            ),
+                            isDense: true,
+                            suffixIcon: controller.query.isEmpty
+                                ? null
+                                : IconButton(
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      controller.search('');
+                                    },
+                                    icon: const Icon(Icons.close, size: 18),
+                                  ),
+                          ),
+                        ),
+                      ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
                       child: _buildSummaryRow(controller),
@@ -72,7 +151,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Expanded(child: _buildList(controller)),
+                    Expanded(child: _buildList(context, controller)),
                   ],
                 );
               },
@@ -80,7 +159,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const SignlNavBar(selectedIndex: 3),
+      bottomNavigationBar: const SignlNavBar(selectedIndex: -1),
     );
   }
 
@@ -117,7 +196,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  Widget _buildList(NotificationController controller) {
+  Widget _buildList(BuildContext context, NotificationController controller) {
     if (controller.isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.primary),
@@ -126,10 +205,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     if (controller.errorMessage != null) {
       return Center(
-        child: Text(
-          controller.errorMessage!,
-          style: AppTextStyles.bodyMedium
-              .copyWith(color: AppColors.textSecondary),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              controller.errorMessage!,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => controller.load(force: true),
+              child: const Text('Coba lagi'),
+            ),
+          ],
         ),
       );
     }
@@ -149,7 +239,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Belum ada notifikasi di kategori ini.',
+              controller.query.isEmpty
+                  ? 'Belum ada notifikasi di kategori ini.'
+                  : 'Notifikasi tidak ditemukan.',
               style: AppTextStyles.bodyMedium
                   .copyWith(color: AppColors.textSecondary),
             ),
@@ -163,11 +255,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
       children: [
         if (today.isNotEmpty) ...[
           _buildSectionLabel('Hari ini'),
-          ...today.map((item) => _buildTile(controller, item)),
+          ...today.map((item) => _buildTile(context, controller, item)),
         ],
         if (yesterday.isNotEmpty) ...[
           _buildSectionLabel('Kemarin'),
-          ...yesterday.map((item) => _buildTile(controller, item)),
+          ...yesterday.map((item) => _buildTile(context, controller, item)),
         ],
         const SizedBox(height: 16),
         Center(
@@ -188,6 +280,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Widget _buildTile(
+    BuildContext context,
     NotificationController controller,
     AppNotification notification,
   ) {
@@ -195,8 +288,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: NotificationTile(
         notification: notification,
-        onTap: () => controller.markAsRead(notification.id),
-        onAction: () => controller.markAsRead(notification.id),
+        onTap: () => _openNotification(context, controller, notification),
+        onAction: () => _openNotification(context, controller, notification),
       ),
     );
   }
