@@ -1,26 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'controllers/auth_controller.dart';
 import 'controllers/chat_controller.dart';
 import 'controllers/notification_controller.dart';
 import 'controllers/settings_controller.dart';
+import 'services/supabase_config.dart';
 import 'views/auth/auth_views.dart';
+import 'views/main_shell.dart';
 import 'views/theme/app_theme.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Inisialisasi Supabase bila konfigurasi Project URL & Anon Key sudah diisi
+  if (SupabaseConfig.isConfigured) {
+    try {
+      await Supabase.initialize(
+        url: SupabaseConfig.supabaseUrl,
+        anonKey: SupabaseConfig.supabaseAnonKey,
+      );
+    } catch (e) {
+      debugPrint('[Supabase] Gagal inisialisasi: $e');
+    }
+  }
+
   runApp(const SignLApp());
 }
 
 /// Root aplikasi Sign.L.
 ///
 /// Menyediakan controller aplikasi lewat [MultiProvider] dan menampilkan
-/// [LoginPage] sebagai titik awal. Setelah autentikasi (masih mock, belum
-/// terhubung database) user diarahkan ke kerangka utama `MainShell`.
+/// [LoginPage] sebagai titik awal (atau [MainShell] bila sudah login).
 class SignLApp extends StatelessWidget {
   final Widget? home;
 
   const SignLApp({super.key, this.home});
+
+  Widget _determineInitialHome() {
+    if (home != null) return home!;
+    try {
+      if (Supabase.instance.client.auth.currentSession != null) {
+        return const MainShell();
+      }
+    } catch (_) {}
+    return const LoginPage();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +75,7 @@ class SignLApp extends StatelessWidget {
         },
 
         theme: AppTheme.light,
-        home: home ?? const LoginPage(),
+        home: _determineInitialHome(),
       ),
     );
   }

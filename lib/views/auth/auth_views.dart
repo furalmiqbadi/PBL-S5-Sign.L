@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
+import '../../services/supabase_config.dart';
 import '../main_shell.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -39,6 +40,14 @@ class _LoginPageState extends State<LoginPage> {
     final emailText = email.text.trim();
     final passText = password.text.trim();
 
+    // Jika Supabase sudah aktif di runtime, lakukan validasi input wajib terisi
+    if (SupabaseConfig.isInitialized && (emailText.isEmpty || passText.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email dan kata sandi wajib diisi.')),
+      );
+      return;
+    }
+
     final targetEmail = emailText.isEmpty ? 'budi@gmail.com' : emailText;
     final targetPass = passText.isEmpty ? '123456' : passText;
 
@@ -52,12 +61,6 @@ class _LoginPageState extends State<LoginPage> {
         SnackBar(content: Text(c.errorMessage!)),
       );
     }
-  }
-
-  Future<void> loginWithGoogle() async {
-    final c = context.read<AuthController>();
-    await c.login(email: 'budi.google@signl.id', password: 'google_sso_user');
-    if (mounted) openHome(context);
   }
 
   @override
@@ -112,9 +115,7 @@ class _LoginPageState extends State<LoginPage> {
               onTap: c.isLoading ? null : submit,
             ),
           ),
-          const DividerWithText(text: 'atau masuk dengan'),
-          GoogleButton(onTap: loginWithGoogle),
-          const SizedBox(height: 22),
+          const SizedBox(height: 24),
           FooterText(
             prefix: 'Belum punya akun? ',
             action: 'Daftar Sekarang',
@@ -160,37 +161,52 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> submit() async {
     final c = context.read<AuthController>();
     final nameText = name.text.trim();
+    final userText = username.text.trim();
     final emailText = email.text.trim();
     final passText = password.text.trim();
     final confirmText = confirmation.text.trim();
 
-    if (confirmText.isNotEmpty && passText.isNotEmpty && passText != confirmText) {
+    if (nameText.isEmpty) {
+      _message('Nama lengkap wajib diisi.');
+      return;
+    }
+    if (emailText.isEmpty) {
+      _message('Email wajib diisi.');
+      return;
+    }
+    if (passText.isEmpty) {
+      _message('Kata sandi wajib diisi.');
+      return;
+    }
+    if (passText.length < 6) {
+      _message('Kata sandi minimal 6 karakter.');
+      return;
+    }
+    if (passText != confirmText) {
       _message('Konfirmasi kata sandi tidak cocok.');
       return;
     }
+    if (!accepted) {
+      _message('Anda harus menyetujui Syarat & Ketentuan.');
+      return;
+    }
 
-    final targetName = nameText.isEmpty ? 'Pembelajar Sign.L' : nameText;
-    final targetEmail = emailText.isEmpty ? 'budi.baru@signl.id' : emailText;
-    final targetPass = passText.isEmpty ? '123456' : passText;
-
-    final ok = await c.register(email: targetEmail, password: targetPass, name: targetName);
+    final ok = await c.register(
+      email: emailText,
+      password: passText,
+      name: nameText,
+      username: userText,
+    );
     if (!mounted) return;
 
     if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pendaftaran berhasil!')),
+      );
       openHome(context);
     } else if (c.errorMessage != null) {
       _message(c.errorMessage!);
     }
-  }
-
-  Future<void> registerWithGoogle() async {
-    final c = context.read<AuthController>();
-    await c.register(
-      email: 'budi.google@signl.id',
-      password: 'google_sso_user',
-      name: 'Google User',
-    );
-    if (mounted) openHome(context);
   }
 
   void _navigateBack() {
@@ -283,9 +299,7 @@ class _RegisterPageState extends State<RegisterPage> {
               onTap: c.isLoading ? null : submit,
             ),
           ),
-          const DividerWithText(text: 'atau daftar dengan'),
-          GoogleButton(onTap: registerWithGoogle),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
           FooterText(
             prefix: 'Sudah punya akun? ',
             action: 'Masuk',
