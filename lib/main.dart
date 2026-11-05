@@ -19,7 +19,9 @@ void main() {
 /// [LoginPage] sebagai titik awal. Setelah autentikasi (masih mock, belum
 /// terhubung database) user diarahkan ke kerangka utama `MainShell`.
 class SignLApp extends StatelessWidget {
-  const SignLApp({super.key});
+  final Widget? home;
+
+  const SignLApp({super.key, this.home});
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +51,18 @@ class SignLApp extends StatelessWidget {
             child: child!,
           );
         },
+
+        theme: AppTheme.light,
+        home: home ?? const LoginPage(),
+      ),
+    );
+  }
+}
+
+// Backward-compatible name for default Flutter widget test runner.
+class MyApp extends SignLApp {
+  const MyApp({super.key, super.home});
+}
         home: const LoginPage(),
       ),
     );

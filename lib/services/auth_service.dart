@@ -6,5 +6,6 @@ class AuthService {
   Future<void> sendResetLink(String email) async => _wait();
   Future<void> resetPassword({required String password, required String confirmation}) async => _wait();
   Future<void> logout() async => _wait();
-  Future<void> _wait() => Future<void>.delayed(const Duration(milliseconds: 350));
+
+  Future<void> _wait() => Future<void>.delayed(const Duration(milliseconds: 300));
 }
