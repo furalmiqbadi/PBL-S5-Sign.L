@@ -14,10 +14,9 @@ dependencies:
   # --- State Management (Modified MVC) ---
   provider: ^6.1.1 # Untuk ChangeNotifier (Controller) & Dependency Injection
 
-
   # --- Machine Learning & Kamera ---
   camera: ^0.10.5+9 # Akses kamera HP
-  tflite_flutter: ^0.12.1 # Engine untuk menjalankan model .tflite (LiteRT 1.4.0, namespace unik)
+  tflite_flutter: ^0.10.4 # Engine untuk menjalankan model .tflite (Paling stabil)
   image: ^4.1.3 # Untuk resize, crop, dan normalisasi pixel gambar sebelum masuk ML
   path_provider: ^2.1.1 # Akses direktori penyimpanan sementara HP
 
@@ -32,6 +31,7 @@ dependencies:
   # --- Utilitas ---
   shared_preferences: ^2.2.2 # Cache data lokal sederhana
   intl: ^0.18.1 # Format tanggal dan waktu
+  supabase_flutter: ^2.18.3
 
 dev_dependencies:
   flutter_test:
