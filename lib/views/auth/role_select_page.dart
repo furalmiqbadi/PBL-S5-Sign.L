@@ -5,7 +5,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'auth_views.dart'; // berisi LoginPage
 
-/// Layar awal: pilih masuk sebagai Pengguna atau Admin.
+/// Layar awal: pilih masuk sebagai Pengguna atau Admin
 class RoleSelectPage extends StatelessWidget {
   const RoleSelectPage({super.key});
 

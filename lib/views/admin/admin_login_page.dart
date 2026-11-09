@@ -9,7 +9,7 @@ import 'admin_panel_page.dart';
 ///
 /// MOCK: pengecekan akun di bawah hanya untuk demo dan belum aman.
 /// Nanti ganti [_login] dengan panggilan API, dan pastikan role admin
-/// ditentukan oleh server, bukan oleh aplikasi.
+/// ditentukan oleh server, bukan oleh aplikasi
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
 

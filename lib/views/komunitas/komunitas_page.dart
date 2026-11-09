@@ -62,7 +62,7 @@ class PostModel {
   });
 }
 
-/// BARU: widget pemutar video dari file lokal (dipakai di preview form & di kartu postingan)
+/// BARU: widget pemutar video dari file lokal (dipakai di preview form & di kartu postingan).
 class _VideoPlayerBox extends StatefulWidget {
   final String path;
   final double height;

@@ -269,69 +269,89 @@ class ModerasiChatPage extends StatelessWidget {
 }
 
 // ============================================================
-// 3. REVIEW VIDEO AI
+// 3. REVIEW VIDEO & FOTO KIRIMAN PENGGUNA (SUDAH DIPERBAIKI)
 // ============================================================
 
 class ReviewVideoAIPage extends StatelessWidget {
   const ReviewVideoAIPage({super.key});
 
-  static final List<Map<String, dynamic>> videos = [
-    {'user': 'Dina Safitri', 'title': 'Deteksi Huruf D', 'score': 82.0, 'time': 'Hari ini'},
-    {'user': 'Bagas Nugroho', 'title': 'Deteksi Huruf R', 'score': 67.0, 'time': 'Hari ini'},
-    {'user': 'Laras Putri', 'title': 'Deteksi Kata "Terima Kasih"', 'score': 91.0, 'time': 'Kemarin'},
-    {'user': 'Faiz Hidayat', 'title': 'Deteksi Angka 7', 'score': 74.0, 'time': 'Kemarin'},
-    {'user': 'Yoga Saputra', 'title': 'Deteksi Huruf S', 'score': 58.0, 'time': '2 hari lalu'},
-    {'user': 'Nadia Kirana', 'title': 'Deteksi Kata "Halo"', 'score': 88.0, 'time': '2 hari lalu'},
+  static final List<Map<String, dynamic>> submissions = [
+    {'type': 'video', 'user': 'Dina Safitri', 'desc': 'Latihan isyarat huruf D', 'time': 'Hari ini'},
+    {'type': 'foto', 'user': 'Bagas Nugroho', 'desc': 'Foto catatan belajar isyarat', 'time': 'Hari ini'},
+    {'type': 'video', 'user': 'Laras Putri', 'desc': 'Praktik isyarat "Terima Kasih"', 'time': 'Kemarin'},
+    {'type': 'foto', 'user': 'Faiz Hidayat', 'desc': 'Screenshot hasil kuis', 'time': 'Kemarin'},
+    {'type': 'video', 'user': 'Yoga Saputra', 'desc': 'Deteksi Huruf S', 'time': '2 hari lalu'},
+    {'type': 'foto', 'user': 'Nadia Kirana', 'desc': 'Dokumentasi event komunitas', 'time': '2 hari lalu'},
   ];
 
   @override
   Widget build(BuildContext context) {
     return adminPage(
       context: context,
-      title: 'Review Video AI',
-      subtitle: '${videos.length} video menunggu persetujuan',
+      title: 'Review Video & Foto',
+      subtitle: '${submissions.length} kiriman menunggu persetujuan',
       child: ListView.builder(
         padding: const EdgeInsets.only(bottom: 20),
-        itemCount: videos.length,
+        itemCount: submissions.length,
         itemBuilder: (context, i) {
-          final v = videos[i];
-          final score = v['score'] as double;
-          final scoreColor = score >= 80 ? AppColors.success : (score >= 70 ? AppColors.tertiary : AppColors.danger);
+          final item = submissions[i];
+          final isVideo = item['type'] == 'video';
+          
           return itemCard(
             child: Row(
               children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: AppColors.textPrimary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.play_circle_fill, color: Colors.white, size: 30),
+                Stack(
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: AppColors.textPrimary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        isVideo ? Icons.videocam : Icons.image,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                    ),
+                    // Badge tipe media
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isVideo ? AppColors.secondary : AppColors.primary,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(8),
+                            bottomRight: Radius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          isVideo ? 'VIDEO' : 'FOTO',
+                          style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(v['title'], style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold)),
+                      Text(item['desc'], style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 2),
-                      Text('${v['user']} • ${v['time']}',
+                      Text('${item['user']} • ${item['time']}',
                           style: AppTextStyles.labelSmall.copyWith(color: AppColors.textMuted)),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Text('Akurasi AI: ${score.toStringAsFixed(0)}%',
-                              style: TextStyle(color: scoreColor, fontSize: 12, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
                     ],
                   ),
                 ),
                 Column(
                   children: [
                     ElevatedButton(
-                      onPressed: () => toast(context, 'Video disetujui'),
+                      onPressed: () => toast(context, 'Kiriman disetujui'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.success,
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -341,7 +361,7 @@ class ReviewVideoAIPage extends StatelessWidget {
                       child: const Text('Setujui', style: TextStyle(color: Colors.white, fontSize: 11)),
                     ),
                     const SizedBox(height: 6),
-                    actionBtn('Tolak', AppColors.danger, () => toast(context, 'Video ditolak')),
+                    actionBtn('Tolak', AppColors.danger, () => toast(context, 'Kiriman ditolak')),
                   ],
                 ),
               ],
@@ -682,7 +702,11 @@ class _BroadcastNotifikasiPageState extends State<BroadcastNotifikasiPage> {
   String target = 'Semua Pengguna';
 
   @override
-  void dispose() { title.dispose(); body.dispose(); super.dispose(); }
+  void dispose() { 
+    title.dispose(); 
+    body.dispose(); 
+    super.dispose(); 
+  }
 
   InputDecoration deco(String hint) => InputDecoration(
         hintText: hint,
@@ -827,7 +851,7 @@ class LogAktivitasPage extends StatelessWidget {
 
   static final List<Map<String, String>> logs = [
     {'admin': 'Admin Utama', 'action': 'Menghapus 1 komentar dari Agus Prasetyo', 'time': 'Hari ini 14:20'},
-    {'admin': 'Admin Utama', 'action': 'Menyetujui video AI milik Laras Putri', 'time': 'Hari ini 11:05'},
+    {'admin': 'Admin Utama', 'action': 'Menyetujui kiriman milik Laras Putri', 'time': 'Hari ini 11:05'},
     {'admin': 'Moderator 2', 'action': 'Membanned SpamBot_22 permanen', 'time': 'Kemarin 20:44'},
     {'admin': 'Moderator 2', 'action': 'Mengirim broadcast "Event Tebet Eco Park"', 'time': 'Kemarin 09:12'},
     {'admin': 'Admin Utama', 'action': 'Mengedit materi "Percakapan Dasar"', 'time': '2 hari lalu'},

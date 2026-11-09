@@ -8,7 +8,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/auth_widgets.dart';
 
-/// Membuka kerangka utama aplikasi setelah autentikasi berhasil.
+/// Membuka kerangka utama aplikasi setelah autentikasi berhasil
 void openHome(BuildContext context) => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const MainShell()), (_) => false);
 
 class LoginPage extends StatefulWidget { const LoginPage({super.key}); @override State<LoginPage> createState() => _LoginPageState(); }

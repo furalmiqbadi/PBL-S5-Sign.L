@@ -10,7 +10,7 @@ import '../theme/app_text_styles.dart';
 
 class HomePage extends StatefulWidget {
   final VoidCallback? onOpenCommunity;
-  final VoidCallback? onOpenProfile; // <-- TAMBAHAN CALLBACK PROFIL
+  final VoidCallback? onOpenProfile; // <-- TAMBAHAN CALLBACK PROFIL.
 
   const HomePage({
     super.key, 

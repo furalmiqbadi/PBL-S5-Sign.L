@@ -7,7 +7,7 @@ import 'section_header.dart';
 /// peringkat (leaderboard) dan tombol pesan langsung (DM) dengan badge
 /// jumlah pesan belum dibaca.
 class KomunitasHeader extends StatelessWidget {
-  /// Jumlah pesan belum dibaca. Badge disembunyikan bila 0.
+  /// Jumlah pesan belum dibaca. Badge disembunyikan bila 0
   final int unreadCount;
 
   final VoidCallback? onLeaderboard;

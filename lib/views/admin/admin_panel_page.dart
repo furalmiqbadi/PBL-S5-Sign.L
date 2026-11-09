@@ -51,13 +51,7 @@ class AdminPanelPage extends StatelessWidget {
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Text('Panel Admin', style: AppTextStyles.headlineSmall),
-        actions: [
-          IconButton(
-            tooltip: 'Keluar',
-            icon: const Icon(Icons.logout, color: AppColors.textPrimary),
-            onPressed: () => _logout(context),
-          ),
-        ],
+        // Tombol logout di AppBar sudah dihapus
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -95,7 +89,7 @@ class AdminPanelPage extends StatelessWidget {
             icon: Icons.videocam_outlined,
             iconBg: const Color(0xFFF3E8FD),
             iconColor: AppColors.secondary,
-            title: 'Review Video AI',
+            title: 'Review Video & Foto Kiriman Pengguna',
             subtitle: '$videoAIReview video menunggu tinjauan',
             badge: videoAIReview,
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReviewVideoAIPage())),
@@ -163,6 +157,42 @@ class AdminPanelPage extends StatelessWidget {
             subtitle: 'Riwayat aksi semua admin',
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LogAktivitasPage())),
           ),
+          
+          // ===== TOMBOL KELUAR DARI AKUN (BARU) =====
+          const SizedBox(height: 32),
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColors.pinkSofter,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.pinkSoft),
+            ),
+            child: TextButton.icon(
+              onPressed: () => _logout(context),
+              icon: const Icon(Icons.logout, color: AppColors.danger),
+              label: Text(
+                'Keluar dari Akun',
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: AppColors.danger,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          
+          // Footer opsional agar terlihat lebih rapi
+          Text(
+            'Sign.L Admin Panel • Versi 1.0.0',
+            style: AppTextStyles.labelSmall.copyWith(
+              color: AppColors.textMuted,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -194,13 +224,19 @@ class AdminPanelPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Halo, Admin',
-                    style: AppTextStyles.titleLarge.copyWith(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(
+                  'Halo, Admin',
+                  style: AppTextStyles.titleLarge.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   'Ada ${laporanBaru + laporanChat + videoAIReview} tugas yang perlu ditinjau.',
-                  style: AppTextStyles.bodyMedium.copyWith(color: Colors.white.withValues(alpha: 0.9)),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
                 ),
               ],
             ),
@@ -226,16 +262,27 @@ class AdminPanelPage extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(s.$3, size: 20, color: AppColors.primary),
                 const SizedBox(height: 8),
-                Text(s.$1, style: AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  s.$1,
+                  style: AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 2),
-                Text(s.$2, style: AppTextStyles.labelSmall.copyWith(color: AppColors.textSecondary)),
+                Text(
+                  s.$2,
+                  style: AppTextStyles.labelSmall.copyWith(color: AppColors.textSecondary),
+                ),
               ],
             ),
           ),
@@ -259,18 +306,32 @@ class AdminPanelPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+          ),
+        ],
       ),
       child: ListTile(
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         leading: Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+            color: iconBg,
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Icon(icon, color: iconColor),
         ),
-        title: Text(title, style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.bold)),
-        subtitle: Text(subtitle, style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
+        title: Text(
+          title,
+          style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -281,8 +342,14 @@ class AdminPanelPage extends StatelessWidget {
                   color: AppColors.danger,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text('$badge',
-                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                child: Text(
+                  '$badge',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             const SizedBox(width: 8),
             const Icon(Icons.chevron_right, color: AppColors.textMuted),

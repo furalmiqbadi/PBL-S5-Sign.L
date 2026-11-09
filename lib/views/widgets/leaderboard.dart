@@ -272,7 +272,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     );
   }
 
-  // ---------------- DAFTAR PERINGKAT 4 DST ----------------
+  // ---------------- DAFTAR PERINGKAT 4 DST --------------
 
   Widget _buildRankCard(List<_Entry> rest) {
     return Container(
