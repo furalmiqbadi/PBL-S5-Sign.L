@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
+import '../admin/admin_panel_page.dart';
 import '../main_shell.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -50,7 +51,17 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
 
     if (ok) {
-      openHome(context);
+      // Satu pintu login: role admin dibaca dari tabel profiles, lalu
+      // diarahkan ke panel admin tanpa halaman login terpisah.
+      if (c.isAdmin) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminPanelPage()),
+          (_) => false,
+        );
+      } else {
+        openHome(context);
+      }
     } else if (c.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(c.errorMessage!)),

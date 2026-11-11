@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/app_colors.dart';
+import '../widgets/share_sheet.dart';
 
 class _Soal {
   final String target;
@@ -171,6 +172,27 @@ class _QuizPageState extends State<QuizPage> {
                         AppColors.danger,
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 46,
+                    child: OutlinedButton.icon(
+                      onPressed: () => showShareSheet(
+                        context,
+                        text:
+                            'Aku baru menyelesaikan kuis BISINDO: $_benar/${_soal.length} soal benar dan dapat $_xp diamond! 💪',
+                      ),
+                      icon: const Icon(Icons.ios_share_rounded, size: 18),
+                      label: const Text('Bagikan Hasil'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        side: const BorderSide(color: AppColors.primary),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   if (lulus)

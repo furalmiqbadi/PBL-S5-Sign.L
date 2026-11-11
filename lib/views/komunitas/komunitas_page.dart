@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import '../chat/chat_list_view.dart';
+import '../../services/image_compress_service.dart';
+import '../../services/share_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
@@ -246,6 +248,28 @@ class _KomunitasPageState extends State<KomunitasPage> {
         isSaved: true,
       ),
     ];
+
+    // Postingan hasil "Bagikan" dari halaman kuis/pencapaian.
+    final shared = ShareService.takeCommunityPost();
+    if (shared != null) {
+      _posts.insert(
+        0,
+        PostModel(
+          id: 'share_${DateTime.now().millisecondsSinceEpoch}',
+          userName: 'Aku',
+          userRole: 'Pencapaian',
+          roleColor: AppColors.pinkSoft,
+          roleTextColor: AppColors.primary,
+          timeText: 'Baru saja',
+          categoryText: 'Cerita Sukses',
+          content: shared,
+          likes: 0,
+          likeLabel: 'Suka',
+          comments: 0,
+          commentList: [],
+        ),
+      );
+    }
   }
 
   @override
@@ -340,12 +364,18 @@ class _KomunitasPageState extends State<KomunitasPage> {
                       )
                     : await _picker.pickImage(
                         source: ImageSource.gallery,
-                        imageQuality: 85,
-                        maxWidth: 1600,
+                        imageQuality: 70,
+                        maxWidth: 1280,
+                        maxHeight: 1280,
                       );
                 if (file == null) return;
+                // Foto dikonversi ke WebP; video dibiarkan apa adanya.
+                final path = video
+                    ? file.path
+                    : await ImageCompressService.toWebP(file.path);
+                if (!mounted) return;
                 setModalState(() {
-                  pickedPath = file.path;
+                  pickedPath = path;
                   pickedIsVideo = video;
                 });
               } catch (e) {
@@ -399,21 +429,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
                       hintText: 'Tulis pertanyaan, cerita, atau diskusi...',
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        minimumSize: const Size.fromHeight(48),
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                  const SizedBox(height: 12),
 
                     // BARU: preview foto / video yang dipilih
                     if (pickedPath != null) ...[
@@ -548,8 +564,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
                     const SizedBox(height: 20),
                   ],
                 ),
-              ),
-            );
+              );
           },
         );
       },

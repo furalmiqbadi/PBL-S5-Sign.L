@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../../services/image_compress_service.dart';
 import '../theme/app_colors.dart';
 
 /// Halaman Edit Profil Sign-L
@@ -16,6 +21,15 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  // Foto profil yang dipilih (sudah dikompres agar ukurannya kecil).
+  final ImagePicker _picker = ImagePicker();
+  String? _avatarPath;
+
+  ImageProvider<Object> get _avatarImage {
+    if (_avatarPath != null) return FileImage(File(_avatarPath!));
+    return const NetworkImage('https://i.pravatar.cc/150?img=47');
+  }
+
   // Form Controllers
   late final TextEditingController _nameController;
   late final TextEditingController _usernameController;
@@ -149,6 +163,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     Navigator.pop(context);
   }
 
+  /// Memilih foto profil lalu mengompresnya agar file tersimpan kecil
+  /// (maksimal 512 px, kualitas 70%).
+  Future<void> _pickAvatar(ImageSource source) async {
+    try {
+      final XFile? file = await _picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 70,
+      );
+      if (file == null || !mounted) return;
+      // Simpan sebagai WebP agar file benar-benar kecil.
+      final webpPath = await ImageCompressService.toWebP(
+        file.path,
+        maxWidth: 512,
+        quality: 70,
+      );
+      if (!mounted) return;
+      setState(() => _avatarPath = webpPath);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal membuka kamera/galeri.')),
+      );
+    }
+  }
+
   void _showChangePhotoModal() {
     showModalBottomSheet(
       context: context,
@@ -189,9 +230,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   title: const Text('Ambil Foto Baru', style: TextStyle(fontWeight: FontWeight.w600)),
                   onTap: () {
                     Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Kamera dibuka...')),
-                    );
+                    _pickAvatar(ImageSource.camera);
                   },
                 ),
                 ListTile(
@@ -202,9 +241,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   title: const Text('Pilih dari Galeri', style: TextStyle(fontWeight: FontWeight.w600)),
                   onTap: () {
                     Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Galeri dibuka...')),
-                    );
+                    _pickAvatar(ImageSource.gallery);
                   },
                 ),
                 ListTile(
@@ -215,6 +252,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   title: const Text('Hapus Foto Profil', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.danger)),
                   onTap: () {
                     Navigator.pop(ctx);
+                    setState(() => _avatarPath = null);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Foto profil dihapus')),
                     );
@@ -1022,9 +1060,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     shape: BoxShape.circle,
                     color: AppColors.surface,
                   ),
-                  child: const CircleAvatar(
+                  child: CircleAvatar(
                     radius: 46,
-                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=47'),
+                    backgroundImage: _avatarImage,
                   ),
                 ),
               ),

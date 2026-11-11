@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../edit/edit_profile_screen.dart';
 import '../theme/app_colors.dart';
+import '../widgets/share_sheet.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -18,20 +19,39 @@ class ProfileScreen extends StatelessWidget {
             icon: Icons.military_tech_rounded,
             title: 'Pencapaian Unggulan',
             iconColor: AppColors.primary,
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.pinkSoft,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                '3 / 3 Dipilih',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.pinkSoft,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    '3 / 3 Dipilih',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
+                    ),
+                  ),
                 ),
-              ),
+                IconButton(
+                  tooltip: 'Bagikan pencapaian',
+                  icon: const Icon(
+                    Icons.ios_share_rounded,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
+                  onPressed: () => showShareSheet(
+                    context,
+                    text:
+                        'Aku membuka lencana Perfect 100, 7-Day Streak, dan Fast Signer di Sign.L! 🏅',
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),

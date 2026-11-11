@@ -5,7 +5,37 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthService {
   final SupabaseClient? _customClient;
 
+  /// Tautan kembali ke aplikasi setelah pengguna mengeklik email reset.
+  /// Harus terdaftar di Supabase > Authentication > URL Configuration.
+  static const String resetRedirect = 'signl://reset';
+
   AuthService({SupabaseClient? client}) : _customClient = client;
+
+  /// Mengubah pesan bawaan Supabase (Inggris) menjadi pesan yang ramah.
+  static String friendlyMessage(String raw) {
+    final m = raw.toLowerCase();
+    if (m.contains('invalid login credentials')) {
+      return 'Email atau username atau kata sandi salah.';
+    }
+    if (m.contains('email not confirmed')) {
+      return 'Email belum diverifikasi. Buka tautan verifikasi di inbox kamu.';
+    }
+    if (m.contains('user not found')) {
+      return 'Akun tidak ditemukan.';
+    }
+    if (m.contains('too many requests') || m.contains('rate limit')) {
+      return 'Terlalu banyak percobaan. Coba lagi beberapa saat lagi.';
+    }
+    if (m.contains('password should be at least')) {
+      return 'Kata sandi terlalu pendek.';
+    }
+    if (m.contains('failed host lookup') ||
+        m.contains('socketexception') ||
+        m.contains('connection')) {
+      return 'Tidak dapat terhubung ke server. Periksa koneksi internet lalu coba lagi.';
+    }
+    return raw;
+  }
 
   /// Mengambil klien Supabase secara aman (menghindari exception jika belum diinisialisasi, misal saat test).
   SupabaseClient? get _safeClient {
@@ -26,7 +56,8 @@ class AuthService {
   /// Stream perubahan status autentikasi (login/logout/token refresh).
   Stream<AuthState>? get authStateChanges => _safeClient?.auth.onAuthStateChange;
 
-  /// Masuk dengan email & password.
+  /// Masuk dengan email & password. Nilai tanpa `@` dianggap username dan
+  /// diubah menjadi email lewat fungsi RPC `get_email_by_username`.
   Future<AuthResponse> login({
     required String email,
     required String password,
@@ -38,22 +69,79 @@ class AuthService {
       );
     }
 
+    final identifier = email.trim();
+    final loginEmail = identifier.contains('@')
+        ? identifier
+        : await _resolveEmailFromUsername(client, identifier);
+
     AuthResponse response;
     try {
       response = await client.auth.signInWithPassword(
-        email: email.trim(),
+        email: loginEmail,
         password: password,
       );
     } on AuthException catch (e) {
-      throw Exception(e.message);
+      throw Exception(friendlyMessage(e.message));
     } catch (e) {
-      throw Exception('Gagal masuk: $e');
+      throw Exception(friendlyMessage(e.toString()));
     }
 
     if (response.session == null) {
       throw Exception('Login gagal: sesi tidak terbentuk.');
     }
     return response;
+  }
+
+  /// Mengambil role akun dari tabel `profiles` (`user` atau `admin`).
+  /// Bila tabel/policy belum siap, dianggap pengguna biasa.
+  Future<String> fetchRole() async {
+    final client = _safeClient;
+    final user = client?.auth.currentUser;
+    if (client == null || user == null) return 'user';
+    try {
+      final row = await client
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+      final role = row?['role'];
+      return role is String && role.isNotEmpty ? role : 'user';
+    } catch (e) {
+      debugPrint('[Auth] Gagal membaca role: $e');
+      return 'user';
+    }
+  }
+
+  /// Mencari email terdaftar dari username (disimpan di metadata saat daftar).
+  Future<String> _resolveEmailFromUsername(
+    SupabaseClient client,
+    String username,
+  ) async {
+    Object? result;
+    try {
+      result = await client.rpc(
+        'get_email_by_username',
+        params: {'uname': username},
+      );
+    } on PostgrestException catch (e) {
+      debugPrint('[Auth] RPC get_email_by_username gagal: ${e.message}');
+      throw Exception(
+        'Login memakai username belum tersedia di server. Silakan masuk memakai email.',
+      );
+    } catch (e) {
+      debugPrint('[Auth] RPC get_email_by_username gagal: $e');
+      throw Exception(
+        'Tidak dapat memeriksa username. Periksa koneksi lalu coba lagi.',
+      );
+    }
+
+    final email = result is String ? result.trim() : '';
+    if (email.isEmpty) {
+      throw Exception(
+        'Username tidak ditemukan. Periksa kembali atau masuk memakai email.',
+      );
+    }
+    return email;
   }
 
   /// Mendaftar akun baru dengan email, password, nama, dan username.
@@ -113,12 +201,12 @@ class AuthService {
     try {
       await client.auth.resetPasswordForEmail(
         email.trim(),
-        // Di web, arahkan tautan kembali ke aplikasi ini agar sesi recovery
-        // bisa diproses. URL ini harus terdaftar di Redirect URLs Supabase.
-        redirectTo: kIsWeb ? Uri.base.origin : null,
+        // Web: kembali ke origin aplikasi. Android/iOS: kembali lewat deep
+        // link yang terdaftar di Supabase Redirect URLs.
+        redirectTo: kIsWeb ? Uri.base.origin : resetRedirect,
       );
     } on AuthException catch (e) {
-      throw Exception(e.message);
+      throw Exception(friendlyMessage(e.message));
     } catch (e) {
       throw Exception('Gagal mengirim tautan reset: $e');
     }

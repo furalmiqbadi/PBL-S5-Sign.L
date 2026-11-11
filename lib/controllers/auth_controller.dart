@@ -9,6 +9,7 @@ class AuthController extends ChangeNotifier {
   bool _showPassword = false;
   String? _errorMessage;
   bool _isLoggedIn = false;
+  bool _isAdmin = false;
   String _currentEmail = 'budi@gmail.com';
   String _currentName = 'Budi Pratama';
 
@@ -17,7 +18,7 @@ class AuthController extends ChangeNotifier {
     _syncUserFromSession();
   }
 
-  void _syncUserFromSession() {
+  Future<void> _syncUserFromSession() async {
     final user = _authService.currentUser;
     if (user != null) {
       _isLoggedIn = true;
@@ -28,6 +29,10 @@ class AuthController extends ChangeNotifier {
       } else if (user.email != null && user.email!.contains('@')) {
         _currentName = user.email!.split('@').first;
       }
+      if (_authService.isAuthenticated) {
+        _isAdmin = await _authService.fetchRole() == 'admin';
+        notifyListeners();
+      }
     }
   }
 
@@ -35,6 +40,7 @@ class AuthController extends ChangeNotifier {
   bool get showPassword => _showPassword;
   String? get errorMessage => _errorMessage;
   bool get isLoggedIn => _isLoggedIn;
+  bool get isAdmin => _isAdmin;
   String get currentEmail => _currentEmail;
   String get currentName => _currentName;
 
@@ -59,6 +65,7 @@ class AuthController extends ChangeNotifier {
             ? _currentEmail.split('@').first
             : _currentEmail;
       }
+      _isAdmin = await _authService.fetchRole() == 'admin';
     });
   }
 
@@ -106,6 +113,7 @@ class AuthController extends ChangeNotifier {
   Future<void> logout() async {
     await _run(() => _authService.logout());
     _isLoggedIn = false;
+    _isAdmin = false;
     notifyListeners();
   }
 
