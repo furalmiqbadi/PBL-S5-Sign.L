@@ -44,6 +44,25 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<bool> login({required String email, required String password}) async {
+    final ok = await _run(() async {
+      final res = await _authService.login(email: email, password: password);
+      _isLoggedIn = true;
+      if (res?.user != null) {
+        _currentEmail = res!.user!.email ?? email.trim();
+        final metaName = res.user!.userMetadata?['full_name'] as String?;
+        if (metaName != null && metaName.isNotEmpty) {
+          _currentName = metaName;
+        } else {
+          _currentName = _currentEmail.contains('@') ? _currentEmail.split('@').first : _currentEmail;
+        }
+      } else {
+        if (email.trim().isNotEmpty) {
+          _currentEmail = email.trim();
+          _currentName = _currentEmail.contains('@') ? _currentEmail.split('@').first : _currentEmail;
+        }
+      }
+    });
+    return ok;
     return _run(() async {
       final res = await _authService.login(email: email, password: password);
       final user = res.user;
@@ -68,6 +87,7 @@ class AuthController extends ChangeNotifier {
     String? name,
     String? username,
   }) async {
+    final ok = await _run(() async {
     return _run(() async {
       final res = await _authService.register(
         email: email,
@@ -75,6 +95,24 @@ class AuthController extends ChangeNotifier {
         name: name,
         username: username,
       );
+      _isLoggedIn = true;
+      if (res?.user != null) {
+        _currentEmail = res!.user!.email ?? email.trim();
+        if (name != null && name.trim().isNotEmpty) {
+          _currentName = name.trim();
+        } else {
+          _currentName = _currentEmail.contains('@') ? _currentEmail.split('@').first : _currentEmail;
+        }
+      } else {
+        if (email.trim().isNotEmpty) _currentEmail = email.trim();
+        if (name != null && name.trim().isNotEmpty) {
+          _currentName = name.trim();
+        } else if (email.trim().isNotEmpty) {
+          _currentName = _currentEmail.contains('@') ? _currentEmail.split('@').first : _currentEmail;
+        }
+      }
+    });
+    return ok;
       final user = res.user;
 
       // Jika project Supabase mewajibkan konfirmasi email, session masih null.

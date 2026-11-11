@@ -6,6 +6,9 @@ import 'controllers/auth_controller.dart';
 import 'controllers/chat_controller.dart';
 import 'controllers/notification_controller.dart';
 import 'controllers/settings_controller.dart';
+import 'services/supabase_config.dart';
+import 'views/auth/auth_views.dart';
+import 'views/main_shell.dart';
 import 'services/auth_recovery.dart';
 import 'services/supabase_config.dart';
 import 'views/auth/auth_recovery_listener.dart';
@@ -25,6 +28,7 @@ Future<void> main() async {
     try {
       await Supabase.initialize(
         url: SupabaseConfig.supabaseUrl,
+        anonKey: SupabaseConfig.supabaseAnonKey,
         publishableKey: SupabaseConfig.supabaseAnonKey,
       );
     } catch (e) {
@@ -32,11 +36,13 @@ Future<void> main() async {
     }
   }
 
+  runApp(const SignLApp());
   runApp(SignLApp(openedFromRecovery: openedFromRecovery));
 }
 
 /// Root aplikasi Sign.L.
 ///
+/// Menyediakan controller aplikasi lewat [MultiProvider] dan menampilkan
 /// Menyediakan seluruh controller lewat [MultiProvider] dan menampilkan
 /// [LoginPage] sebagai titik awal (atau [MainShell] bila sudah login).
 class SignLApp extends StatelessWidget {
@@ -54,6 +60,16 @@ class SignLApp extends StatelessWidget {
   Widget _determineInitialHome() {
     if (home != null) return home!;
     if (openedFromRecovery) return const ResetPage();
+    try {
+      if (Supabase.instance.client.auth.currentSession != null) {
+        return const MainShell();
+      }
+    } catch (_) {}
+    return const LoginPage();
+  }
+
+  Widget _determineInitialHome() {
+    if (home != null) return home!;
     try {
       if (Supabase.instance.client.auth.currentSession != null) {
         return const MainShell();
@@ -92,6 +108,9 @@ class SignLApp extends StatelessWidget {
             child: child!,
           );
         },
+
+        theme: AppTheme.light,
+        home: _determineInitialHome(),
         home: AuthRecoveryListener(
           initiallyOpened: openedFromRecovery,
           child: _determineInitialHome(),
