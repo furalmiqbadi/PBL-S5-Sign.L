@@ -32,11 +32,6 @@ class AppColors {
   static const Color infoSoft = Color(0xFFE0F2FE);
   static const Color successSoft = Color(0xFFD1FAE5);
 
-  // --- Aksen tambahan (kamera AI & status) ---
-  static const Color info = Color(0xFF0284C7); // Biru (panduan kamera AI)
-  static const Color infoSoft = Color(0xFFE0F2FE);
-  static const Color successSoft = Color(0xFFD1FAE5);
-
   // --- Teks ---
   static const Color textPrimary = Color(0xFF0F172A);
   static const Color textSecondary = Color(0xFF5B6676);

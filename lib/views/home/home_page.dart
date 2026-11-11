@@ -87,7 +87,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       backgroundColor: AppColors.surface,
       body: SafeArea(
         child: ListView(
@@ -162,28 +161,6 @@ class _HomePageState extends State<HomePage> {
         Stack(
           clipBehavior: Clip.none,
           children: [
-            IconButton(
-              icon: SvgPicture.asset(
-                'assets/images/notifikasi_fix.svg',
-                width: 22,
-                height: 22,
-                colorFilter: const ColorFilter.mode(
-                  AppColors.textPrimary,
-                  BlendMode.srcIn,
-                ),
-              ),
-              onPressed: _openNotifications,
-            ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.surface, width: 2),
             _buildHeaderButton(
                 'assets/images/notifikasi_fix.svg', _openNotifications),
             if (notificationUnread > 0)
@@ -206,30 +183,6 @@ class _HomePageState extends State<HomePage> {
         Stack(
           clipBehavior: Clip.none,
           children: [
-            IconButton(
-              icon: SvgPicture.asset(
-                'assets/images/dm_fix.svg',
-                width: 22,
-                height: 22,
-                colorFilter: const ColorFilter.mode(
-                  AppColors.textPrimary,
-                  BlendMode.srcIn,
-                ),
-              ),
-              onPressed: _openChat,
-            ),
-            Positioned(
-              right: 4,
-              top: 4,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: const Text(
-                  '3',
-                  style: TextStyle(color: AppColors.textOnPrimary, fontSize: 10, fontWeight: FontWeight.bold),
             _buildHeaderButton('assets/images/dm_fix.svg', _openChat),
             if (chatUnread > 0)
               Positioned(
@@ -259,7 +212,6 @@ class _HomePageState extends State<HomePage> {
           onTap: _openProfile,
           child: CircleAvatar(
             radius: 16,
-            backgroundImage: const NetworkImage('https://i.pravatar.cc/100?img=5'),
             backgroundImage:
                 const NetworkImage('https://i.pravatar.cc/100?img=5'),
             onBackgroundImageError: (_, __) {},
@@ -279,11 +231,6 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Row(
         children: [
-          _buildStatItem(Icons.local_fire_department, AppColors.tertiary, 'Streak', '7 Hari'),
-          Container(width: 1, height: 32, color: AppColors.border),
-          _buildStatItem(Icons.favorite, AppColors.primary, 'Nyawa', '5/5'),
-          Container(width: 1, height: 32, color: AppColors.border),
-          _buildStatItem(Icons.diamond, AppColors.secondary, 'Diamond', '420'),
           _buildStatItem(Icons.local_fire_department_rounded, AppColors.tertiary,
               'Streak', '7 Hari'),
           _buildStatDivider(),
@@ -347,9 +294,6 @@ class _HomePageState extends State<HomePage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.pinkSoft),
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
@@ -412,7 +356,6 @@ class _HomePageState extends State<HomePage> {
                   height: 8,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
-                    color: AppColors.border,
                     color: AppColors.textOnPrimary.withValues(alpha: 0.25),
                   ),
                   child: FractionallySizedBox(
@@ -421,9 +364,6 @@ class _HomePageState extends State<HomePage> {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(4),
-                        gradient: const LinearGradient(
-                          colors: [AppColors.secondary, AppColors.primary],
-                        ),
                         color: AppColors.textOnPrimary,
                       ),
                     ),
@@ -434,9 +374,6 @@ class _HomePageState extends State<HomePage> {
               ElevatedButton.icon(
                 onPressed: _continueLearning,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.textOnPrimary,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   backgroundColor: AppColors.surface,
                   foregroundColor: AppColors.primary,
                   padding:
@@ -525,7 +462,6 @@ class _HomePageState extends State<HomePage> {
                 width: _currentCommunityPage == index ? 24 : 8,
                 height: 8,
                 decoration: BoxDecoration(
-                  color: _currentCommunityPage == index ? AppColors.primary : AppColors.border,
                   color: _currentCommunityPage == index
                       ? AppColors.primary
                       : AppColors.border,
@@ -556,7 +492,6 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   CircleAvatar(
                     radius: 12,
-                    backgroundImage: const NetworkImage('https://i.pravatar.cc/100?img=11'),
                     backgroundImage:
                         const NetworkImage('https://i.pravatar.cc/100?img=11'),
                     onBackgroundImageError: (_, __) {},
@@ -593,7 +528,6 @@ class _HomePageState extends State<HomePage> {
                   style: AppTextStyles.labelSmall
                       .copyWith(color: AppColors.primary)),
               const SizedBox(width: 16),
-              const Icon(Icons.chat_bubble_outline, color: AppColors.textMuted, size: 14),
               const Icon(Icons.chat_bubble_outline,
                   color: AppColors.textMuted, size: 14),
               const SizedBox(width: 4),
@@ -624,7 +558,6 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: Row(
                   children: [
-                    const Icon(Icons.emoji_events_outlined, color: AppColors.tertiary),
                     const Icon(Icons.emoji_events_outlined,
                         color: AppColors.tertiary),
                     const SizedBox(width: 8),
@@ -671,11 +604,6 @@ class _HomePageState extends State<HomePage> {
       int rank, String name, String xp, bool isCurrentUser) {
     Widget medalIcon;
     if (rank == 1) {
-      medalIcon = const Icon(Icons.military_tech, color: AppColors.warning, size: 28);
-    } else if (rank == 2) {
-      medalIcon = const Icon(Icons.military_tech, color: AppColors.textMuted, size: 28);
-    } else {
-      medalIcon = const Icon(Icons.military_tech, color: AppColors.tertiary, size: 28);
       medalIcon =
           const Icon(Icons.military_tech, color: AppColors.warning, size: 28);
     } else if (rank == 2) {
@@ -690,7 +618,6 @@ class _HomePageState extends State<HomePage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isCurrentUser ? AppColors.pinkSoft.withValues(alpha: 0.3) : AppColors.surface,
         color: isCurrentUser
             ? AppColors.pinkSoft.withValues(alpha: 0.3)
             : AppColors.surface,
@@ -745,7 +672,6 @@ class _HomePageState extends State<HomePage> {
                         ),
                         child: const Text(
                           'Kamu',
-                          style: TextStyle(color: AppColors.textOnPrimary, fontSize: 10, fontWeight: FontWeight.bold),
                           style: TextStyle(
                               color: AppColors.textOnPrimary,
                               fontSize: 10,
@@ -770,7 +696,6 @@ class _HomePageState extends State<HomePage> {
           ),
           Row(
             children: [
-              Icon(Icons.bolt, color: isCurrentUser ? AppColors.primary : AppColors.secondary, size: 16),
               Icon(Icons.bolt,
                   color:
                       isCurrentUser ? AppColors.primary : AppColors.secondary,

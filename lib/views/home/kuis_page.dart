@@ -64,15 +64,6 @@ class _KuisSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.primary,
@@ -90,11 +81,6 @@ class _KuisSummaryCard extends StatelessWidget {
           Container(
             width: 48,
             height: 48,
-            decoration: const BoxDecoration(
-              gradient: AppColors.brandGradient,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.quiz_rounded, color: Colors.white),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
@@ -109,18 +95,11 @@ class _KuisSummaryCard extends StatelessWidget {
                 Text(
                   'UJI PEMAHAMAN',
                   style: AppTextStyles.labelXSmall.copyWith(
-                    color: AppColors.primary,
                     color: AppColors.textOnPrimary.withValues(alpha: 0.85),
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text('Kuis & Evaluasi', style: AppTextStyles.titleLarge),
-                const SizedBox(height: 4),
-                Text(
-                  '$tersedia dari $total ujian tersedia untukmu.',
-                  style: AppTextStyles.bodySmall,
                 const SizedBox(height: 4),
                 Text(
                   'Kuis & Evaluasi',
@@ -162,10 +141,6 @@ class _QuizBabCard extends StatelessWidget {
     final metaColor = locked ? AppColors.textMuted : AppColors.textSecondary;
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: locked ? AppColors.surfaceMuted : Colors.white,
-        borderRadius: BorderRadius.circular(12),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: locked ? AppColors.fieldFill : AppColors.surface,
@@ -175,8 +150,6 @@ class _QuizBabCard extends StatelessWidget {
             : [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
                   blurRadius: 20,
                   offset: const Offset(0, 4),
                 ),
@@ -239,19 +212,16 @@ class _QuizBabCard extends StatelessWidget {
           const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
-            height: 44,
             height: 48,
             child: ElevatedButton(
               onPressed: onStart,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
                 foregroundColor: AppColors.textOnPrimary,
                 disabledBackgroundColor: AppColors.border,
                 disabledForegroundColor: AppColors.textMuted,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),

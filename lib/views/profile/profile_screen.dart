@@ -223,10 +223,6 @@ class ProfileScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.pinkSoft,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppColors.pinkSoft,
-                      width: 1.2,
-                    ),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
@@ -295,8 +291,6 @@ class ProfileScreen extends StatelessWidget {
       children: [
         _buildAchievementCard(
           icon: Icons.stars_rounded,
-          iconBg: AppColors.neutral,
-          iconColor: Colors.white,
           iconBg: AppColors.pinkSoft,
           iconColor: AppColors.primary,
           title: 'Perfect 100',
@@ -305,7 +299,6 @@ class ProfileScreen extends StatelessWidget {
         ),
         _buildAchievementCard(
           icon: Icons.local_fire_department_rounded,
-          iconBg: AppColors.neutral,
           iconBg: AppColors.orangeSoft,
           iconColor: AppColors.tertiary,
           title: '7-Day Streak',
@@ -314,7 +307,6 @@ class ProfileScreen extends StatelessWidget {
         ),
         _buildAchievementCard(
           icon: Icons.bolt_rounded,
-          iconBg: AppColors.neutral,
           iconBg: AppColors.purpleSoft,
           iconColor: AppColors.secondary,
           title: 'Fast Signer',
@@ -338,13 +330,6 @@ class ProfileScreen extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 4),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
@@ -403,13 +388,6 @@ class ProfileScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.016),
-            blurRadius: 8,
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -474,7 +452,6 @@ class ProfileScreen extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progressValue,
               minHeight: 6,
-              backgroundColor: AppColors.border,
               backgroundColor: AppColors.fieldFill,
               valueColor: AlwaysStoppedAnimation<Color>(progressColor),
             ),

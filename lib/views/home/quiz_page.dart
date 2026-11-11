@@ -224,9 +224,6 @@ class _QuizPageState extends State<QuizPage> {
               height: 88,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: lulus ? AppColors.brandGradient : null,
-                color: lulus ? null : AppColors.textSecondary,
-                border: Border.all(color: Colors.white, width: 5),
                 color: lulus ? AppColors.primary : AppColors.textSecondary,
                 border: Border.all(color: AppColors.surface, width: 5),
                 boxShadow: [
@@ -297,15 +294,6 @@ class _QuizPageState extends State<QuizPage> {
       height: 48,
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: AppColors.brandGradient,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(16),
       ),
@@ -418,7 +406,6 @@ class _QuizPageState extends State<QuizPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.border,
                 color: AppColors.pinkSoft,
                 borderRadius: BorderRadius.circular(9999),
               ),
@@ -462,9 +449,6 @@ class _QuizPageState extends State<QuizPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -484,7 +468,6 @@ class _QuizPageState extends State<QuizPage> {
               const Text(
                 'HURUF TARGET',
                 style: TextStyle(
-                  color: AppColors.textSecondary,
                   color: AppColors.textOnPrimary,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -495,7 +478,6 @@ class _QuizPageState extends State<QuizPage> {
               Text(
                 '"${_current.target}"',
                 style: const TextStyle(
-                  color: AppColors.textPrimary,
                   color: AppColors.textOnPrimary,
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
@@ -508,11 +490,6 @@ class _QuizPageState extends State<QuizPage> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.05),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.volume_up, color: AppColors.primary),
               color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
@@ -583,7 +560,6 @@ class _QuizPageState extends State<QuizPage> {
                     _imgPath(huruf),
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
-                      color: AppColors.border,
                       color: AppColors.fieldFill,
                       child: const Icon(Icons.pan_tool_alt_outlined,
                           color: AppColors.textSecondary, size: 40),
@@ -597,7 +573,6 @@ class _QuizPageState extends State<QuizPage> {
                       height: 26,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: aktif ? accent : AppColors.border,
                         color: aktif ? accent : AppColors.surface,
                         shape: BoxShape.circle,
                       ),
@@ -648,7 +623,6 @@ class _QuizPageState extends State<QuizPage> {
       decoration: BoxDecoration(
         color: (benar ? AppColors.success : AppColors.danger)
             .withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -690,10 +664,6 @@ class _QuizPageState extends State<QuizPage> {
         onPressed: _checked ? _lanjut : (bisaPeriksa ? _periksa : null),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.border,
-          disabledForegroundColor: AppColors.textSecondary,
-          elevation: 1,
           foregroundColor: AppColors.textOnPrimary,
           disabledBackgroundColor: AppColors.border,
           disabledForegroundColor: AppColors.textSecondary,

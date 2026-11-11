@@ -246,20 +246,6 @@ class _SettingScreenState extends State<SettingScreen> {
                   // Chip jam bisa diketuk untuk mengganti waktu pengingat.
                   InkWell(
                     onTap: s.dailyReminder ? () => _pickReminderTime(c) : null,
-                    borderRadius: BorderRadius.circular(6),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.border,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        c.reminderLabel,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textSecondary,
                     borderRadius: BorderRadius.circular(16),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -337,7 +323,6 @@ class _SettingScreenState extends State<SettingScreen> {
             child: _NavTile(
               icon: Icons.lock_outline_rounded,
               iconColor: AppColors.textPrimary,
-              iconBg: AppColors.border,
               iconBg: AppColors.fieldFill,
               title: 'Kata Sandi & Keamanan',
               subtitle: 'Ubah kata sandi akun',
@@ -348,7 +333,6 @@ class _SettingScreenState extends State<SettingScreen> {
             child: _NavTile(
               icon: Icons.language_rounded,
               iconColor: AppColors.textPrimary,
-              iconBg: AppColors.border,
               iconBg: AppColors.fieldFill,
               title: 'Bahasa Aplikasi',
               subtitle: c.languageLabel,
@@ -364,7 +348,6 @@ class _SettingScreenState extends State<SettingScreen> {
             child: _NavTile(
               icon: Icons.help_outline_rounded,
               iconColor: AppColors.textPrimary,
-              iconBg: AppColors.border,
               iconBg: AppColors.fieldFill,
               title: 'Pusat Bantuan & Komunitas',
               subtitle: 'Tutorial isyarat & FAQ',
@@ -375,7 +358,6 @@ class _SettingScreenState extends State<SettingScreen> {
             child: _NavTile(
               icon: Icons.info_outline_rounded,
               iconColor: AppColors.textPrimary,
-              iconBg: AppColors.border,
               iconBg: AppColors.fieldFill,
               title: 'Tentang Sign.L',
               subtitle: _appVersion,
@@ -404,9 +386,6 @@ class _SettingScreenState extends State<SettingScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0.5,
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
@@ -507,7 +486,6 @@ class _ProfileCard extends StatelessWidget {
             padding: const EdgeInsets.all(2.5),
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: AppColors.brandGradient,
               color: AppColors.pinkSoft,
             ),
             child: Container(
@@ -627,13 +605,6 @@ class _SectionLabel extends StatelessWidget {
 }
 
 BoxDecoration _cardDecoration() => BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: AppColors.border, width: 1.5),
-      boxShadow: [
-        BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(24),
       boxShadow: [
@@ -657,7 +628,6 @@ class _SettingsCard extends StatelessWidget {
         children: [
           for (var i = 0; i < rows.length; i++) ...[
             if (i > 0)
-              const Divider(height: 1, thickness: 1, color: AppColors.border),
               const Divider(
                   height: 1,
                   thickness: 1,
@@ -832,9 +802,6 @@ class _LogoutButton extends StatelessWidget {
       ),
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.primary,
-        minimumSize: const Size(double.infinity, 48),
-        side: const BorderSide(color: AppColors.primary, width: 1.4),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         backgroundColor: AppColors.pinkSoft,
         minimumSize: const Size(double.infinity, 48),
         side: BorderSide.none,

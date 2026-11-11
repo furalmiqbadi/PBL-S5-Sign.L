@@ -2,15 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
-import '../admin/admin_panel_page.dart';
-import '../../services/supabase_config.dart';
 import '../main_shell.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/auth_widgets.dart';
 
-/// Membuka kerangka utama aplikasi setelah autentikasi berhasil
-void openHome(BuildContext context) => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const MainShell()), (_) => false);
 /// Membuka beranda utama aplikasi (MainShell) dan menghapus riwayat halaman auth.
 void openHome(BuildContext context) {
   Navigator.pushAndRemoveUntil(
@@ -28,87 +24,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final email = TextEditingController(); final password = TextEditingController();
-  bool asAdmin = false;
-  bool adminLoading = false;
-  @override void dispose() { email.dispose(); password.dispose(); super.dispose(); }
-
-  void setRole(bool admin) => setState(() { asAdmin = admin; password.clear(); });
-
-  Future<void> submit() async {
-    if (asAdmin) { await submitAdmin(); return; }
-    final c = context.read<AuthController>(); await c.login(email: email.text, password: password.text); if (mounted) openHome(context);
-  }
-
-  // Login admin (mock) — field dibiarkan kosong tetap bisa masuk.
-  Future<void> submitAdmin() async {
-    setState(() => adminLoading = true);
-    await Future.delayed(const Duration(milliseconds: 600)); // simulasi jaringan
-    if (!mounted) return;
-    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const AdminPanelPage()), (_) => false);
-  }
-
-  Widget roleToggle() => Container(
-    padding: const EdgeInsets.all(4),
-    decoration: BoxDecoration(color: AppColors.surfaceMuted, borderRadius: BorderRadius.circular(14)),
-    child: Row(children: [
-      roleTab('Pengguna', Icons.person_outline_rounded, !asAdmin, () => setRole(false)),
-      roleTab('Admin', Icons.shield_outlined, asAdmin, () => setRole(true)),
-    ]),
-  );
-
-  Widget roleTab(String label, IconData icon, bool selected, VoidCallback onTap) => Expanded(
-    child: GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(color: selected ? AppColors.primary : Colors.transparent, borderRadius: BorderRadius.circular(10)),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(icon, size: 16, color: selected ? AppColors.textOnPrimary : AppColors.textSecondary),
-          const SizedBox(width: 6),
-          Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold, color: selected ? AppColors.textOnPrimary : AppColors.textSecondary))),
-        ]),
-      ),
-    ),
-  );
-
-  @override Widget build(BuildContext context) => AuthScaffold(child: Column(children: [
-    AuthHeader(
-      title: asAdmin ? 'Masuk sebagai Admin 🛡️' : 'Selamat Datang Kembali! 👋',
-      subtitle: asAdmin ? 'Gunakan akun admin untuk membuka panel pengelolaan.' : 'Masuk untuk melanjutkan perjalanan belajar bahasa isyaratmu.',
-    ), const SizedBox(height: 20),
-    roleToggle(), const SizedBox(height: 20),
-    AuthField(label: asAdmin ? 'Email Admin' : 'Email atau Username', hint: asAdmin ? 'cth. admin@signl.id' : 'cth. budi@gmail.com atau budi', icon: Icons.alternate_email_rounded, controller: email),
-    Consumer<AuthController>(builder: (_, c, __) => AuthField(label: 'Kata Sandi', hint: 'Masukkan kata sandi', icon: Icons.lock_outline_rounded, controller: password, password: !c.showPassword, suffix: IconButton(onPressed: c.togglePasswordVisibility, icon: Icon(c.showPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 16, color: muted)))),
-    if (!asAdmin) Align(alignment: Alignment.centerRight, child: TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPage())), child: Text('Lupa kata sandi?', style: AppTextStyles.labelXSmall.copyWith(color: pink, fontWeight: FontWeight.w800)))),
-    Consumer<AuthController>(builder: (_, c, __) {
-      final busy = asAdmin ? adminLoading : c.isLoading;
-      return GradientButton(text: busy ? 'Memproses...' : (asAdmin ? 'Masuk sebagai Admin  →' : 'Masuk  →'), onTap: busy ? null : submit);
-    }),
-    if (!asAdmin) ...[
-      const SizedBox(height: 22), FooterText(prefix: 'Belum punya akun? ', action: 'Daftar Sekarang', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage()))),
-    ],
-  ]));
-}
-
-class RegisterPage extends StatefulWidget { const RegisterPage({super.key}); @override State<RegisterPage> createState() => _RegisterPageState(); }
-class _RegisterPageState extends State<RegisterPage> {
-  final name = TextEditingController(); final username = TextEditingController(); final email = TextEditingController(); final password = TextEditingController(); final confirmation = TextEditingController(); bool accepted = false; bool show = false;
-  @override void dispose() { for (final c in [name, username, email, password, confirmation]) { c.dispose(); } super.dispose(); }
-  Future<void> submit() async { if (!accepted) { _message('Setujui Syarat & Ketentuan terlebih dahulu.'); return; } final c = context.read<AuthController>(); await c.register(email: email.text, password: password.text); if (mounted) openHome(context); }
-  void _message(String text) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
-  @override Widget build(BuildContext context) => AuthScaffold(back: true, onBack: () => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginPage()), (_) => false), child: Column(children: [
-    const AuthHeader(title: 'Mulai Perjalanan Isyaratmu ✋', subtitle: 'Bergabung bersama ribuan pembelajar bahasa isyarat di seluruh Indonesia!'), const SizedBox(height: 22),
-    AuthField(label: 'Nama Lengkap', hint: 'cth. Budi Pratama', icon: Icons.person_outline_rounded, controller: name), AuthField(label: 'Username', hint: 'cth. budi_isyarat', icon: Icons.alternate_email_rounded, controller: username), AuthField(label: 'Email', hint: 'cth. budi@gmail.com', icon: Icons.mail_outline_rounded, controller: email),
-    AuthField(label: 'Kata Sandi', hint: 'BelajarBisa24!', icon: Icons.lock_outline_rounded, controller: password, password: !show, suffix: IconButton(onPressed: () => setState(() => show = !show), icon: Icon(show ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 16))), AuthField(label: 'Konfirmasi Kata Sandi', hint: 'Ulangi kata sandi', icon: Icons.lock_outline_rounded, controller: confirmation, password: !show),
-    InkWell(onTap: () => setState(() => accepted = !accepted), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(accepted ? Icons.check_box : Icons.check_box_outline_blank, color: pink, size: 16), const SizedBox(width: 6), Expanded(child: Text('Saya menyetujui Syarat & Ketentuan serta Kebijakan Privasi Sign.L.', style: AppTextStyles.labelXSmall.copyWith(color: muted)))])), const SizedBox(height: 16),
-    Consumer<AuthController>(builder: (_, c, __) => GradientButton(text: 'Buat Akun  ✨', onTap: c.isLoading ? null : submit)), const DividerWithText(text: 'atau daftar dengan'), const SizedBox(height: 18), FooterText(prefix: 'Sudah punya akun? ', action: 'Masuk', onTap: () => Navigator.pop(context)),
-  ]));
-}
-
-
-class ForgotPage extends StatefulWidget { const ForgotPage({super.key}); @override State<ForgotPage> createState() => _ForgotPageState(); }
   final email = TextEditingController();
   final password = TextEditingController();
 
@@ -124,17 +39,12 @@ class ForgotPage extends StatefulWidget { const ForgotPage({super.key}); @overri
     final emailText = email.text.trim();
     final passText = password.text.trim();
 
-    // Jika Supabase sudah aktif di runtime, lakukan validasi input wajib terisi
-    if (SupabaseConfig.isInitialized && (emailText.isEmpty || passText.isEmpty)) {
     if (emailText.isEmpty || passText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Email dan kata sandi wajib diisi.')),
       );
       return;
     }
-
-    final targetEmail = emailText.isEmpty ? 'budi@gmail.com' : emailText;
-    final targetPass = passText.isEmpty ? '123456' : passText;
 
     final ok = await c.login(email: emailText, password: passText);
     if (!mounted) return;
@@ -246,14 +156,11 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> submit() async {
     final c = context.read<AuthController>();
     final nameText = name.text.trim();
-    final userText = username.text.trim();
     final userText = username.text.trim().toLowerCase();
     final emailText = email.text.trim();
     final passText = password.text.trim();
     final confirmText = confirmation.text.trim();
 
-    if (nameText.isEmpty) {
-      _message('Nama lengkap wajib diisi.');
     if (nameText.length < 3) {
       _message('Nama lengkap minimal 3 karakter.');
       return;
@@ -278,8 +185,6 @@ class _RegisterPageState extends State<RegisterPage> {
       _message('Kata sandi wajib diisi.');
       return;
     }
-    if (passText.length < 6) {
-      _message('Kata sandi minimal 6 karakter.');
     if (passText.length < 8) {
       _message('Kata sandi minimal 8 karakter.');
       return;
@@ -301,10 +206,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
     if (!mounted) return;
 
-    if (ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pendaftaran berhasil!')),
-      );
     if (!ok) {
       if (c.errorMessage != null) _message(c.errorMessage!);
       return;
@@ -591,14 +492,6 @@ class ResetPage extends StatefulWidget {
 }
 
 class _ResetPageState extends State<ResetPage> {
-  final password = TextEditingController(); final confirmation = TextEditingController(); bool show = false;
-  @override void dispose() { password.dispose(); confirmation.dispose(); super.dispose(); }
-  Future<void> submit() async { if (password.text != confirmation.text || password.text.length < 8) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password minimal 8 karakter dan harus sama.'))); return; } final c = context.read<AuthController>(); await c.resetPassword(password: password.text, confirmation: confirmation.text); if (mounted) showDialog(context: context, builder: (_) => AlertDialog(title: const Text('Berhasil!'), content: const Text('Kata sandi kamu sudah diperbarui.'), actions: [TextButton(onPressed: () => openHome(context), child: const Text('Ke Beranda'))])); }
-  @override Widget build(BuildContext context) => AuthScaffold(back: true, onBack: () => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginPage()), (_) => false), child: Column(children: [
-    const AuthHeader(title: 'Buat Kata Sandi Baru', subtitle: 'Gunakan kata sandi yang kuat dan mudah kamu ingat.'), const SizedBox(height: 28), AuthField(label: 'Kata Sandi Baru', hint: 'Minimal 8 karakter', icon: Icons.lock_outline_rounded, controller: password, password: !show, suffix: IconButton(onPressed: () => setState(() => show = !show), icon: Icon(show ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 16))), AuthField(label: 'Konfirmasi Kata Sandi', hint: 'Ulangi kata sandi baru', icon: Icons.lock_outline_rounded, controller: confirmation, password: !show),
-    Container(padding: const EdgeInsets.all(13), decoration: BoxDecoration(color: AppColors.pinkSofter, borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.shield_outlined, color: pink, size: 19), const SizedBox(width: 9), Expanded(child: Text('Gunakan minimal 8 karakter, kombinasi huruf dan angka.', style: AppTextStyles.labelXSmall.copyWith(color: muted)))])), const SizedBox(height: 20), Consumer<AuthController>(builder: (_, c, __) => GradientButton(text: c.isLoading ? 'Menyimpan...' : 'Simpan Kata Sandi  ✓', onTap: c.isLoading ? null : submit)),
-  ]));
-}
   final password = TextEditingController();
   final confirmation = TextEditingController();
   bool show = false;

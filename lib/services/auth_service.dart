@@ -27,25 +27,12 @@ class AuthService {
   Stream<AuthState>? get authStateChanges => _safeClient?.auth.onAuthStateChange;
 
   /// Masuk dengan email & password.
-  Future<AuthResponse?> login({
   Future<AuthResponse> login({
     required String email,
     required String password,
   }) async {
     final client = _safeClient;
     if (client == null) {
-      // Fallback mock jika Supabase belum terinisialisasi
-      debugPrint('[AuthService] Supabase belum terinisialisasi. Menjalankan fallback lokal.');
-      await Future<void>.delayed(const Duration(milliseconds: 300));
-      return null;
-    }
-
-    try {
-      final response = await client.auth.signInWithPassword(
-        email: email.trim(),
-        password: password,
-      );
-      return response;
       throw Exception(
         'Supabase belum terhubung. Periksa koneksi internet lalu coba lagi.',
       );
@@ -62,10 +49,6 @@ class AuthService {
     } catch (e) {
       throw Exception('Gagal masuk: $e');
     }
-  }
-
-  /// Mendaftar akun baru dengan email, password, nama, dan username.
-  Future<AuthResponse?> register({
 
     if (response.session == null) {
       throw Exception('Login gagal: sesi tidak terbentuk.');
@@ -82,21 +65,6 @@ class AuthService {
   }) async {
     final client = _safeClient;
     if (client == null) {
-      debugPrint('[AuthService] Supabase belum terinisialisasi. Menjalankan fallback lokal.');
-      await Future<void>.delayed(const Duration(milliseconds: 300));
-      return null;
-    }
-
-    try {
-      final response = await client.auth.signUp(
-        email: email.trim(),
-        password: password,
-        data: {
-          if (name != null && name.trim().isNotEmpty) 'full_name': name.trim(),
-          if (username != null && username.trim().isNotEmpty) 'username': username.trim(),
-        },
-      );
-      return response;
       throw Exception(
         'Supabase belum terhubung. Periksa koneksi internet lalu coba lagi.',
       );
@@ -137,12 +105,6 @@ class AuthService {
   Future<void> sendResetLink(String email) async {
     final client = _safeClient;
     if (client == null) {
-      await Future<void>.delayed(const Duration(milliseconds: 300));
-      return;
-    }
-
-    try {
-      await client.auth.resetPasswordForEmail(email.trim());
       throw Exception(
         'Supabase belum terhubung. Periksa koneksi internet lalu coba lagi.',
       );
@@ -179,8 +141,6 @@ class AuthService {
 
     final client = _safeClient;
     if (client == null) {
-      await Future<void>.delayed(const Duration(milliseconds: 300));
-      return;
       throw Exception(
         'Supabase belum terhubung. Periksa koneksi internet lalu coba lagi.',
       );
