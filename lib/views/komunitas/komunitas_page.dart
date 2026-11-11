@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
 import '../chat/chat_list_view.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -19,6 +23,9 @@ class PostModel {
   final bool isEvent;
   final String? eventLocation;
   final String? eventDate;
+  // BARU: foto/video yang dipilih user saat membuat postingan
+  final String? mediaPath;
+  final bool mediaIsVideo;
   int likes;
   final String likeLabel;
   int comments;
@@ -43,6 +50,8 @@ class PostModel {
     this.isEvent = false,
     this.eventLocation,
     this.eventDate,
+    this.mediaPath,
+    this.mediaIsVideo = false,
     required this.likes,
     required this.likeLabel,
     required this.comments,
@@ -51,6 +60,106 @@ class PostModel {
     this.isSaved = false,
     this.isJoinedEvent = false,
   });
+}
+
+/// BARU: widget pemutar video dari file lokal (dipakai di preview form & di kartu postingan).
+class _VideoPlayerBox extends StatefulWidget {
+  final String path;
+  final double height;
+
+  const _VideoPlayerBox({super.key, required this.path, this.height = 220});
+
+  @override
+  State<_VideoPlayerBox> createState() => _VideoPlayerBoxState();
+}
+
+class _VideoPlayerBoxState extends State<_VideoPlayerBox> {
+  late final VideoPlayerController _controller;
+  bool _ready = false;
+  bool _error = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.file(File(widget.path));
+    _controller.initialize().then((_) {
+      if (mounted) setState(() => _ready = true);
+    }).catchError((_) {
+      if (mounted) setState(() => _error = true);
+    });
+    _controller.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _togglePlay() {
+    if (!_ready) return;
+    setState(() {
+      _controller.value.isPlaying ? _controller.pause() : _controller.play();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error) {
+      return Container(
+        height: widget.height,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceMuted,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.center,
+        child: const Text('Video tidak bisa diputar'),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        height: widget.height,
+        width: double.infinity,
+        color: Colors.black,
+        child: !_ready
+            ? const Center(child: CircularProgressIndicator())
+            : GestureDetector(
+                onTap: _togglePlay,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Center(
+                      child: AspectRatio(
+                        aspectRatio: _controller.value.aspectRatio,
+                        child: VideoPlayer(_controller),
+                      ),
+                    ),
+                    if (!_controller.value.isPlaying)
+                      const Icon(
+                        Icons.play_circle_fill,
+                        size: 56,
+                        color: Colors.white70,
+                      ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: VideoProgressIndicator(
+                        _controller,
+                        allowScrubbing: true,
+                        padding: const EdgeInsets.only(top: 8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
 }
 
 class KomunitasPage extends StatefulWidget {
@@ -64,6 +173,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
   String _selectedCategory = 'Semua';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  final ImagePicker _picker = ImagePicker(); // BARU
 
   final List<String> _categories = [
     'Semua',
@@ -206,15 +316,46 @@ class _KomunitasPageState extends State<KomunitasPage> {
     final textController = TextEditingController();
     String selectedCat = 'Tanya Isyarat';
 
+    // BARU: media yang dipilih user
+    String? pickedPath;
+    bool pickedIsVideo = false;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            // BARU: fungsi memilih foto / video dari galeri
+            Future<void> pickMedia({required bool video}) async {
+              try {
+                final XFile? file = video
+                    ? await _picker.pickVideo(
+                        source: ImageSource.gallery,
+                        maxDuration: const Duration(minutes: 2),
+                      )
+                    : await _picker.pickImage(
+                        source: ImageSource.gallery,
+                        imageQuality: 85,
+                        maxWidth: 1600,
+                      );
+                if (file == null) return;
+                setModalState(() {
+                  pickedPath = file.path;
+                  pickedIsVideo = video;
+                });
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(this.context).showSnackBar(
+                  const SnackBar(content: Text('Gagal memilih file media.')),
+                );
+              }
+            }
+
             return Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(ctx).viewInsets.bottom,
@@ -239,11 +380,8 @@ class _KomunitasPageState extends State<KomunitasPage> {
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     initialValue: selectedCat,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Pilih Kategori',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
                     items: _categories
                         .where((c) => c != 'Semua')
@@ -257,11 +395,8 @@ class _KomunitasPageState extends State<KomunitasPage> {
                   TextField(
                     controller: textController,
                     maxLines: 4,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Tulis pertanyaan, cerita, atau diskusi...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -270,47 +405,149 @@ class _KomunitasPageState extends State<KomunitasPage> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
+                        minimumSize: const Size.fromHeight(48),
+                        elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      onPressed: () {
-                        if (textController.text.trim().isEmpty) return;
-                        setState(() {
-                          _posts.insert(
-                            0,
-                            PostModel(
-                              id: DateTime.now().millisecondsSinceEpoch.toString(),
-                              userName: 'Kamu',
-                              userRole: 'Pembelajar',
-                              roleColor: AppColors.primary.withValues(alpha: 0.1),
-                              roleTextColor: AppColors.primary,
-                              timeText: 'Baru saja',
-                              categoryText: selectedCat,
-                              content: textController.text.trim(),
-                              likes: 0,
-                              likeLabel: 'Suka',
-                              comments: 0,
-                              commentList: [],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // BARU: preview foto / video yang dipilih
+                    if (pickedPath != null) ...[
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: pickedIsVideo
+                                ? _VideoPlayerBox(
+                                    key: ValueKey(pickedPath),
+                                    path: pickedPath!,
+                                    height: 200,
+                                  )
+                                : Image.file(
+                                    File(pickedPath!),
+                                    height: 200,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: () => setModalState(() {
+                                pickedPath = null;
+                                pickedIsVideo = false;
+                              }),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black54,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  size: 18,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+
+                    // BARU: tombol tambah foto & video
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () => pickMedia(video: false),
+                            icon: const Icon(Icons.photo_outlined),
+                            label: const Text('Foto'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () => pickMedia(video: true),
+                            icon: const Icon(Icons.videocam_outlined),
+                            label: const Text('Video'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          final text = textController.text.trim();
+                          // DIUBAH: boleh posting kalau ada teks ATAU media
+                          if (text.isEmpty && pickedPath == null) return;
+                          setState(() {
+                            _posts.insert(
+                              0,
+                              PostModel(
+                                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                                userName: 'Kamu',
+                                userRole: 'Pembelajar',
+                                roleColor: AppColors.primary.withValues(alpha: 0.1),
+                                roleTextColor: AppColors.primary,
+                                timeText: 'Baru saja',
+                                categoryText: selectedCat,
+                                content: text,
+                                mediaPath: pickedPath,
+                                mediaIsVideo: pickedIsVideo,
+                                likes: 0,
+                                likeLabel: 'Suka',
+                                comments: 0,
+                                commentList: [],
+                              ),
+                            );
+                          });
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(this.context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Postingan berhasil dikirim!'),
                             ),
                           );
-                        });
-                        Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Postingan berhasil dikirim!'),
+                        },
+                        child: const Text(
+                          'Kirim Postingan',
+                          style: TextStyle(
+                            color: AppColors.textOnPrimary,
+                            fontWeight: FontWeight.bold,
                           ),
-                        );
-                      },
-                      child: const Text(
-                        'Kirim Postingan',
-                        style: TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             );
           },
@@ -325,8 +562,9 @@ class _KomunitasPageState extends State<KomunitasPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
         return StatefulBuilder(
@@ -380,7 +618,6 @@ class _KomunitasPageState extends State<KomunitasPage> {
                             controller: commentController,
                             decoration: const InputDecoration(
                               hintText: 'Tulis komentar...',
-                              border: OutlineInputBorder(),
                             ),
                           ),
                         ),
@@ -412,8 +649,9 @@ class _KomunitasPageState extends State<KomunitasPage> {
   void _showMoreOptions(PostModel post) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
         return Column(
@@ -462,6 +700,8 @@ class _KomunitasPageState extends State<KomunitasPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreatePostSheet,
         backgroundColor: AppColors.primary,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         icon: const Icon(Icons.add, color: AppColors.textOnPrimary),
         label: const Text('Postingan', style: TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold)),
       ),
@@ -504,10 +744,10 @@ class _KomunitasPageState extends State<KomunitasPage> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          height: 44,
+          height: 48,
           decoration: BoxDecoration(
-            color: AppColors.surfaceMuted,
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.fieldFill,
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
             children: [
@@ -535,13 +775,17 @@ class _KomunitasPageState extends State<KomunitasPage> {
               ),
               if (_searchQuery.isNotEmpty)
                 GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () {
                     _searchController.clear();
                     setState(() {
                       _searchQuery = '';
                     });
                   },
-                  child: const Icon(Icons.close, size: 18, color: AppColors.textMuted),
+                  child: const Padding(
+                    padding: EdgeInsets.all(14),
+                    child: Icon(Icons.close, size: 20, color: AppColors.textMuted),
+                  ),
                 ),
             ],
           ),
@@ -567,9 +811,11 @@ class _KomunitasPageState extends State<KomunitasPage> {
                   });
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  height: 40,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : AppColors.surfaceMuted,
+                    color: isSelected ? AppColors.primary : AppColors.fieldFill,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -591,14 +837,14 @@ class _KomunitasPageState extends State<KomunitasPage> {
   Widget _buildPostCard(PostModel post) {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
             offset: const Offset(0, 4),
           ),
         ],
@@ -663,17 +909,23 @@ class _KomunitasPageState extends State<KomunitasPage> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            post.content,
-            style: AppTextStyles.bodyMedium.copyWith(height: 1.4, color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 12),
+          // DIUBAH: teks hanya ditampilkan kalau tidak kosong (postingan boleh hanya media)
+          if (post.content.isNotEmpty) ...[
+            Text(
+              post.content,
+              style: AppTextStyles.bodyMedium.copyWith(height: 1.4, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 12),
+          ],
           if (post.videoTitle != null)
             _buildVideoMedia(post.videoTitle!, post.videoDuration ?? '0:00'),
           if (post.isCertificate)
             _buildCertificateMedia(post.certScore ?? 0.0),
           if (post.isEvent)
             _buildEventMedia(post),
+          // BARU: foto / video buatan user
+          if (post.mediaPath != null)
+            _buildUserMedia(post),
           const SizedBox(height: 16),
           const Divider(height: 1, color: AppColors.border),
           const SizedBox(height: 12),
@@ -684,8 +936,9 @@ class _KomunitasPageState extends State<KomunitasPage> {
                 children: [
                   InkWell(
                     onTap: () => _toggleLike(post),
+                    borderRadius: BorderRadius.circular(16),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
                       child: Row(
                         children: [
                           Icon(
@@ -708,8 +961,9 @@ class _KomunitasPageState extends State<KomunitasPage> {
                   const SizedBox(width: 12),
                   InkWell(
                     onTap: () => _showCommentsSheet(post),
+                    borderRadius: BorderRadius.circular(16),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
                       child: Row(
                         children: [
                           const Icon(Icons.chat_bubble_outline, size: 18, color: AppColors.textSecondary),
@@ -739,12 +993,37 @@ class _KomunitasPageState extends State<KomunitasPage> {
     );
   }
 
+  // BARU: menampilkan foto / video yang diunggah user
+  Widget _buildUserMedia(PostModel post) {
+    if (post.mediaIsVideo) {
+      return _VideoPlayerBox(
+        key: ValueKey('media_${post.id}'),
+        path: post.mediaPath!,
+      );
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Image.file(
+        File(post.mediaPath!),
+        width: double.infinity,
+        height: 220,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          height: 220,
+          color: AppColors.surfaceMuted,
+          alignment: Alignment.center,
+          child: const Text('Foto tidak bisa ditampilkan'),
+        ),
+      ),
+    );
+  }
+
   Widget _buildVideoMedia(String title, String duration) {
     return Container(
       height: 180,
       decoration: BoxDecoration(
         color: AppColors.textPrimary,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Stack(
         children: [
@@ -794,8 +1073,8 @@ class _KomunitasPageState extends State<KomunitasPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surfaceMuted,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.fieldFill,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
@@ -803,7 +1082,7 @@ class _KomunitasPageState extends State<KomunitasPage> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppColors.pinkSoft,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(Icons.verified, color: AppColors.primary, size: 28),
           ),
@@ -838,26 +1117,26 @@ class _KomunitasPageState extends State<KomunitasPage> {
   Widget _buildEventMedia(PostModel post) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        color: AppColors.fieldFill,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         children: [
           Container(
             height: 100,
             decoration: const BoxDecoration(
-              color: AppColors.secondary,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+              color: AppColors.purpleSoft,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
             ),
             alignment: Alignment.bottomLeft,
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                const Icon(Icons.location_on, color: AppColors.textOnPrimary, size: 16),
+                const Icon(Icons.location_on_rounded, color: AppColors.secondary, size: 16),
                 const SizedBox(width: 4),
                 Text(
                   post.eventLocation ?? '',
-                  style: const TextStyle(color: AppColors.textOnPrimary, fontSize: 12, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -880,13 +1159,15 @@ class _KomunitasPageState extends State<KomunitasPage> {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: post.isJoinedEvent ? AppColors.textMuted : AppColors.primary,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    minimumSize: const Size(0, 48),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   onPressed: () => _toggleJoinEvent(post),
                   child: Text(
                     post.isJoinedEvent ? 'Tergabung ✓' : 'Ikut Sesi',
-                    style: const TextStyle(color: AppColors.textOnPrimary, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: AppColors.textOnPrimary, fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -904,14 +1185,10 @@ class _KomunitasPageState extends State<KomunitasPage> {
         child: GestureDetector(
           onTap: _showCreatePostSheet,
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.pinkSoft, AppColors.purpleSoft],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
+              color: AppColors.pinkSoft,
+              borderRadius: BorderRadius.circular(24),
             ),
             child: Row(
               children: [

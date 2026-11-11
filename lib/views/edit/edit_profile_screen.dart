@@ -152,9 +152,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _showChangePhotoModal() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
         return SafeArea(
@@ -167,7 +167,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: AppColors.border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -211,8 +211,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   leading: const CircleAvatar(
                     backgroundColor: AppColors.pinkSoft,
                     child: Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    child: Icon(Icons.delete_outline_rounded, color: AppColors.danger),
                   ),
-                  title: const Text('Hapus Foto Profil', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red)),
+                  title: const Text('Hapus Foto Profil', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.danger)),
                   onTap: () {
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -231,9 +232,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _showLevelPicker() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
         final levels = [
@@ -264,7 +265,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: AppColors.border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -328,7 +329,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Row(
           children: [
             Icon(Icons.explore_rounded, color: AppColors.secondary),
@@ -399,7 +401,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                 return Container(
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.surface,
                     borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                   ),
                   child: Column(
@@ -411,7 +413,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           width: 44,
                           height: 4.5,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
+                            color: AppColors.border,
                             borderRadius: BorderRadius.circular(3),
                           ),
                         ),
@@ -596,11 +598,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             const SizedBox(height: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                               decoration: BoxDecoration(
                                 color: AppColors.background,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(color: AppColors.border),
+                                color: AppColors.fieldFill,
+                                borderRadius: BorderRadius.circular(16),
                               ),
                               child: Row(
                                 children: [
@@ -634,6 +638,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             color: AppColors.purpleSoft,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: AppColors.border),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Row(
                             children: [
@@ -689,7 +694,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             final bool isUnlocked = badge['isUnlocked'] as bool;
 
                             return Container(
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(14),
@@ -699,11 +704,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       : AppColors.border,
                                   width: isSelected ? 1.5 : 1,
                                 ),
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(24),
+                                border: isSelected
+                                    ? Border.all(
+                                        color: badge['color'] as Color,
+                                        width: 1.5,
+                                      )
+                                    : null,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.02),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
@@ -716,12 +729,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       Container(
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
-                                          color: isUnlocked ? (badge['color'] as Color) : Colors.grey.shade200,
+                                          color: isUnlocked ? (badge['color'] as Color) : AppColors.fieldFill,
                                           shape: BoxShape.circle,
                                         ),
                                         child: Icon(
                                           badge['icon'] as IconData,
-                                          color: isUnlocked ? Colors.white : Colors.grey.shade400,
+                                          color: isUnlocked ? AppColors.textOnPrimary : AppColors.textMuted,
                                           size: 20,
                                         ),
                                       ),
@@ -760,6 +773,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                           ? (badge['color'] as Color)
                                                           : AppColors.textSecondary,
                                                     ),
+                                                        : AppColors.fieldFill,
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      if (!isSelected && !isUnlocked) ...[
+                                                        const Icon(
+                                                          Icons.lock_outline_rounded,
+                                                          size: 12,
+                                                          color: AppColors.textSecondary,
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                      ],
+                                                      Text(
+                                                        isSelected
+                                                            ? '✓ Terpilih'
+                                                            : (isUnlocked ? 'Tersedia untuk Dipilih' : 'Belum Terbuka'),
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight: FontWeight.w700,
+                                                          color: isSelected
+                                                              ? (badge['color'] as Color)
+                                                              : AppColors.textSecondary,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                               ],
@@ -810,14 +850,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             });
                                             setModalState(() {});
                                           },
+                                          borderRadius: BorderRadius.circular(16),
                                           child: const Padding(
-                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                                             child: Text(
                                               'Hapus',
                                               style: TextStyle(
-                                                fontSize: 11,
+                                                fontSize: 12,
                                                 fontWeight: FontWeight.bold,
-                                                color: Colors.red,
+                                                color: AppColors.danger,
                                               ),
                                             ),
                                           ),
@@ -839,19 +880,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             });
                                             setModalState(() {});
                                           },
-                                          child: const Row(
+                                          borderRadius: BorderRadius.circular(16),
+                                          child: const Padding(
+                                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                                            child: Row(
                                             children: [
                                               Icon(Icons.add_circle_outline_rounded, size: 14, color: AppColors.primary),
                                               SizedBox(width: 4),
                                               Text(
                                                 'Pilih Ini',
                                                 style: TextStyle(
-                                                  fontSize: 11,
+                                                  fontSize: 12,
                                                   fontWeight: FontWeight.bold,
                                                   color: AppColors.primary,
                                                 ),
                                               ),
                                             ],
+                                            ),
                                           ),
                                         )
                                       else
@@ -891,17 +936,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        height: 40,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : AppColors.surfaceMuted,
+          color: isSelected ? AppColors.primary : AppColors.fieldFill,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: FontWeight.bold,
             color: isSelected ? Colors.white : AppColors.textPrimary,
+            color: isSelected ? AppColors.textOnPrimary : AppColors.textPrimary,
           ),
         ),
       ),
@@ -913,8 +962,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
@@ -985,15 +1035,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: AppColors.brandGradient,
+                  color: AppColors.pinkSoft,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Container(
                   padding: const EdgeInsets.all(3),
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white,
+                    color: AppColors.surface,
                   ),
                   child: const CircleAvatar(
                     radius: 46,
@@ -1002,8 +1060,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               Positioned(
-                bottom: 2,
-                right: 2,
+                bottom: 0,
+                right: 0,
                 child: InkWell(
                   onTap: _showChangePhotoModal,
                   child: Container(
@@ -1017,6 +1075,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Icons.camera_alt_rounded,
                       color: Colors.white,
                       size: 16,
+                  customBorder: const CircleBorder(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.surface, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        color: AppColors.textOnPrimary,
+                        size: 16,
+                      ),
                     ),
                   ),
                 ),
@@ -1027,9 +1100,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         const SizedBox(height: 10),
         InkWell(
           onTap: _showChangePhotoModal,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1148,6 +1221,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.pinkSoft,
                   borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.military_tech_rounded, color: AppColors.primary, size: 20),
               ),
@@ -1199,6 +1273,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               decoration: BoxDecoration(
                 color: AppColors.background,
                 borderRadius: BorderRadius.circular(12),
+                color: AppColors.fieldFill,
+                borderRadius: BorderRadius.circular(16),
               ),
               child: const Text(
                 'Belum ada lencana yang disematkan.\nPilih dari daftar di bawah!',
@@ -1221,13 +1297,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           // Tombol Kelola & Lihat Semua Pencapaian
           InkWell(
             onTap: _openAchievementSelectionModal,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: AppColors.pinkSoft,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.pinkSoft),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: const Row(
                 children: [
@@ -1267,10 +1344,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           // Tombol Dashed Outline: + Kelola Lencana Lainnya
           InkWell(
             onTap: _openAchievementSelectionModal,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              constraints: const BoxConstraints(minHeight: 48),
+              padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -1278,6 +1356,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   color: AppColors.primary.withValues(alpha: 0.6),
                   width: 1.2,
                 ),
+                color: AppColors.fieldFill,
+                borderRadius: BorderRadius.circular(16),
               ),
               child: const Center(
                 child: Row(
@@ -1307,18 +1387,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final Color badgeColor = badge['color'] as Color;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: badgeColor, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: badgeColor.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        color: badge['bg'] as Color,
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1334,7 +1406,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 child: Icon(
                   badge['icon'] as IconData,
-                  color: Colors.white,
+                  color: AppColors.textOnPrimary,
                   size: 20,
                 ),
               ),
@@ -1357,15 +1429,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: badgeColor,
+                            color: AppColors.surface,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Text(
                             '✓ Terpilih (Maks 3)',
                             style: TextStyle(
-                              fontSize: 9,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ),
@@ -1404,6 +1476,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ],
               ),
               InkWell(
+                borderRadius: BorderRadius.circular(16),
                 onTap: () {
                   setState(() {
                     _selectedBadgeIds.remove(badge['id']);
@@ -1416,11 +1489,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   );
                 },
                 child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                   child: Text(
                     'Hapus',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textSecondary,
                     ),
@@ -1451,13 +1524,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const SizedBox(height: 8),
           InkWell(
             onTap: _showLevelPicker,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: AppColors.background,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.border),
+                color: AppColors.fieldFill,
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 children: [
@@ -1513,6 +1588,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               _buildMotivationChip('Teman Tuli', AppColors.orangeSoft, AppColors.tertiary),
               _buildMotivationChip('Advokasi Sosial', AppColors.background, AppColors.textPrimary),
               _buildMotivationChip('Hobi & Edukasi', AppColors.background, AppColors.textPrimary),
+              _buildMotivationChip('Komunikasi Keluarga'),
+              _buildMotivationChip('Pekerjaan'),
+              _buildMotivationChip('Teman Tuli'),
+              _buildMotivationChip('Advokasi Sosial'),
+              _buildMotivationChip('Hobi & Edukasi'),
             ],
           ),
         ],
@@ -1520,7 +1600,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildMotivationChip(String label, Color bgColor, Color textColor) {
+  Widget _buildMotivationChip(String label) {
     final bool isSelected = _selectedMotivations.contains(label);
 
     return InkWell(
@@ -1535,13 +1615,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       },
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: isSelected ? bgColor : AppColors.background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? Colors.transparent : AppColors.border,
           ),
+          color: isSelected ? AppColors.primary : AppColors.fieldFill,
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1550,14 +1633,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               isSelected ? Icons.check_rounded : Icons.add_rounded,
               size: 14,
               color: isSelected ? textColor : AppColors.textSecondary,
+              size: 16,
+              color: isSelected ? AppColors.textOnPrimary : AppColors.textSecondary,
             ),
             const SizedBox(width: 4),
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: isSelected ? textColor : AppColors.textSecondary,
+                color: isSelected ? AppColors.textOnPrimary : AppColors.textSecondary,
               ),
             ),
           ],
@@ -1578,6 +1664,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.purpleSoft,
                   borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.workspace_premium_outlined, color: AppColors.secondary, size: 20),
               ),
@@ -1623,11 +1710,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
           // Highlight Status Banner
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.pinkSoft,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.pinkSoft),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               children: [
@@ -1649,17 +1737,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: AppColors.secondary,
                                 borderRadius: BorderRadius.circular(6),
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Text(
                                 'AKTIF',
                                 style: TextStyle(
-                                  fontSize: 8,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: AppColors.textOnPrimary,
                                 ),
                               ),
                             ),
@@ -1699,6 +1789,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     minHeight: 7,
                     color: AppColors.primary,
                     backgroundColor: AppColors.purpleSoft,
+                    backgroundColor: AppColors.surface,
                   ),
                 ),
               ],
@@ -1732,29 +1823,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             onActionTap: _showRoleDetailDialog,
             isDone: true,
             hasLine: true,
-            lineColor: Colors.grey.shade300,
+            lineColor: AppColors.border,
           ),
           _buildRoleTimelineStep(
             icon: Icons.lightbulb_outline_rounded,
-            iconBgColor: Colors.grey.shade300,
-            iconColor: Colors.grey.shade600,
+            iconBgColor: AppColors.fieldFill,
+            iconColor: AppColors.textMuted,
             title: 'Mahir',
             subtitle: 'Aktif 1 - 2 Tahun & kontributor latihan',
             badgeText: '🔒 Belum Terbuka',
             badgeBgColor: AppColors.surfaceMuted,
+            badgeText: 'Belum Terbuka',
+            badgeIcon: Icons.lock_outline_rounded,
+            badgeBgColor: AppColors.fieldFill,
             badgeTextColor: AppColors.textSecondary,
             isDone: false,
             hasLine: true,
-            lineColor: Colors.grey.shade300,
+            lineColor: AppColors.border,
           ),
           _buildRoleTimelineStep(
             icon: Icons.emoji_events_outlined,
-            iconBgColor: Colors.grey.shade300,
-            iconColor: Colors.grey.shade600,
+            iconBgColor: AppColors.fieldFill,
+            iconColor: AppColors.textMuted,
             title: 'Master Signer',
             subtitle: 'Aktif 3+ Tahun & mentor duta aksesibilitas',
             badgeText: '🔒 Belum Terbuka',
             badgeBgColor: AppColors.surfaceMuted,
+            badgeText: 'Belum Terbuka',
+            badgeIcon: Icons.lock_outline_rounded,
+            badgeBgColor: AppColors.fieldFill,
             badgeTextColor: AppColors.textSecondary,
             isDone: false,
             hasLine: false,
@@ -1772,6 +1869,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     bool activePill = false,
     required String subtitle,
     required String badgeText,
+    IconData? badgeIcon,
     required Color badgeBgColor,
     required Color badgeTextColor,
     String? actionLink,
@@ -1800,7 +1898,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: lineColor ?? Colors.grey.shade300,
+                    color: lineColor ?? AppColors.border,
                     margin: const EdgeInsets.symmetric(vertical: 4),
                   ),
                 ),
@@ -1830,17 +1928,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           if (activePill) ...[
                             const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: AppColors.secondary,
                                 borderRadius: BorderRadius.circular(6),
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Text(
                                 'AKTIF',
                                 style: TextStyle(
-                                  fontSize: 8,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: AppColors.textOnPrimary,
                                 ),
                               ),
                             ),
@@ -1851,15 +1951,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: badgeBgColor,
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(
-                          badgeText,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: badgeTextColor,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (badgeIcon != null) ...[
+                              Icon(badgeIcon, size: 12, color: badgeTextColor),
+                              const SizedBox(width: 4),
+                            ],
+                            Text(
+                              badgeText,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: badgeTextColor,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -1874,7 +1983,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
                   if (actionLink != null) ...[
-                    const SizedBox(height: 4),
                     InkWell(
                       onTap: onActionTap,
                       child: Text(
@@ -1884,6 +1992,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           fontWeight: FontWeight.bold,
                           color: AppColors.secondary,
                           decoration: TextDecoration.underline,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        constraints: const BoxConstraints(minHeight: 48),
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          actionLink,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.secondary,
+                            decoration: TextDecoration.underline,
+                          ),
                         ),
                       ),
                     ),
@@ -1901,16 +2021,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildContainerCard({required Widget child}) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.border),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -1929,7 +2051,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             color: iconColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: iconColor, size: 18),
         ),
@@ -1996,6 +2118,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
           ),
         ),
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      maxLength: maxLength,
+      buildCounter: showCounter
+          ? null
+          : (context, {required currentLength, required isFocused, maxLength}) => null,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
+      ),
+      decoration: InputDecoration(
+        prefixIcon: Icon(prefixIcon, size: 20, color: AppColors.textSecondary),
+        suffixIcon: suffixIcon,
       ),
     );
   }

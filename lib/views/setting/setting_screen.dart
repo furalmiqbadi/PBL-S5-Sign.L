@@ -103,9 +103,9 @@ class _SettingScreenState extends State<SettingScreen> {
   }) {
     return showModalBottomSheet<T>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
@@ -117,7 +117,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.textMuted,
+                  color: AppColors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -159,7 +159,8 @@ class _SettingScreenState extends State<SettingScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Keluar dari Akun?',
             style: TextStyle(fontWeight: FontWeight.w800)),
         content: const Text('Kamu perlu masuk lagi untuk melanjutkan belajar.'),
@@ -259,6 +260,23 @@ class _SettingScreenState extends State<SettingScreen> {
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textSecondary,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.fieldFill,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          c.reminderLabel,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                     ),
@@ -293,7 +311,7 @@ class _SettingScreenState extends State<SettingScreen> {
             child: _NavTile(
               icon: Icons.text_fields_rounded,
               iconColor: AppColors.textPrimary,
-              iconBg: AppColors.border,
+              iconBg: AppColors.fieldFill,
               title: 'Ukuran Teks & Kontras Tinggi',
               subtitle: '${s.textSize.label} (Optimal untuk Pembelajar Tuli)',
               onTap: () => _pickTextSize(c),
@@ -303,7 +321,7 @@ class _SettingScreenState extends State<SettingScreen> {
             child: _SwitchTile(
               icon: Icons.vibration_rounded,
               iconColor: AppColors.textPrimary,
-              iconBg: AppColors.border,
+              iconBg: AppColors.fieldFill,
               title: 'Getaran Responsif (Haptic Feedback)',
               subtitle: 'Getaran halus saat isyarat berhasil',
               value: s.haptic,
@@ -320,6 +338,7 @@ class _SettingScreenState extends State<SettingScreen> {
               icon: Icons.lock_outline_rounded,
               iconColor: AppColors.textPrimary,
               iconBg: AppColors.border,
+              iconBg: AppColors.fieldFill,
               title: 'Kata Sandi & Keamanan',
               subtitle: 'Ubah kata sandi akun',
               onTap: () => _toast('Halaman ubah kata sandi belum tersedia.'),
@@ -330,6 +349,7 @@ class _SettingScreenState extends State<SettingScreen> {
               icon: Icons.language_rounded,
               iconColor: AppColors.textPrimary,
               iconBg: AppColors.border,
+              iconBg: AppColors.fieldFill,
               title: 'Bahasa Aplikasi',
               subtitle: c.languageLabel,
               onTap: () => _pickLanguage(c),
@@ -345,6 +365,7 @@ class _SettingScreenState extends State<SettingScreen> {
               icon: Icons.help_outline_rounded,
               iconColor: AppColors.textPrimary,
               iconBg: AppColors.border,
+              iconBg: AppColors.fieldFill,
               title: 'Pusat Bantuan & Komunitas',
               subtitle: 'Tutorial isyarat & FAQ',
               onTap: () => _toast('Pusat Bantuan belum tersedia.'),
@@ -355,6 +376,7 @@ class _SettingScreenState extends State<SettingScreen> {
               icon: Icons.info_outline_rounded,
               iconColor: AppColors.textPrimary,
               iconBg: AppColors.border,
+              iconBg: AppColors.fieldFill,
               title: 'Tentang Sign.L',
               subtitle: _appVersion,
               onTap: () => showAboutDialog(
@@ -385,6 +407,10 @@ class _SettingScreenState extends State<SettingScreen> {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
         elevation: 0.5,
+        backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.textPrimary,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
@@ -472,7 +498,7 @@ class _ProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(),
       child: Row(
         children: [
@@ -482,11 +508,12 @@ class _ProfileCard extends StatelessWidget {
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               gradient: AppColors.brandGradient,
+              color: AppColors.pinkSoft,
             ),
             child: Container(
               padding: const EdgeInsets.all(2),
-              decoration:
-                  const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+              decoration: const BoxDecoration(
+                  shape: BoxShape.circle, color: AppColors.surface),
               child: ClipOval(
                 child: Image.network(
                   'https://i.pravatar.cc/150?img=47',
@@ -535,7 +562,9 @@ class _ProfileCard extends StatelessWidget {
             onTap: onManage,
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              height: 48,
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: AppColors.pinkSoft,
                 borderRadius: BorderRadius.circular(16),
@@ -605,6 +634,12 @@ BoxDecoration _cardDecoration() => BoxDecoration(
         BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(24),
+      boxShadow: [
+        BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
             offset: const Offset(0, 4)),
       ],
     );
@@ -623,6 +658,12 @@ class _SettingsCard extends StatelessWidget {
           for (var i = 0; i < rows.length; i++) ...[
             if (i > 0)
               const Divider(height: 1, thickness: 1, color: AppColors.border),
+              const Divider(
+                  height: 1,
+                  thickness: 1,
+                  indent: 66,
+                  endIndent: 16,
+                  color: AppColors.border),
             rows[i].child,
           ],
         ],
@@ -639,11 +680,11 @@ class _TileIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: 38,
-        height: 38,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(19),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Icon(icon, size: 19, color: color),
       );
@@ -794,6 +835,10 @@ class _LogoutButton extends StatelessWidget {
         minimumSize: const Size(double.infinity, 48),
         side: const BorderSide(color: AppColors.primary, width: 1.4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: AppColors.pinkSoft,
+        minimumSize: const Size(double.infinity, 48),
+        side: BorderSide.none,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }

@@ -13,14 +13,13 @@ class GesturDescriptionCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.surfaceMuted),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -35,14 +34,14 @@ class GesturDescriptionCard extends StatelessWidget {
                 'HURUF ${gestur.huruf}',
                 style: AppTextStyles.headlineSmall.copyWith(
                   fontSize: 19,
-                  color: AppColors.secondary,
+                  color: AppColors.primary,
                   letterSpacing: 0.47,
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.pinkSoft.withValues(alpha: 0.50),
+                  color: AppColors.pinkSoft,
                   borderRadius: BorderRadius.circular(9999),
                 ),
                 child: Text(
@@ -55,17 +54,17 @@ class GesturDescriptionCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           // Label deskripsi
           Text(
             'DESKRIPSI BENTUK TANGAN',
             style: AppTextStyles.labelMedium.copyWith(
-              color: AppColors.primary,
+              color: AppColors.textSecondary,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.60,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           // Daftar langkah
           ...gestur.deskripsiLangkah.map(
             (langkah) => Padding(
