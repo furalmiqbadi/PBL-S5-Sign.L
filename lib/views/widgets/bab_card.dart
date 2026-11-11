@@ -19,13 +19,13 @@ class BabCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -110,8 +110,8 @@ class BabCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surfaceMuted,
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.fieldFill,
+          borderRadius: BorderRadius.circular(24),
         ),
         child: Column(
           children: [
@@ -221,14 +221,14 @@ class BabCard extends StatelessWidget {
       width: 80,
       height: 80,
       decoration: BoxDecoration(
-        color: isLocked ? Colors.white : AppColors.surfaceMuted,
-        borderRadius: BorderRadius.circular(8),
+        color: isLocked ? Colors.white : AppColors.fieldFill,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Stack(
         fit: StackFit.expand,
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(16),
             child: Image.asset(
               'assets/images/bisindo.jpg',
               fit: BoxFit.cover,
@@ -240,7 +240,7 @@ class BabCard extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 color: AppColors.border.withValues(alpha: 0.60),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: const Icon(Icons.lock, color: AppColors.textMuted),
             ),
@@ -256,7 +256,7 @@ class BabCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(9999),
           child: LinearProgressIndicator(
             value: bab.progress,
-            backgroundColor: AppColors.border,
+            backgroundColor: AppColors.pinkSoft,
             valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
             minHeight: 6,
           ),

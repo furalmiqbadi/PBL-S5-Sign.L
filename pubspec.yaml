@@ -33,6 +33,7 @@ dependencies:
   intl: ^0.18.1 # Format tanggal dan waktu
   image_picker: ^1.1.2 # BARU: pilih foto/video dari galeri
   video_player: ^2.9.2 # BARU: memutar video posting
+  supabase_flutter: ^2.18.3
 
 dev_dependencies:
   flutter_test:

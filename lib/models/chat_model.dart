@@ -90,6 +90,21 @@ class ChatRoom {
   }
 }
 
+/// Kontak yang dapat diajak memulai percakapan baru.
+class ChatContact {
+  const ChatContact({
+    required this.id,
+    required this.name,
+    this.avatarUrl,
+    this.isOnline = false,
+  });
+
+  final String id;
+  final String name;
+  final String? avatarUrl;
+  final bool isOnline;
+}
+
 /// Representasi satu pesan di dalam ruang percakapan.
 class ChatMessage {
   const ChatMessage({

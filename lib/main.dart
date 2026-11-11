@@ -1,33 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'controllers/auth_controller.dart';
 import 'controllers/chat_controller.dart';
 import 'controllers/notification_controller.dart';
 import 'controllers/settings_controller.dart';
+import 'services/auth_recovery.dart';
+import 'services/supabase_config.dart';
+import 'views/auth/auth_recovery_listener.dart';
 import 'views/auth/auth_views.dart';
+import 'views/main_shell.dart';
 import 'views/theme/app_colors.dart';
 import 'views/theme/app_theme.dart';
 
-void main() {
-  runApp(const SignLApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Deteksi tautan reset kata sandi sebelum Supabase membersihkan parameter URL.
+  final openedFromRecovery = await AuthRecovery.detectInitialRecovery();
+
+  // Inisialisasi Supabase bila konfigurasi Project URL & Anon Key sudah diisi
+  if (SupabaseConfig.isConfigured) {
+    try {
+      await Supabase.initialize(
+        url: SupabaseConfig.supabaseUrl,
+        publishableKey: SupabaseConfig.supabaseAnonKey,
+      );
+    } catch (e) {
+      debugPrint('[Supabase] Gagal inisialisasi: $e');
+    }
+  }
+
+  runApp(SignLApp(openedFromRecovery: openedFromRecovery));
 }
 
 /// Root aplikasi Sign.L.
 ///
 /// Menyediakan seluruh controller lewat [MultiProvider] dan menampilkan
-/// [LoginPage] sebagai titik awal. Setelah autentikasi (masih mock, belum
-/// terhubung database) user diarahkan ke kerangka utama `MainShell`.
+/// [LoginPage] sebagai titik awal (atau [MainShell] bila sudah login).
 class SignLApp extends StatelessWidget {
-  const SignLApp({super.key});
+  final Widget? home;
+
+  /// `true` bila aplikasi dibuka dari tautan reset kata sandi.
+  final bool openedFromRecovery;
+
+  const SignLApp({
+    super.key,
+    this.home,
+    this.openedFromRecovery = false,
+  });
+
+  Widget _determineInitialHome() {
+    if (home != null) return home!;
+    if (openedFromRecovery) return const ResetPage();
+    try {
+      if (Supabase.instance.client.auth.currentSession != null) {
+        return const MainShell();
+      }
+    } catch (_) {}
+    return const LoginPage();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),
-        ChangeNotifierProvider(create: (_) => ChatController()),
-        ChangeNotifierProvider(create: (_) => NotificationController()),
+        ChangeNotifierProvider(create: (_) => ChatController()..loadRooms()),
+        ChangeNotifierProvider(
+          create: (_) => NotificationController()..load(),
+        ),
         // `..load()` membaca preferensi tersimpan (mis. ukuran teks) saat app dibuka.
         ChangeNotifierProvider(create: (_) => SettingsController()..load()),
       ],
@@ -49,7 +92,10 @@ class SignLApp extends StatelessWidget {
             child: child!,
           );
         },
-        home: const LoginPage(),
+        home: AuthRecoveryListener(
+          initiallyOpened: openedFromRecovery,
+          child: _determineInitialHome(),
+        ),
       ),
     );
   }
@@ -57,15 +103,10 @@ class SignLApp extends StatelessWidget {
 
 /// Nama lama agar widget test bawaan Flutter tetap kompatibel.
 class MyApp extends SignLApp {
-  const MyApp({super.key});
+  const MyApp({super.key, super.home});
 }
 
 /// Perilaku scroll tanpa efek "karet" (stretch overscroll) di Android.
-///
-/// Secara default Flutter 3.x memakai [StretchingOverscrollIndicator] pada
-/// Android 12+, sehingga konten terlihat melar seperti karet lalu memantul
-/// saat mencapai ujung daftar. Kita ganti dengan indikator glow agar scroll
-/// terasa normal dan tidak ada distorsi.
 class _NoStretchScrollBehavior extends MaterialScrollBehavior {
   const _NoStretchScrollBehavior();
 

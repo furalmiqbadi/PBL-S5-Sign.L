@@ -8,10 +8,10 @@ class FinalExamCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceMuted.withValues(alpha: 0.70),
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.fieldFill,
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -22,10 +22,10 @@ class FinalExamCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: const BoxDecoration(
-                  color: AppColors.border,
+                  color: AppColors.surface,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.lock, color: AppColors.textMuted),
+                child: const Icon(Icons.lock_rounded, color: AppColors.textMuted),
               ),
               const SizedBox(width: 12),
               Column(

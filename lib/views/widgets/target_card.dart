@@ -17,17 +17,13 @@ class TargetCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment(-0.27, -0.27),
-          end: Alignment(0.73, 1.27),
-          colors: [AppColors.surface, AppColors.surfaceMuted, AppColors.border],
-        ),
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -37,12 +33,10 @@ class TargetCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.tertiary, AppColors.primary, AppColors.secondary],
-              ),
+              color: AppColors.orangeSoft,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.emoji_events, color: Colors.white),
+            child: const Icon(Icons.emoji_events, color: AppColors.tertiary),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -63,7 +57,7 @@ class TargetCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceMuted,
+                        color: AppColors.fieldFill,
                         borderRadius: BorderRadius.circular(9999),
                       ),
                       child: Text(

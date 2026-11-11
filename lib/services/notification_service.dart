@@ -2,13 +2,32 @@ import '../models/notification_model.dart';
 
 /// Service Layer untuk fitur Notifikasi.
 ///
-/// Mengembalikan data dummy; implementasi dapat diganti dengan Cloud
-/// Firestore tanpa mengubah Controller maupun View.
+/// Mengembalikan data dummy yang disimpan di memori agar status "sudah dibaca"
+/// tetap bertahan selama aplikasi berjalan. Implementasi dapat diganti dengan
+/// Cloud Firestore tanpa mengubah Controller maupun View.
 class NotificationService {
+  List<AppNotification>? _cache;
+
   /// Mengambil seluruh notifikasi pengguna (terbaru lebih dahulu).
   Future<List<AppNotification>> getNotifications() async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
+    _cache ??= _seedNotifications();
+    return List<AppNotification>.from(_cache!);
+  }
 
+  /// Menandai satu notifikasi telah dibaca.
+  Future<void> markAsRead(String id) async {
+    _cache = _cache
+        ?.map((item) => item.id == id ? item.copyWith(isRead: true) : item)
+        .toList();
+  }
+
+  /// Menandai seluruh notifikasi telah dibaca.
+  Future<void> markAllAsRead() async {
+    _cache = _cache?.map((item) => item.copyWith(isRead: true)).toList();
+  }
+
+  List<AppNotification> _seedNotifications() {
     final now = DateTime.now();
     final yesterday = now.subtract(const Duration(days: 1));
     DateTime yesterdayAt(int hour, int minute) =>
@@ -36,7 +55,8 @@ class NotificationService {
         id: 'n3',
         category: NotificationCategory.komunitas,
         title: 'Seisi Klub BISINDO Jakarta',
-        body: 'Latihan kata sehari-hari di Tebo Eco Park, Minggu pukul 09.00 WIB.',
+        body:
+            'Latihan kata sehari-hari di Tebo Eco Park, Minggu pukul 09.00 WIB.',
         actionLabel: 'Lihat sesi',
         time: now.subtract(const Duration(hours: 2)),
       ),
@@ -53,7 +73,8 @@ class NotificationService {
         id: 'n5',
         category: NotificationCategory.komunitas,
         title: 'Budi menyukai video latihanmu',
-        body: 'Gerakan huruf D-mu makin baik. Terus berlatih bersama komunitas!',
+        body:
+            'Gerakan huruf D-mu makin baik. Terus berlatih bersama komunitas!',
         time: yesterdayAt(19, 45),
         isRead: true,
       ),
