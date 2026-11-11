@@ -6,6 +6,7 @@ import '../../controllers/chat_controller.dart';
 import '../../controllers/notification_controller.dart';
 import '../chat/chat_list_view.dart';
 import '../komunitas/komunitas_page.dart';
+import '../widgets/leaderboard.dart';
 import 'detail_materi_page.dart';
 import '../notification/notification_view.dart';
 import '../theme/app_colors.dart';
@@ -14,7 +15,7 @@ import '../widgets/auth_widgets.dart' show SignLogo, SignWordmark;
 
 class HomePage extends StatefulWidget {
   final VoidCallback? onOpenCommunity;
-  final VoidCallback? onOpenProfile; // <-- TAMBAHAN CALLBACK PROFIL
+  final VoidCallback? onOpenProfile; // <-- TAMBAHAN CALLBACK PROFIL.
 
   const HomePage({
     super.key,
@@ -72,10 +73,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openLeaderboard() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Membuka Papan Peringkat Lengkap...')),
-    );
+    showLeaderboardSheet(context);
   }
+
 
   void _openNotifications() {
     Navigator.push(
