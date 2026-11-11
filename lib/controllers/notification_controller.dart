@@ -20,19 +20,37 @@ class NotificationController extends ChangeNotifier {
   String? errorMessage;
   List<AppNotification> _notifications = [];
   NotificationFilter filter = NotificationFilter.semua;
+  String query = '';
+  bool _hasLoaded = false;
 
-  /// Notifikasi setelah difilter berdasarkan kategori.
+  /// Notifikasi setelah difilter berdasarkan kategori dan kata kunci.
   List<AppNotification> get notifications {
+    final Iterable<AppNotification> base;
     switch (filter) {
       case NotificationFilter.semua:
-        return _notifications;
+        base = _notifications;
+        break;
       case NotificationFilter.komunitas:
-        return _byCategory(NotificationCategory.komunitas);
+        base = _byCategory(NotificationCategory.komunitas);
+        break;
       case NotificationFilter.belajar:
-        return _byCategory(NotificationCategory.belajar);
+        base = _byCategory(NotificationCategory.belajar);
+        break;
       case NotificationFilter.pencapaian:
-        return _byCategory(NotificationCategory.pencapaian);
+        base = _byCategory(NotificationCategory.pencapaian);
+        break;
     }
+
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return base.toList();
+    return base
+        .where(
+          (item) =>
+              item.title.toLowerCase().contains(q) ||
+              item.body.toLowerCase().contains(q) ||
+              item.category.label.toLowerCase().contains(q),
+        )
+        .toList();
   }
 
   /// Notifikasi yang dibuat pada hari ini.
@@ -50,18 +68,20 @@ class NotificationController extends ChangeNotifier {
       )
       .toList();
 
-  int get unreadCount =>
-      _notifications.where((item) => !item.isRead).length;
+  int get unreadCount => _notifications.where((item) => !item.isRead).length;
 
   bool get hasAnyNotification => notifications.isNotEmpty;
 
-  Future<void> load() async {
+  Future<void> load({bool force = false}) async {
+    if (_hasLoaded && !force) return;
+
     isLoading = true;
     errorMessage = null;
     notifyListeners();
 
     try {
       _notifications = await _service.getNotifications();
+      _hasLoaded = true;
     } catch (e) {
       errorMessage = 'Gagal memuat notifikasi. Silakan coba lagi.';
     } finally {
@@ -76,11 +96,21 @@ class NotificationController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void search(String value) {
+    if (query == value) return;
+    query = value;
+    notifyListeners();
+  }
+
   /// Menandai satu notifikasi telah dibaca.
   void markAsRead(String id) {
+    final target = _notifications.where((item) => item.id == id);
+    if (target.isEmpty || target.first.isRead) return;
+
     _notifications = _notifications
         .map((item) => item.id == id ? item.copyWith(isRead: true) : item)
         .toList();
+    _service.markAsRead(id);
     notifyListeners();
   }
 
@@ -89,6 +119,7 @@ class NotificationController extends ChangeNotifier {
     if (unreadCount == 0) return;
     _notifications =
         _notifications.map((item) => item.copyWith(isRead: true)).toList();
+    _service.markAllAsRead();
     notifyListeners();
   }
 

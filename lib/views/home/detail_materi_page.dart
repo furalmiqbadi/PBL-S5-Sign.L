@@ -70,12 +70,18 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
       children: [
         IconButton(
           icon: const Icon(
-            Icons.arrow_back,
+            Icons.arrow_back_rounded,
             color: AppColors.textPrimary,
           ),
           tooltip: 'Kembali',
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          style: IconButton.styleFrom(
+            backgroundColor: AppColors.fieldFill,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
           onPressed: () {
             if (Navigator.canPop(context)) Navigator.pop(context);
           },
@@ -120,15 +126,15 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
 
   Widget _buildModuleInfo() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -136,7 +142,7 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               color: AppColors.pinkSoft,
               borderRadius: BorderRadius.circular(9999),
@@ -144,6 +150,7 @@ class _DetailMateriPageState extends State<DetailMateriPage> {
             child: Text(
               'MODUL DASAR',
               style: AppTextStyles.labelXSmall.copyWith(
+                color: AppColors.primary,
                 letterSpacing: 0.5,
               ),
             ),

@@ -63,6 +63,22 @@ class AuthController extends ChangeNotifier {
       }
     });
     return ok;
+    return _run(() async {
+      final res = await _authService.login(email: email, password: password);
+      final user = res.user;
+      _isLoggedIn = true;
+      _currentEmail = user?.email ?? email.trim();
+
+      final metaName = user?.userMetadata?['full_name'] as String? ??
+          user?.userMetadata?['name'] as String?;
+      if (metaName != null && metaName.isNotEmpty) {
+        _currentName = metaName;
+      } else {
+        _currentName = _currentEmail.contains('@')
+            ? _currentEmail.split('@').first
+            : _currentEmail;
+      }
+    });
   }
 
   Future<bool> register({
@@ -72,6 +88,7 @@ class AuthController extends ChangeNotifier {
     String? username,
   }) async {
     final ok = await _run(() async {
+    return _run(() async {
       final res = await _authService.register(
         email: email,
         password: password,
@@ -96,6 +113,24 @@ class AuthController extends ChangeNotifier {
       }
     });
     return ok;
+      final user = res.user;
+
+      // Jika project Supabase mewajibkan konfirmasi email, session masih null.
+      _isLoggedIn = res.session != null;
+      _currentEmail = user?.email ?? email.trim();
+
+      final metaName = user?.userMetadata?['full_name'] as String? ??
+          user?.userMetadata?['name'] as String?;
+      if (metaName != null && metaName.isNotEmpty) {
+        _currentName = metaName;
+      } else if (name != null && name.trim().isNotEmpty) {
+        _currentName = name.trim();
+      } else {
+        _currentName = _currentEmail.contains('@')
+            ? _currentEmail.split('@').first
+            : _currentEmail;
+      }
+    });
   }
 
   Future<bool> sendResetLink(String email) async {

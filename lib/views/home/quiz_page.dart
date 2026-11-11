@@ -113,11 +113,11 @@ class _QuizPageState extends State<QuizPage> {
               margin: const EdgeInsets.only(top: 44),
               padding: const EdgeInsets.fromLTRB(20, 56, 20, 20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
@@ -191,10 +191,10 @@ class _QuizPageState extends State<QuizPage> {
                               },
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: AppColors.textPrimary,
-                                side: const BorderSide(
-                                    color: AppColors.border, width: 2),
+                                backgroundColor: AppColors.fieldFill,
+                                side: BorderSide.none,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
                               child: const Text(
@@ -227,10 +227,12 @@ class _QuizPageState extends State<QuizPage> {
                 gradient: lulus ? AppColors.brandGradient : null,
                 color: lulus ? null : AppColors.textSecondary,
                 border: Border.all(color: Colors.white, width: 5),
+                color: lulus ? AppColors.primary : AppColors.textSecondary,
+                border: Border.all(color: AppColors.surface, width: 5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 12,
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 20,
                     offset: const Offset(0, 4),
                   ),
                 ],
@@ -263,8 +265,7 @@ class _QuizPageState extends State<QuizPage> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withValues(alpha: 0.25)),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
@@ -305,17 +306,19 @@ class _QuizPageState extends State<QuizPage> {
             offset: const Offset(0, 3),
           ),
         ],
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           onTap: onTap,
           child: Center(
             child: Text(
               label,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -369,7 +372,7 @@ class _QuizPageState extends State<QuizPage> {
           IconButton(
             icon: const Icon(Icons.close, color: AppColors.textPrimary),
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 8),
@@ -413,9 +416,10 @@ class _QuizPageState extends State<QuizPage> {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.border,
+                color: AppColors.pinkSoft,
                 borderRadius: BorderRadius.circular(9999),
               ),
               child: const Text(
@@ -456,16 +460,18 @@ class _QuizPageState extends State<QuizPage> {
   Widget _buildTargetCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+            color: AppColors.primary.withValues(alpha: 0.28),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -479,6 +485,7 @@ class _QuizPageState extends State<QuizPage> {
                 'HURUF TARGET',
                 style: TextStyle(
                   color: AppColors.textSecondary,
+                  color: AppColors.textOnPrimary,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.8,
@@ -489,6 +496,7 @@ class _QuizPageState extends State<QuizPage> {
                 '"${_current.target}"',
                 style: const TextStyle(
                   color: AppColors.textPrimary,
+                  color: AppColors.textOnPrimary,
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.7,
@@ -505,6 +513,11 @@ class _QuizPageState extends State<QuizPage> {
             ),
             child: IconButton(
               icon: const Icon(Icons.volume_up, color: AppColors.primary),
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.volume_up, color: AppColors.textOnPrimary),
               onPressed: () {
                 // TODO: putar audio huruf
               },
@@ -550,19 +563,19 @@ class _QuizPageState extends State<QuizPage> {
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(width: 2, color: accent),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -571,6 +584,7 @@ class _QuizPageState extends State<QuizPage> {
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       color: AppColors.border,
+                      color: AppColors.fieldFill,
                       child: const Icon(Icons.pan_tool_alt_outlined,
                           color: AppColors.textSecondary, size: 40),
                     ),
@@ -584,6 +598,7 @@ class _QuizPageState extends State<QuizPage> {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: aktif ? accent : AppColors.border,
+                        color: aktif ? accent : AppColors.surface,
                         shape: BoxShape.circle,
                       ),
                       child: Text(
@@ -634,6 +649,7 @@ class _QuizPageState extends State<QuizPage> {
         color: (benar ? AppColors.success : AppColors.danger)
             .withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
@@ -678,8 +694,12 @@ class _QuizPageState extends State<QuizPage> {
           disabledBackgroundColor: AppColors.border,
           disabledForegroundColor: AppColors.textSecondary,
           elevation: 1,
+          foregroundColor: AppColors.textOnPrimary,
+          disabledBackgroundColor: AppColors.border,
+          disabledForegroundColor: AppColors.textSecondary,
+          elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
         child: Row(

@@ -9,10 +9,19 @@ import 'controllers/settings_controller.dart';
 import 'services/supabase_config.dart';
 import 'views/auth/auth_views.dart';
 import 'views/main_shell.dart';
+import 'services/auth_recovery.dart';
+import 'services/supabase_config.dart';
+import 'views/auth/auth_recovery_listener.dart';
+import 'views/auth/auth_views.dart';
+import 'views/main_shell.dart';
+import 'views/theme/app_colors.dart';
 import 'views/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Deteksi tautan reset kata sandi sebelum Supabase membersihkan parameter URL.
+  final openedFromRecovery = await AuthRecovery.detectInitialRecovery();
 
   // Inisialisasi Supabase bila konfigurasi Project URL & Anon Key sudah diisi
   if (SupabaseConfig.isConfigured) {
@@ -20,6 +29,7 @@ Future<void> main() async {
       await Supabase.initialize(
         url: SupabaseConfig.supabaseUrl,
         anonKey: SupabaseConfig.supabaseAnonKey,
+        publishableKey: SupabaseConfig.supabaseAnonKey,
       );
     } catch (e) {
       debugPrint('[Supabase] Gagal inisialisasi: $e');
@@ -27,16 +37,36 @@ Future<void> main() async {
   }
 
   runApp(const SignLApp());
+  runApp(SignLApp(openedFromRecovery: openedFromRecovery));
 }
 
 /// Root aplikasi Sign.L.
 ///
 /// Menyediakan controller aplikasi lewat [MultiProvider] dan menampilkan
+/// Menyediakan seluruh controller lewat [MultiProvider] dan menampilkan
 /// [LoginPage] sebagai titik awal (atau [MainShell] bila sudah login).
 class SignLApp extends StatelessWidget {
   final Widget? home;
 
-  const SignLApp({super.key, this.home});
+  /// `true` bila aplikasi dibuka dari tautan reset kata sandi.
+  final bool openedFromRecovery;
+
+  const SignLApp({
+    super.key,
+    this.home,
+    this.openedFromRecovery = false,
+  });
+
+  Widget _determineInitialHome() {
+    if (home != null) return home!;
+    if (openedFromRecovery) return const ResetPage();
+    try {
+      if (Supabase.instance.client.auth.currentSession != null) {
+        return const MainShell();
+      }
+    } catch (_) {}
+    return const LoginPage();
+  }
 
   Widget _determineInitialHome() {
     if (home != null) return home!;
@@ -53,19 +83,24 @@ class SignLApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),
-        ChangeNotifierProvider(create: (_) => ChatController()),
-        ChangeNotifierProvider(create: (_) => NotificationController()),
-        // ..load() membaca preferensi tersimpan saat app dibuka
+        ChangeNotifierProvider(create: (_) => ChatController()..loadRooms()),
+        ChangeNotifierProvider(
+          create: (_) => NotificationController()..load(),
+        ),
+        // `..load()` membaca preferensi tersimpan (mis. ukuran teks) saat app dibuka.
         ChangeNotifierProvider(create: (_) => SettingsController()..load()),
       ],
       child: MaterialApp(
-        debugShowCheckedModeBanner: false,
         title: 'Sign.L',
-
-        // Ukuran teks dari Pengaturan diterapkan ke seluruh aplikasi.
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        // Matikan efek "karet" (stretch overscroll) bawaan Android 12+.
+        scrollBehavior: const _NoStretchScrollBehavior(),
+        // Ukuran teks dari halaman Pengaturan diterapkan ke seluruh aplikasi.
         builder: (context, child) {
           final scale = context.select<SettingsController, double>(
-              (c) => c.settings.textSize.scale);
+            (c) => c.settings.textSize.scale,
+          );
           final base = MediaQuery.textScalerOf(context).scale(1);
           return MediaQuery(
             data: MediaQuery.of(context)
@@ -76,12 +111,34 @@ class SignLApp extends StatelessWidget {
 
         theme: AppTheme.light,
         home: _determineInitialHome(),
+        home: AuthRecoveryListener(
+          initiallyOpened: openedFromRecovery,
+          child: _determineInitialHome(),
+        ),
       ),
     );
   }
 }
 
-// Backward-compatible name for default Flutter widget test runner.
+/// Nama lama agar widget test bawaan Flutter tetap kompatibel.
 class MyApp extends SignLApp {
   const MyApp({super.key, super.home});
+}
+
+/// Perilaku scroll tanpa efek "karet" (stretch overscroll) di Android.
+class _NoStretchScrollBehavior extends MaterialScrollBehavior {
+  const _NoStretchScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return GlowingOverscrollIndicator(
+      axisDirection: details.direction,
+      color: AppColors.primary,
+      child: child,
+    );
+  }
 }

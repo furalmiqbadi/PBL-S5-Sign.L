@@ -73,6 +73,15 @@ class _KuisSummaryCard extends StatelessWidget {
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 2,
             offset: const Offset(0, 1),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.28),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -86,6 +95,11 @@ class _KuisSummaryCard extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.quiz_rounded, color: Colors.white),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.quiz_rounded, color: AppColors.textOnPrimary),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -96,6 +110,7 @@ class _KuisSummaryCard extends StatelessWidget {
                   'UJI PEMAHAMAN',
                   style: AppTextStyles.labelXSmall.copyWith(
                     color: AppColors.primary,
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.85),
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.5,
                   ),
@@ -106,6 +121,19 @@ class _KuisSummaryCard extends StatelessWidget {
                 Text(
                   '$tersedia dari $total ujian tersedia untukmu.',
                   style: AppTextStyles.bodySmall,
+                const SizedBox(height: 4),
+                Text(
+                  'Kuis & Evaluasi',
+                  style: AppTextStyles.titleLarge.copyWith(
+                    color: AppColors.textOnPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$tersedia dari $total ujian tersedia untukmu.',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.9),
+                  ),
                 ),
               ],
             ),
@@ -138,6 +166,10 @@ class _QuizBabCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: locked ? AppColors.surfaceMuted : Colors.white,
         borderRadius: BorderRadius.circular(12),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: locked ? AppColors.fieldFill : AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: locked
             ? null
             : [
@@ -145,6 +177,8 @@ class _QuizBabCard extends StatelessWidget {
                   color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 2,
                   offset: const Offset(0, 1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
                 ),
               ],
       ),
@@ -206,16 +240,19 @@ class _QuizBabCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             height: 44,
+            height: 48,
             child: ElevatedButton(
               onPressed: onStart,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
+                foregroundColor: AppColors.textOnPrimary,
                 disabledBackgroundColor: AppColors.border,
                 disabledForegroundColor: AppColors.textMuted,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
               child: Row(

@@ -2,14 +2,136 @@ import '../models/chat_model.dart';
 
 /// Service Layer untuk fitur Chat.
 ///
-/// Saat ini mengembalikan data dummy agar UI dapat dikembangkan lebih dulu.
-/// Nanti implementasi dapat diganti dengan query Cloud Firestore tanpa
-/// mengubah Controller maupun View.
+/// Saat ini memakai data dummy yang disimpan di memori agar percakapan yang
+/// dikirim pengguna tetap ada selama aplikasi berjalan. Implementasi dapat
+/// diganti dengan query Cloud Firestore tanpa mengubah Controller maupun View.
 class ChatService {
+  List<ChatRoom>? _roomsCache;
+  final Map<String, List<ChatMessage>> _messagesCache = {};
+
   /// Mengambil daftar ruang percakapan pengguna.
   Future<List<ChatRoom>> getChatRooms() async {
     await Future<void>.delayed(const Duration(milliseconds: 350));
+    _roomsCache ??= _seedRooms();
+    return List<ChatRoom>.from(_roomsCache!);
+  }
 
+  /// Mengambil daftar kontak untuk memulai percakapan baru.
+  Future<List<ChatContact>> getContacts() async {
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    return const [
+      ChatContact(
+        id: 'dina',
+        name: 'Dina Saftri',
+        avatarUrl: 'https://i.pravatar.cc/150?img=47',
+        isOnline: true,
+      ),
+      ChatContact(
+        id: 'rian',
+        name: 'Rian Pratama',
+        avatarUrl: 'https://i.pravatar.cc/150?img=12',
+        isOnline: true,
+      ),
+      ChatContact(
+        id: 'budi',
+        name: 'Budi Santoso',
+        avatarUrl: 'https://i.pravatar.cc/150?img=33',
+      ),
+      ChatContact(
+        id: 'siti',
+        name: 'Siti Rahma',
+        avatarUrl: 'https://i.pravatar.cc/150?img=45',
+      ),
+      ChatContact(
+        id: 'ayu',
+        name: 'Ayu Lestari',
+        avatarUrl: 'https://i.pravatar.cc/150?img=44',
+        isOnline: true,
+      ),
+      ChatContact(
+        id: 'fajar',
+        name: 'Fajar Nugroho',
+        avatarUrl: 'https://i.pravatar.cc/150?img=15',
+      ),
+    ];
+  }
+
+  /// Mengambil riwayat pesan pada sebuah ruang percakapan.
+  Future<List<ChatMessage>> getMessages(String roomId) async {
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    return List<ChatMessage>.from(
+      _messagesCache.putIfAbsent(roomId, () => _seedMessages(roomId)),
+    );
+  }
+
+  /// Mengirim pesan baru ke sebuah ruang percakapan.
+  Future<ChatMessage> sendMessage({
+    required String roomId,
+    required String text,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    final message = ChatMessage(
+      id: 'local-${DateTime.now().microsecondsSinceEpoch}',
+      roomId: roomId,
+      senderId: 'me',
+      text: text,
+      time: DateTime.now(),
+      isMe: true,
+    );
+    _messagesCache
+        .putIfAbsent(roomId, () => _seedMessages(roomId))
+        .add(message);
+    _updateRoomPreview(roomId, text);
+    return message;
+  }
+
+  /// Menandai seluruh pesan pada ruang sebagai telah dibaca.
+  Future<void> markRoomRead(String roomId) async {
+    _roomsCache = _roomsCache
+        ?.map(
+          (room) => room.id == roomId ? room.copyWith(unreadCount: 0) : room,
+        )
+        .toList();
+  }
+
+  /// Mengosongkan riwayat pesan pada sebuah ruang.
+  Future<void> clearMessages(String roomId) async {
+    _messagesCache[roomId] = [];
+  }
+
+  /// Membuat ruang percakapan baru untuk sebuah kontak.
+  Future<ChatRoom> createRoom(ChatContact contact) async {
+    _roomsCache ??= _seedRooms();
+    final room = ChatRoom(
+      id: contact.id,
+      name: contact.name,
+      avatarUrl: contact.avatarUrl,
+      lastMessage: '',
+      lastMessageTime: DateTime.now(),
+      isOnline: contact.isOnline,
+    );
+    _roomsCache!.insert(0, room);
+    _messagesCache[room.id] = [];
+    return room;
+  }
+
+  void _updateRoomPreview(String roomId, String text) {
+    final rooms = _roomsCache;
+    if (rooms == null) return;
+    final updated = rooms.map((room) {
+      if (room.id != roomId) return room;
+      return room.copyWith(
+        lastMessage: text,
+        lastMessageTime: DateTime.now(),
+        unreadCount: 0,
+        lastSenderName: 'Aku',
+      );
+    }).toList();
+    updated.sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
+    _roomsCache = updated;
+  }
+
+  List<ChatRoom> _seedRooms() {
     final now = DateTime.now();
     DateTime at(int hour, int minute) =>
         DateTime(now.year, now.month, now.day, hour, minute);
@@ -70,10 +192,7 @@ class ChatService {
     ];
   }
 
-  /// Mengambil riwayat pesan pada sebuah ruang percakapan.
-  Future<List<ChatMessage>> getMessages(String roomId) async {
-    await Future<void>.delayed(const Duration(milliseconds: 250));
-
+  List<ChatMessage> _seedMessages(String roomId) {
     final now = DateTime.now();
     DateTime at(int hour, int minute) =>
         DateTime(now.year, now.month, now.day, hour, minute);
@@ -145,21 +264,5 @@ class ChatService {
         time: at(9, 0),
       ),
     ];
-  }
-
-  /// Mengirim pesan baru ke sebuah ruang percakapan.
-  Future<ChatMessage> sendMessage({
-    required String roomId,
-    required String text,
-  }) async {
-    await Future<void>.delayed(const Duration(milliseconds: 150));
-    return ChatMessage(
-      id: 'local-${DateTime.now().microsecondsSinceEpoch}',
-      roomId: roomId,
-      senderId: 'me',
-      text: text,
-      time: DateTime.now(),
-      isMe: true,
-    );
   }
 }

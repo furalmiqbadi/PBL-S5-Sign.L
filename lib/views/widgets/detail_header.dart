@@ -27,17 +27,18 @@ class DetailHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  constraints: const BoxConstraints(minHeight: 40),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: AppColors.purpleSoft,
                     borderRadius: BorderRadius.circular(9999),
                   ),
                   child: Row(
                     children: [
                       SvgPicture.asset(
                         'assets/images/diamond_fix.svg',
-                        width: 12,
-                        height: 12,
+                        width: 14,
+                        height: 14,
                         colorFilter: const ColorFilter.mode(
                           AppColors.secondary,
                           BlendMode.srcIn,
@@ -47,7 +48,7 @@ class DetailHeader extends StatelessWidget {
                       Text(
                         '190 / 250',
                         style: AppTextStyles.labelXSmall.copyWith(
-                          color: AppColors.textSecondary,
+                          color: AppColors.textPrimary,
                           letterSpacing: 0.4,
                         ),
                       ),
@@ -56,13 +57,13 @@ class DetailHeader extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: 40,
+                  height: 40,
                   decoration: const BoxDecoration(
-                    color: AppColors.surfaceMuted,
+                    color: AppColors.pinkSoft,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.person, size: 16, color: AppColors.textSecondary),
+                  child: const Icon(Icons.person_rounded, size: 20, color: AppColors.primary),
                 ),
               ],
             ),
@@ -70,40 +71,37 @@ class DetailHeader extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
-            color: AppColors.surfaceMuted,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border.withValues(alpha: 0.20)),
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
+                constraints: const BoxConstraints(minHeight: 40),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.pinkSoft,
                   borderRadius: BorderRadius.circular(9999),
-                  border: Border.all(color: AppColors.border.withValues(alpha: 0.30)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 20,
-                      height: 20,
+                      width: 24,
+                      height: 24,
                       alignment: Alignment.center,
                       decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [AppColors.tertiary, AppColors.primary, AppColors.secondary],
-                        ),
+                        color: AppColors.primary,
                         shape: BoxShape.circle,
                       ),
                       child: Text(
@@ -127,12 +125,8 @@ class DetailHeader extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(9999),
-                  border: Border.all(color: AppColors.border.withValues(alpha: 0.20)),
-                ),
+                constraints: const BoxConstraints(minHeight: 40),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -151,7 +145,7 @@ class DetailHeader extends StatelessWidget {
                         borderRadius: BorderRadius.circular(9999),
                         child: const LinearProgressIndicator(
                           value: 0.42,
-                          backgroundColor: AppColors.border,
+                          backgroundColor: AppColors.pinkSoft,
                           valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                         ),
                       ),
