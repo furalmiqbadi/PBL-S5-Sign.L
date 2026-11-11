@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../admin/admin_panel_page.dart';
+import '../../services/supabase_config.dart';
 import '../main_shell.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -123,12 +124,17 @@ class ForgotPage extends StatefulWidget { const ForgotPage({super.key}); @overri
     final emailText = email.text.trim();
     final passText = password.text.trim();
 
+    // Jika Supabase sudah aktif di runtime, lakukan validasi input wajib terisi
+    if (SupabaseConfig.isInitialized && (emailText.isEmpty || passText.isEmpty)) {
     if (emailText.isEmpty || passText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Email dan kata sandi wajib diisi.')),
       );
       return;
     }
+
+    final targetEmail = emailText.isEmpty ? 'budi@gmail.com' : emailText;
+    final targetPass = passText.isEmpty ? '123456' : passText;
 
     final ok = await c.login(email: emailText, password: passText);
     if (!mounted) return;
@@ -240,11 +246,14 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> submit() async {
     final c = context.read<AuthController>();
     final nameText = name.text.trim();
+    final userText = username.text.trim();
     final userText = username.text.trim().toLowerCase();
     final emailText = email.text.trim();
     final passText = password.text.trim();
     final confirmText = confirmation.text.trim();
 
+    if (nameText.isEmpty) {
+      _message('Nama lengkap wajib diisi.');
     if (nameText.length < 3) {
       _message('Nama lengkap minimal 3 karakter.');
       return;
@@ -269,6 +278,8 @@ class _RegisterPageState extends State<RegisterPage> {
       _message('Kata sandi wajib diisi.');
       return;
     }
+    if (passText.length < 6) {
+      _message('Kata sandi minimal 6 karakter.');
     if (passText.length < 8) {
       _message('Kata sandi minimal 8 karakter.');
       return;
@@ -290,6 +301,10 @@ class _RegisterPageState extends State<RegisterPage> {
     );
     if (!mounted) return;
 
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pendaftaran berhasil!')),
+      );
     if (!ok) {
       if (c.errorMessage != null) _message(c.errorMessage!);
       return;

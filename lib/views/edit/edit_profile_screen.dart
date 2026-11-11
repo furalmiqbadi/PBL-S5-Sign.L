@@ -210,6 +210,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ListTile(
                   leading: const CircleAvatar(
                     backgroundColor: AppColors.pinkSoft,
+                    child: Icon(Icons.delete_outline_rounded, color: Colors.red),
                     child: Icon(Icons.delete_outline_rounded, color: AppColors.danger),
                   ),
                   title: const Text('Hapus Foto Profil', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.danger)),
@@ -599,6 +600,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                               decoration: BoxDecoration(
+                                color: AppColors.background,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.border),
                                 color: AppColors.fieldFill,
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -632,6 +636,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           decoration: BoxDecoration(
                             color: AppColors.purpleSoft,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.border),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Row(
@@ -690,6 +696,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             return Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? (badge['color'] as Color)
+                                      : AppColors.border,
+                                  width: isSelected ? 1.5 : 1,
+                                ),
                                 color: AppColors.surface,
                                 borderRadius: BorderRadius.circular(24),
                                 border: isSelected
@@ -745,6 +759,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                   decoration: BoxDecoration(
                                                     color: isSelected
                                                         ? (badge['color'] as Color).withValues(alpha: 0.15)
+                                                        : AppColors.surfaceMuted,
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Text(
+                                                    isSelected
+                                                        ? '✓ Terpilih'
+                                                        : (isUnlocked ? 'Tersedia untuk Dipilih' : '🔒 Belum Terbuka'),
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: isSelected
+                                                          ? (badge['color'] as Color)
+                                                          : AppColors.textSecondary,
+                                                    ),
                                                         : AppColors.fieldFill,
                                                     borderRadius: BorderRadius.circular(8),
                                                   ),
@@ -912,6 +940,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : AppColors.surfaceMuted,
           color: isSelected ? AppColors.primary : AppColors.fieldFill,
           borderRadius: BorderRadius.circular(20),
         ),
@@ -920,6 +949,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
+            color: isSelected ? Colors.white : AppColors.textPrimary,
             color: isSelected ? AppColors.textOnPrimary : AppColors.textPrimary,
           ),
         ),
@@ -1007,6 +1037,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
+                  gradient: AppColors.brandGradient,
                   color: AppColors.pinkSoft,
                   boxShadow: [
                     BoxShadow(
@@ -1033,6 +1064,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 right: 0,
                 child: InkWell(
                   onTap: _showChangePhotoModal,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt_rounded,
+                      color: Colors.white,
+                      size: 16,
                   customBorder: const CircleBorder(),
                   child: Padding(
                     padding: const EdgeInsets.all(10),
@@ -1178,6 +1220,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: AppColors.pinkSoft,
+                  borderRadius: BorderRadius.circular(8),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.military_tech_rounded, color: AppColors.primary, size: 20),
@@ -1228,6 +1271,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               padding: const EdgeInsets.all(16),
               alignment: Alignment.center,
               decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(12),
                 color: AppColors.fieldFill,
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -1257,6 +1302,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: AppColors.pinkSoft,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.pinkSoft),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Row(
@@ -1303,6 +1350,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               constraints: const BoxConstraints(minHeight: 48),
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.6),
+                  width: 1.2,
+                ),
                 color: AppColors.fieldFill,
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -1475,6 +1528,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
                 color: AppColors.fieldFill,
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -1527,6 +1583,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
+              _buildMotivationChip('Komunikasi Keluarga', AppColors.primary, Colors.white),
+              _buildMotivationChip('Pekerjaan', AppColors.purpleSoft, AppColors.secondary),
+              _buildMotivationChip('Teman Tuli', AppColors.orangeSoft, AppColors.tertiary),
+              _buildMotivationChip('Advokasi Sosial', AppColors.background, AppColors.textPrimary),
+              _buildMotivationChip('Hobi & Edukasi', AppColors.background, AppColors.textPrimary),
               _buildMotivationChip('Komunikasi Keluarga'),
               _buildMotivationChip('Pekerjaan'),
               _buildMotivationChip('Teman Tuli'),
@@ -1557,6 +1618,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
+          color: isSelected ? bgColor : AppColors.background,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? Colors.transparent : AppColors.border,
+          ),
           color: isSelected ? AppColors.primary : AppColors.fieldFill,
           borderRadius: BorderRadius.circular(20),
         ),
@@ -1565,6 +1631,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           children: [
             Icon(
               isSelected ? Icons.check_rounded : Icons.add_rounded,
+              size: 14,
+              color: isSelected ? textColor : AppColors.textSecondary,
               size: 16,
               color: isSelected ? AppColors.textOnPrimary : AppColors.textSecondary,
             ),
@@ -1574,6 +1642,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
+                color: isSelected ? textColor : AppColors.textSecondary,
                 color: isSelected ? AppColors.textOnPrimary : AppColors.textSecondary,
               ),
             ),
@@ -1594,6 +1663,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: AppColors.purpleSoft,
+                  borderRadius: BorderRadius.circular(8),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.workspace_premium_outlined, color: AppColors.secondary, size: 20),
@@ -1643,6 +1713,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.pinkSoft,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.pinkSoft),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -1667,6 +1739,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
+                                color: AppColors.secondary,
+                                borderRadius: BorderRadius.circular(6),
                                 color: AppColors.primary,
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -1714,6 +1788,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     value: 0.65,
                     minHeight: 7,
                     color: AppColors.primary,
+                    backgroundColor: AppColors.purpleSoft,
                     backgroundColor: AppColors.surface,
                   ),
                 ),
@@ -1756,6 +1831,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             iconColor: AppColors.textMuted,
             title: 'Mahir',
             subtitle: 'Aktif 1 - 2 Tahun & kontributor latihan',
+            badgeText: '🔒 Belum Terbuka',
+            badgeBgColor: AppColors.surfaceMuted,
             badgeText: 'Belum Terbuka',
             badgeIcon: Icons.lock_outline_rounded,
             badgeBgColor: AppColors.fieldFill,
@@ -1770,6 +1847,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             iconColor: AppColors.textMuted,
             title: 'Master Signer',
             subtitle: 'Aktif 3+ Tahun & mentor duta aksesibilitas',
+            badgeText: '🔒 Belum Terbuka',
+            badgeBgColor: AppColors.surfaceMuted,
             badgeText: 'Belum Terbuka',
             badgeIcon: Icons.lock_outline_rounded,
             badgeBgColor: AppColors.fieldFill,
@@ -1851,6 +1930,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
+                                color: AppColors.secondary,
+                                borderRadius: BorderRadius.circular(6),
                                 color: AppColors.primary,
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -1904,6 +1985,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   if (actionLink != null) ...[
                     InkWell(
                       onTap: onActionTap,
+                      child: Text(
+                        actionLink,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.secondary,
+                          decoration: TextDecoration.underline,
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
                         constraints: const BoxConstraints(minHeight: 48),
@@ -1935,6 +2023,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -1996,6 +2087,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     int? maxLength,
     bool showCounter = false,
   }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: TextField(
+        controller: controller,
+        maxLines: maxLines,
+        maxLength: maxLength,
+        buildCounter: showCounter
+            ? null
+            : (context, {required currentLength, required isFocused, maxLength}) => null,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        decoration: InputDecoration(
+          filled: false,
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          prefixIcon: Icon(prefixIcon, size: 18, color: AppColors.textSecondary),
+          suffixIcon: suffixIcon,
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
+          ),
+        ),
     return TextField(
       controller: controller,
       maxLines: maxLines,
