@@ -17,6 +17,8 @@ void main() {
     await tester.pumpWidget(const SignLApp());
     expect(find.text('Masuk  →'), findsOneWidget);
     await tester.tap(find.text('Masuk  →'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.pumpAndSettle();
   }
 
