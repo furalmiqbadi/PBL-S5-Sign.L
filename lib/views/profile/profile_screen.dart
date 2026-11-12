@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../controllers/auth_controller.dart';
+import '../../services/avatar_helper.dart';
 import '../edit/edit_profile_screen.dart';
 import '../theme/app_colors.dart';
 import '../widgets/share_sheet.dart';
@@ -162,6 +165,9 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildProfileHeader(BuildContext context) {
+    final auth = context.watch<AuthController>();
+    final avatarUrl = auth.currentAvatarUrl;
+
     return Column(
       children: [
         Stack(
@@ -186,9 +192,9 @@ class ProfileScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: AppColors.surface,
                 ),
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   radius: 40,
-                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=47'),
+                  backgroundImage: getAvatarImageProvider(avatarUrl),
                 ),
               ),
             ),
@@ -215,9 +221,9 @@ class ProfileScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text(
-              'Sarah Chen',
-              style: TextStyle(
+            Text(
+              auth.currentName,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
                 color: AppColors.textPrimary,
@@ -269,9 +275,9 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        const Text(
-          '@sarah.creates',
-          style: TextStyle(
+        Text(
+          '@${auth.currentUsername.replaceFirst('@', '')}',
+          style: const TextStyle(
             fontSize: 13,
             color: AppColors.textSecondary,
           ),

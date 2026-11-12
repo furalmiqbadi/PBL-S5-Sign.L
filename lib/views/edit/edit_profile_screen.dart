@@ -1,8 +1,13 @@
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
+import '../../controllers/auth_controller.dart';
+import '../../services/avatar_helper.dart';
 import '../../services/image_compress_service.dart';
 import '../theme/app_colors.dart';
 
@@ -24,10 +29,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   // Foto profil yang dipilih (sudah dikompres agar ukurannya kecil).
   final ImagePicker _picker = ImagePicker();
   String? _avatarPath;
+  Uint8List? _avatarBytes;
+  String _avatarExt = 'jpg';
+  bool _isAvatarChanged = false;
 
   ImageProvider<Object> get _avatarImage {
-    if (_avatarPath != null) return FileImage(File(_avatarPath!));
-    return const NetworkImage('https://i.pravatar.cc/150?img=47');
+    return getAvatarImageProvider(_avatarPath, bytes: _avatarBytes);
   }
 
   // Form Controllers
@@ -122,13 +129,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: 'Sarah Chen');
-    _usernameController = TextEditingController(text: '@sarah.creates');
-    _bioController = TextEditingController(
-      text: 'Pelajar Bahasa Isyarat BISINDO Pemula • Passionate in Accessibility',
+    final auth = context.read<AuthController>();
+    _avatarPath = auth.currentAvatarUrl;
+    _nameController = TextEditingController(text: auth.currentName);
+    _usernameController = TextEditingController(text: '@${auth.currentUsername.replaceFirst('@', '')}');
+    _bioController = TextEditingController(text: auth.currentBio);
+    _emailController = TextEditingController(text: auth.currentEmail);
+    _phoneController = TextEditingController(
+      text: auth.currentPhone.isNotEmpty ? auth.currentPhone : '+62 812-3456-7890',
     );
-    _emailController = TextEditingController(text: 'sarah.chen@example.com');
-    _phoneController = TextEditingController(text: '+62 812-3456-7890');
 
     _bioController.addListener(() {
       setState(() {});
@@ -145,22 +154,65 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  void _saveProfile() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle_rounded, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Perubahan profil berhasil disimpan!'),
-          ],
+  Future<void> _saveProfile() async {
+    final auth = context.read<AuthController>();
+    final newName = _nameController.text.trim();
+    final newUsername = _usernameController.text.trim().replaceFirst('@', '');
+    final newBio = _bioController.text.trim();
+    final newPhone = _phoneController.text.trim();
+
+    try {
+      String? newAvatarUrl;
+      if (_isAvatarChanged) {
+        // Unggah lewat bytes agar aman di Flutter Web, Android, dan Desktop.
+        // (dart:io File tidak didukung di Web sehingga upload File akan gagal.)
+        if (_avatarBytes != null && _avatarBytes!.isNotEmpty) {
+          newAvatarUrl = await auth.uploadAvatarBytes(
+            _avatarBytes!,
+            fileExt: _avatarExt,
+          );
+          if (newAvatarUrl == null || newAvatarUrl.isEmpty) {
+            throw Exception('Gagal mengunggah foto profil. Silakan coba lagi.');
+          }
+        } else if (_avatarPath != null && _avatarPath!.trim().isNotEmpty) {
+          newAvatarUrl = _avatarPath!.trim();
+        } else {
+          newAvatarUrl = '';
+        }
+      }
+
+      await auth.updateProfile(
+        name: newName,
+        username: newUsername,
+        bio: newBio,
+        phone: newPhone,
+        avatarUrl: _isAvatarChanged ? newAvatarUrl : null,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.check_circle_rounded, color: Colors.white),
+              SizedBox(width: 8),
+              Text('Perubahan profil & foto berhasil disimpan ke Supabase!'),
+            ],
+          ),
+          backgroundColor: AppColors.primary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-    Navigator.pop(context);
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menyimpan profil: $e'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    }
   }
 
   /// Memilih foto profil lalu mengompresnya agar file tersimpan kecil
@@ -174,14 +226,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         imageQuality: 70,
       );
       if (file == null || !mounted) return;
-      // Simpan sebagai WebP agar file benar-benar kecil.
+      // Baca bytes langsung dari hasil picker (aman untuk Web & mobile).
+      Uint8List bytes = await file.readAsBytes();
+      // Simpan sebagai WebP agar file benar-benar kecil (di web dilewati).
       final webpPath = await ImageCompressService.toWebP(
         file.path,
         maxWidth: 512,
         quality: 70,
       );
+      final isWebp = !kIsWeb && webpPath != file.path;
+      if (isWebp) {
+        try {
+          final compressed = File(webpPath);
+          if (compressed.existsSync()) {
+            bytes = await compressed.readAsBytes();
+          }
+        } catch (_) {}
+      }
       if (!mounted) return;
-      setState(() => _avatarPath = webpPath);
+      setState(() {
+        _avatarPath = webpPath;
+        _avatarBytes = bytes;
+        _avatarExt = isWebp
+            ? 'webp'
+            : (file.name.contains('.')
+                ? file.name.split('.').last.toLowerCase()
+                : 'jpg');
+        _isAvatarChanged = true;
+      });
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -252,7 +324,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   title: const Text('Hapus Foto Profil', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.danger)),
                   onTap: () {
                     Navigator.pop(ctx);
-                    setState(() => _avatarPath = null);
+                    setState(() {
+                      _avatarPath = '';
+                      _avatarBytes = null;
+                      _isAvatarChanged = true;
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Foto profil dihapus')),
                     );

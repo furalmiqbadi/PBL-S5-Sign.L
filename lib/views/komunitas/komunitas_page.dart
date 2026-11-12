@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import '../chat/chat_list_view.dart';
+import '../../services/community_service.dart';
 import '../../services/image_compress_service.dart';
 import '../../services/share_service.dart';
 import '../theme/app_colors.dart';
@@ -172,6 +173,7 @@ class KomunitasPage extends StatefulWidget {
 }
 
 class _KomunitasPageState extends State<KomunitasPage> {
+  final CommunityService _communityService = CommunityService();
   String _selectedCategory = 'Semua';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
@@ -249,6 +251,8 @@ class _KomunitasPageState extends State<KomunitasPage> {
       ),
     ];
 
+    _loadPostsFromSupabase();
+
     // Postingan hasil "Bagikan" dari halaman kuis/pencapaian.
     final shared = ShareService.takeCommunityPost();
     if (shared != null) {
@@ -269,6 +273,49 @@ class _KomunitasPageState extends State<KomunitasPage> {
           commentList: [],
         ),
       );
+    }
+  }
+
+  Future<void> _loadPostsFromSupabase() async {
+    try {
+      final rows = await _communityService.fetchPosts();
+      if (mounted && rows.isNotEmpty) {
+        final List<PostModel> fetchedPosts = [];
+        for (final r in rows) {
+          final profile = r['profiles'] as Map<String, dynamic>?;
+          final fullName = (profile?['full_name'] as String?)?.trim() ?? '';
+          final username = (profile?['username'] as String?)?.trim() ?? '';
+          final authorName = fullName.isNotEmpty
+              ? fullName
+              : (username.isNotEmpty ? username : 'Teman Isyarat');
+          final mediaUrl = r['media_url'] as String?;
+
+          fetchedPosts.add(PostModel(
+            id: r['id'].toString(),
+            userName: authorName,
+            userRole: 'Anggota Komunitas',
+            roleColor: AppColors.purpleSoft,
+            roleTextColor: AppColors.secondary,
+            timeText: 'Baru saja',
+            categoryText: 'Tanya Isyarat',
+            content: (r['konten'] as String?) ?? '',
+            mediaPath: mediaUrl,
+            mediaIsVideo: mediaUrl != null &&
+                (mediaUrl.endsWith('.mp4') || mediaUrl.endsWith('.mov')),
+            likes: 0,
+            likeLabel: 'Suka',
+            comments: 0,
+            commentList: [],
+          ));
+        }
+
+        setState(() {
+          // Sisipkan postingan Supabase di atas postingan bawaan
+          _posts.insertAll(0, fetchedPosts);
+        });
+      }
+    } catch (e) {
+      debugPrint('[KomunitasPage] Gagal load posts: $e');
     }
   }
 
@@ -520,10 +567,17 @@ class _KomunitasPageState extends State<KomunitasPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed: () {
+                        onPressed: () async {
                           final text = textController.text.trim();
                           // DIUBAH: boleh posting kalau ada teks ATAU media
                           if (text.isEmpty && pickedPath == null) return;
+
+                          // Kirim ke Supabase di background
+                          _communityService.createPost(
+                            content: text,
+                            mediaUrl: pickedPath,
+                          );
+
                           setState(() {
                             _posts.insert(
                               0,

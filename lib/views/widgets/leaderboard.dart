@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../services/leaderboard_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
@@ -64,10 +65,40 @@ class LeaderboardScreen extends StatefulWidget {
 }
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
+  final LeaderboardService _service = LeaderboardService();
   _Period _period = _Period.week;
+  List<_Entry> _currentEntries = _entries;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLeaderboard();
+  }
+
+  Future<void> _loadLeaderboard() async {
+    try {
+      final users = await _service.getLeaderboard(limit: 20);
+      if (mounted && users.isNotEmpty) {
+        setState(() {
+          _currentEntries = users.map((u) {
+            final xp = u.xp > 0 ? u.xp : (u.points > 0 ? u.points : 50);
+            return _Entry(
+              u.name,
+              {
+                _Period.week: xp,
+                _Period.month: xp * 3,
+                _Period.all: xp * 10,
+              },
+              isMe: u.isMe,
+            );
+          }).toList();
+        });
+      }
+    } catch (_) {}
+  }
 
   List<_Entry> get _sorted {
-    final list = [..._entries];
+    final list = [..._currentEntries];
     list.sort((a, b) => (b.xp[_period] ?? 0).compareTo(a.xp[_period] ?? 0));
     return list;
   }

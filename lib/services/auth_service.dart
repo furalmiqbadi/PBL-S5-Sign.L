@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -90,6 +94,125 @@ class AuthService {
       throw Exception('Login gagal: sesi tidak terbentuk.');
     }
     return response;
+  }
+
+  /// Mengambil data lengkap profil akun dari tabel `profiles`.
+  Future<Map<String, dynamic>?> fetchProfile() async {
+    final client = _safeClient;
+    final user = client?.auth.currentUser;
+    if (client == null || user == null) return null;
+    try {
+      final row = await client
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+      return row;
+    } catch (e) {
+      debugPrint('[Auth] Gagal membaca profile: $e');
+      return null;
+    }
+  }
+
+  /// Mengunggah foto profil pengguna berupa bytes (kompatibel Web & Mobile)
+  /// ke Supabase Storage (bucket 'avatars') atau fallback ke Data URI Base64.
+  Future<String?> uploadAvatarBytes(
+    Uint8List bytes, {
+    String fileExt = 'webp',
+  }) async {
+    final client = _safeClient;
+    final user = client?.auth.currentUser;
+
+    final ext = fileExt.replaceAll('.', '').toLowerCase();
+    final fileName = '${user?.id ?? "user"}_${DateTime.now().millisecondsSinceEpoch}.$ext';
+    final mimeType = ext == 'webp'
+        ? 'image/webp'
+        : (ext == 'png' ? 'image/png' : 'image/jpeg');
+
+    // 1. Coba upload ke Supabase Storage bucket 'avatars'
+    if (client != null && user != null) {
+      try {
+        await client.storage.from('avatars').uploadBinary(
+              fileName,
+              bytes,
+              fileOptions: FileOptions(
+                upsert: true,
+                contentType: mimeType,
+              ),
+            );
+
+        final publicUrl = client.storage.from('avatars').getPublicUrl(fileName);
+        if (publicUrl.isNotEmpty) {
+          return publicUrl;
+        }
+      } catch (e) {
+        debugPrint('[AuthService] Supabase Storage upload gagal: $e. Fallback ke Data URI...');
+      }
+    }
+
+    // 2. Fallback: simpan sebagai data URI Base64 yang langsung tersimpan di database profiles.avatar_url
+    try {
+      final base64String = base64Encode(bytes);
+      return 'data:$mimeType;base64,$base64String';
+    } catch (e) {
+      debugPrint('[AuthService] Gagal convert base64: $e');
+      return null;
+    }
+  }
+
+  /// Wrapper untuk uploadAvatar jika dipanggil dengan File (untuk kompatibilitas non-web).
+  Future<String?> uploadAvatar(dynamic file) async {
+    if (file is Uint8List) {
+      return uploadAvatarBytes(file);
+    }
+    if (!kIsWeb && file is File) {
+      final bytes = await file.readAsBytes();
+      final ext = file.path.split('.').last;
+      return uploadAvatarBytes(bytes, fileExt: ext);
+    }
+    return null;
+  }
+
+  /// Memperbarui data profil pengguna di tabel `profiles`.
+  Future<void> updateProfile({
+    String? fullName,
+    String? username,
+    String? bio,
+    String? phone,
+    String? avatarUrl,
+  }) async {
+    final client = _safeClient;
+    final user = client?.auth.currentUser;
+    if (client == null || user == null) return;
+
+    final updates = <String, dynamic>{
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    if (fullName != null) updates['full_name'] = fullName.trim();
+    if (username != null) updates['username'] = username.trim();
+    if (bio != null) updates['bio'] = bio.trim();
+    if (phone != null) updates['phone'] = phone.trim();
+    if (avatarUrl != null) updates['avatar_url'] = avatarUrl.trim();
+
+    try {
+      final existing = await client
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      if (existing == null) {
+        updates['id'] = user.id;
+        updates['username'] = username ?? (user.email?.split('@').first ?? 'user');
+        updates['full_name'] = fullName ?? '';
+        await client.from('profiles').insert(updates);
+      } else {
+        await client.from('profiles').update(updates).eq('id', user.id);
+      }
+    } catch (e) {
+      debugPrint('[Auth] Gagal memperbarui profile: $e');
+      rethrow;
+    }
   }
 
   /// Mengambil role akun dari tabel `profiles` (`user` atau `admin`).

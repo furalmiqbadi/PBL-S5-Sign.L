@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/settings_controller.dart';
 import '../../models/app_settings.dart';
+import '../../services/avatar_helper.dart';
 import '../auth/auth_views.dart';
 import '../edit/edit_profile_screen.dart';
 import '../theme/app_colors.dart';
@@ -476,6 +477,9 @@ class _ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthController>();
+    final avatarUrl = auth.currentAvatarUrl;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(),
@@ -492,43 +496,32 @@ class _ProfileCard extends StatelessWidget {
               padding: const EdgeInsets.all(2),
               decoration: const BoxDecoration(
                   shape: BoxShape.circle, color: AppColors.surface),
-              child: ClipOval(
-                child: Image.network(
-                  'https://i.pravatar.cc/150?img=47',
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.cover,
-                  // Cadangan bila offline.
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 48,
-                    height: 48,
-                    color: AppColors.border,
-                    child: const Icon(Icons.person, color: AppColors.textSecondary),
-                  ),
-                ),
+              child: CircleAvatar(
+                radius: 24,
+                backgroundImage: getAvatarImageProvider(avatarUrl),
               ),
             ),
           ),
           const SizedBox(width: 12),
           // Nama + level (Expanded agar tombol di kanan tidak overflow)
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Sarah Chen',
+                  auth.currentName,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textPrimary,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Level 8 Signer',
+                  'Level ${auth.level} Signer',
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 11, color: AppColors.textSecondary),
                 ),
               ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../services/avatar_helper.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
@@ -59,14 +60,10 @@ class UserAvatar extends StatelessWidget {
                 child: isGroup
                   ? _groupPlaceholder()
                   : (imageUrl != null && imageUrl!.isNotEmpty
-                      ? Image.network(
-                          imageUrl!,
+                      ? Image(
+                          image: getAvatarImageProvider(imageUrl),
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => _initialPlaceholder(),
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-                            return _initialPlaceholder();
-                          },
                         )
                       : _initialPlaceholder()),
               ),

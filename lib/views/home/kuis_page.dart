@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../models/bab_model.dart';
+import '../../services/materi_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/final_exam_card.dart';
@@ -12,15 +13,41 @@ import 'quiz_page.dart';
 ///
 /// Tiap kartu membuka [QuizPage] (layar soal). Bab yang masih terkunci
 /// ditampilkan redup dan tombolnya dinonaktifkan.
-class KuisPage extends StatelessWidget {
+class KuisPage extends StatefulWidget {
   const KuisPage({super.key});
+
+  @override
+  State<KuisPage> createState() => _KuisPageState();
+}
+
+class _KuisPageState extends State<KuisPage> {
+  final MateriService _service = MateriService();
+  List<Bab> _babList = dummyBabList;
+  bool _isLoading = false;
 
   /// Jumlah soal tiap ujian bab.
   static const int _jumlahSoal = 10;
 
   @override
+  void initState() {
+    super.initState();
+    _loadBabList();
+  }
+
+  Future<void> _loadBabList() async {
+    setState(() => _isLoading = true);
+    try {
+      final list = await _service.getBabList();
+      if (mounted && list.isNotEmpty) {
+        setState(() => _babList = list);
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final babList = dummyBabList;
+    final babList = _babList;
     final tersedia = babList.where((b) => !b.isLocked).length;
 
     return ListView(

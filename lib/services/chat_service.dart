@@ -1,24 +1,134 @@
+import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/chat_model.dart';
 
-/// Service Layer untuk fitur Chat.
-///
-/// Saat ini memakai data dummy yang disimpan di memori agar percakapan yang
-/// dikirim pengguna tetap ada selama aplikasi berjalan. Implementasi dapat
-/// diganti dengan query Cloud Firestore tanpa mengubah Controller maupun View.
+/// Service Layer untuk fitur Chat yang terhubung ke Supabase Realtime & Database.
 class ChatService {
+  final SupabaseClient? _customClient;
   List<ChatRoom>? _roomsCache;
   final Map<String, List<ChatMessage>> _messagesCache = {};
 
-  /// Mengambil daftar ruang percakapan pengguna.
+  ChatService({SupabaseClient? client}) : _customClient = client;
+
+  SupabaseClient? get _safeClient {
+    if (_customClient != null) return _customClient;
+    try {
+      return Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Mengambil daftar ruang percakapan pengguna dari Supabase.
   Future<List<ChatRoom>> getChatRooms() async {
-    await Future<void>.delayed(const Duration(milliseconds: 350));
+    final client = _safeClient;
+    final userId = client?.auth.currentUser?.id;
+
+    if (client != null && userId != null) {
+      try {
+        final members = await client
+            .from('chat_room_members')
+            .select('room_id, chat_rooms(*)')
+            .eq('user_id', userId);
+
+        if (members.isNotEmpty) {
+          final List<ChatRoom> rooms = [];
+          for (final m in members) {
+            final r = m['chat_rooms'] as Map<String, dynamic>?;
+            if (r == null) continue;
+
+            final roomId = r['id'].toString();
+            final isGroup = (r['is_group'] as bool?) ?? false;
+            final name = (r['name'] as String?) ?? (isGroup ? 'Grup Isyarat' : 'Teman Belajar');
+            final avatarUrl = r['avatar_url'] as String?;
+            final lastMsgAt = r['last_message_at'] is String
+                ? DateTime.tryParse(r['last_message_at']) ?? DateTime.now()
+                : DateTime.now();
+
+            // Ambil pesan terakhir untuk preview
+            String lastMessage = '';
+            try {
+              final lastMsgRow = await client
+                  .from('chat_messages')
+                  .select('body')
+                  .eq('room_id', roomId)
+                  .order('created_at', ascending: false)
+                  .limit(1)
+                  .maybeSingle();
+              if (lastMsgRow != null && lastMsgRow['body'] is String) {
+                lastMessage = lastMsgRow['body'];
+              }
+            } catch (_) {}
+
+            rooms.add(ChatRoom(
+              id: roomId,
+              name: name,
+              avatarUrl: avatarUrl,
+              lastMessage: lastMessage.isNotEmpty ? lastMessage : 'Mulai obrolan...',
+              lastMessageTime: lastMsgAt,
+              isGroup: isGroup,
+              isOnline: true,
+            ));
+          }
+
+          if (rooms.isNotEmpty) {
+            _roomsCache = rooms;
+            return List<ChatRoom>.from(rooms);
+          }
+        }
+      } catch (e) {
+        debugPrint('[ChatService] Gagal fetch rooms: $e');
+      }
+    }
+
     _roomsCache ??= _seedRooms();
     return List<ChatRoom>.from(_roomsCache!);
   }
 
-  /// Mengambil daftar kontak untuk memulai percakapan baru.
+  /// Mengambil daftar kontak untuk memulai percakapan baru dari tabel `profiles`.
   Future<List<ChatContact>> getContacts() async {
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    final client = _safeClient;
+    final userId = client?.auth.currentUser?.id;
+
+    if (client != null) {
+      try {
+        var query = client
+            .from('profiles')
+            .select('id, full_name, username, avatar_url, last_seen_at');
+        if (userId != null) {
+          query = query.neq('id', userId);
+        }
+        final rows = await query.limit(20);
+
+        if (rows.isNotEmpty) {
+          return rows.map((r) {
+            final fullName = (r['full_name'] as String?)?.trim() ?? '';
+            final username = (r['username'] as String?)?.trim() ?? '';
+            final name = fullName.isNotEmpty
+                ? fullName
+                : (username.isNotEmpty ? username : 'Teman Isyarat');
+
+            bool isOnline = false;
+            if (r['last_seen_at'] is String) {
+              final lastSeen = DateTime.tryParse(r['last_seen_at']);
+              if (lastSeen != null) {
+                isOnline = DateTime.now().difference(lastSeen).inMinutes < 15;
+              }
+            }
+
+            return ChatContact(
+              id: r['id'].toString(),
+              name: name,
+              avatarUrl: r['avatar_url'] as String?,
+              isOnline: isOnline,
+            );
+          }).toList();
+        }
+      } catch (e) {
+        debugPrint('[ChatService] Gagal fetch contacts: $e');
+      }
+    }
+
     return const [
       ChatContact(
         id: 'dina',
@@ -58,7 +168,43 @@ class ChatService {
 
   /// Mengambil riwayat pesan pada sebuah ruang percakapan.
   Future<List<ChatMessage>> getMessages(String roomId) async {
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    final client = _safeClient;
+    final userId = client?.auth.currentUser?.id;
+
+    if (client != null && roomId.contains('-')) {
+      try {
+        final rows = await client
+            .from('chat_messages')
+            .select('*')
+            .eq('room_id', roomId)
+            .order('created_at', ascending: true);
+
+        if (rows.isNotEmpty) {
+          final list = rows.map((r) {
+            final senderId = (r['sender_id'] ?? '').toString();
+            final createdAt = r['created_at'] is String
+                ? DateTime.tryParse(r['created_at']) ?? DateTime.now()
+                : DateTime.now();
+
+            return ChatMessage(
+              id: (r['id'] ?? '').toString(),
+              roomId: roomId,
+              senderId: senderId,
+              text: (r['body'] as String?) ?? '',
+              time: createdAt,
+              isMe: senderId == userId,
+              isRead: true,
+            );
+          }).toList();
+
+          _messagesCache[roomId] = list;
+          return list;
+        }
+      } catch (e) {
+        debugPrint('[ChatService] Gagal fetch messages: $e');
+      }
+    }
+
     return List<ChatMessage>.from(
       _messagesCache.putIfAbsent(roomId, () => _seedMessages(roomId)),
     );
@@ -69,7 +215,42 @@ class ChatService {
     required String roomId,
     required String text,
   }) async {
-    await Future<void>.delayed(const Duration(milliseconds: 150));
+    final client = _safeClient;
+    final userId = client?.auth.currentUser?.id;
+
+    if (client != null && userId != null && roomId.contains('-')) {
+      try {
+        final res = await client
+            .from('chat_messages')
+            .insert({
+              'room_id': roomId,
+              'sender_id': userId,
+              'body': text.trim(),
+            })
+            .select()
+            .single();
+
+        await client.from('chat_rooms').update({
+          'last_message_at': DateTime.now().toIso8601String(),
+        }).eq('id', roomId);
+
+        final msg = ChatMessage(
+          id: res['id'].toString(),
+          roomId: roomId,
+          senderId: userId,
+          text: text,
+          time: DateTime.now(),
+          isMe: true,
+        );
+
+        _messagesCache.putIfAbsent(roomId, () => []).add(msg);
+        _updateRoomPreview(roomId, text);
+        return msg;
+      } catch (e) {
+        debugPrint('[ChatService] Gagal kirim pesan ke Supabase: $e');
+      }
+    }
+
     final message = ChatMessage(
       id: 'local-${DateTime.now().microsecondsSinceEpoch}',
       roomId: roomId,
@@ -78,9 +259,7 @@ class ChatService {
       time: DateTime.now(),
       isMe: true,
     );
-    _messagesCache
-        .putIfAbsent(roomId, () => _seedMessages(roomId))
-        .add(message);
+    _messagesCache.putIfAbsent(roomId, () => _seedMessages(roomId)).add(message);
     _updateRoomPreview(roomId, text);
     return message;
   }
@@ -88,9 +267,7 @@ class ChatService {
   /// Menandai seluruh pesan pada ruang sebagai telah dibaca.
   Future<void> markRoomRead(String roomId) async {
     _roomsCache = _roomsCache
-        ?.map(
-          (room) => room.id == roomId ? room.copyWith(unreadCount: 0) : room,
-        )
+        ?.map((room) => room.id == roomId ? room.copyWith(unreadCount: 0) : room)
         .toList();
   }
 
@@ -101,6 +278,36 @@ class ChatService {
 
   /// Membuat ruang percakapan baru untuk sebuah kontak.
   Future<ChatRoom> createRoom(ChatContact contact) async {
+    final client = _safeClient;
+    final userId = client?.auth.currentUser?.id;
+
+    if (client != null && userId != null && contact.id.contains('-')) {
+      try {
+        final roomId = await client.rpc(
+          'get_or_create_room',
+          params: {'p_target_user_id': contact.id},
+        );
+
+        if (roomId != null) {
+          final room = ChatRoom(
+            id: roomId.toString(),
+            name: contact.name,
+            avatarUrl: contact.avatarUrl,
+            lastMessage: '',
+            lastMessageTime: DateTime.now(),
+            isOnline: contact.isOnline,
+          );
+          _roomsCache ??= [];
+          _roomsCache!.removeWhere((r) => r.id == room.id);
+          _roomsCache!.insert(0, room);
+          _messagesCache[room.id] = [];
+          return room;
+        }
+      } catch (e) {
+        debugPrint('[ChatService] Gagal create room via RPC: $e');
+      }
+    }
+
     _roomsCache ??= _seedRooms();
     final room = ChatRoom(
       id: contact.id,
@@ -154,7 +361,7 @@ class ChatService {
         isGroup: true,
         memberCount: 24,
         lastSenderName: 'Siti',
-        lastMessage: 'Minggu ini latihan di Tabel, ya!',
+        lastMessage: 'Minggu ini latihan di Tebet Eco Park, ya!',
         lastMessageTime: at(10, 30),
         unreadCount: 2,
       ),
@@ -170,7 +377,7 @@ class ChatService {
         id: 'budi',
         name: 'Budi Santoso',
         avatarUrl: 'https://i.pravatar.cc/150?img=33',
-        lastMessage: 'Kamu. Selamat untuk sertifikatnya! 🎉',
+        lastMessage: 'Kamu luar biasa. Selamat untuk sertifikatnya! 🎉',
         lastMessageTime: yesterday,
       ),
       ChatRoom(
@@ -213,8 +420,7 @@ class ChatService {
           id: 'm2',
           roomId: roomId,
           senderId: 'dina',
-          text: 'Hai Sarah, tentu! Kirim video gerakannya, ya. '
-              'Kita belajar bareng 💪',
+          text: 'Hai! Tentu, kirim video gerakannya ya. Kita belajar bareng 💪',
           time: at(10, 34),
         ),
         ChatMessage(

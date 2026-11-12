@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
+import '../../controllers/auth_controller.dart';
 import '../../controllers/chat_controller.dart';
 import '../../controllers/notification_controller.dart';
+import '../../services/avatar_helper.dart';
 import '../chat/chat_list_view.dart';
 import '../komunitas/komunitas_page.dart';
 import '../widgets/leaderboard.dart';
@@ -212,8 +214,10 @@ class _HomePageState extends State<HomePage> {
           onTap: _openProfile,
           child: CircleAvatar(
             radius: 16,
-            backgroundImage:
-                const NetworkImage('https://i.pravatar.cc/100?img=5'),
+            backgroundImage: getAvatarImageProvider(
+              context.watch<AuthController>().currentAvatarUrl,
+              fallback: 'https://i.pravatar.cc/100?img=5',
+            ),
             onBackgroundImageError: (_, __) {},
           ),
         ),
@@ -222,6 +226,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildStatsBar() {
+    final auth = context.watch<AuthController>();
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
       decoration: BoxDecoration(
@@ -232,15 +238,15 @@ class _HomePageState extends State<HomePage> {
       child: Row(
         children: [
           _buildStatItem(Icons.local_fire_department_rounded, AppColors.tertiary,
-              'Streak', '7 Hari'),
+              'Streak', '${auth.streak} Hari'),
           _buildStatDivider(),
           _buildStatItem(
               Icons.favorite_rounded, AppColors.danger, 'Nyawa', '5/5'),
           _buildStatDivider(),
           _buildStatItem(
-              Icons.diamond_rounded, AppColors.secondary, 'Diamond', '420'),
+              Icons.diamond_rounded, AppColors.secondary, 'Diamond', '${auth.points}'),
           _buildStatDivider(),
-          _buildStatItem(Icons.bolt_rounded, AppColors.primary, 'EXP', '350'),
+          _buildStatItem(Icons.bolt_rounded, AppColors.primary, 'EXP', '${auth.xp}'),
         ],
       ),
     );

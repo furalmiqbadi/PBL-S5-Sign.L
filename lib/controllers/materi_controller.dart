@@ -1,11 +1,37 @@
 import 'package:flutter/material.dart';
 import '../models/bab_model.dart';
+import '../services/materi_service.dart';
 
 enum FilterType { all, inProgress, completed }
 
 class MateriController extends ChangeNotifier {
+  final MateriService _service;
   FilterType _currentFilter = FilterType.all;
-  final List<Bab> _babList = dummyBabList;
+  List<Bab> _babList = dummyBabList;
+  bool _isLoading = false;
+
+  MateriController({MateriService? service})
+      : _service = service ?? MateriService() {
+    loadBabList();
+  }
+
+  bool get isLoading => _isLoading;
+
+  Future<void> loadBabList() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final list = await _service.getBabList();
+      if (list.isNotEmpty) {
+        _babList = list;
+      }
+    } catch (e) {
+      debugPrint('[MateriController] Gagal memuat bab: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   FilterType get currentFilter => _currentFilter;
   List<Bab> get filteredBabList {
