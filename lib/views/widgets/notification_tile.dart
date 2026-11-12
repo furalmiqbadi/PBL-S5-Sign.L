@@ -8,8 +8,8 @@ import 'user_avatar.dart';
 
 /// Kartu satu notifikasi.
 ///
-/// Notifikasi belum dibaca ditampilkan dengan latar pink lembut, sedangkan
-/// yang sudah dibaca berlatar putih.
+/// Notifikasi belum dibaca ditampilkan dengan latar biru sangat muda, sedangkan
+/// yang sudah dibaca berlatar putih. Keduanya memakai bayangan lembut.
 class NotificationTile extends StatelessWidget {
   const NotificationTile({
     super.key,
@@ -48,105 +48,116 @@ class NotificationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isRead = notification.isRead;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isRead ? AppColors.surface : AppColors.pinkSoft,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isRead
-                ? AppColors.border
-                : AppColors.primary.withValues(alpha: 0.25),
+    return Container(
+      decoration: BoxDecoration(
+        color: isRead ? AppColors.surface : AppColors.pinkSofter,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildLeading(),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildLeading(),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Flexible(child: _buildCategoryTag()),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          notificationTime(notification.time),
-                          textAlign: TextAlign.right,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.labelSmall,
-                        ),
+                      Row(
+                        children: [
+                          Flexible(child: _buildCategoryTag()),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              notificationTime(notification.time),
+                              textAlign: TextAlign.right,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.labelSmall,
+                            ),
+                          ),
+                          if (!isRead) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: AppColors.primary,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                      if (!isRead) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
+                      const SizedBox(height: 8),
+                      Text(
+                        notification.title,
+                        style: AppTextStyles.titleSmall,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        notification.body,
+                        style: AppTextStyles.bodySmall.copyWith(height: 1.4),
+                      ),
+                      if (notification.hasAction) ...[
+                        const SizedBox(height: 4),
+                        InkWell(
+                          onTap: onAction,
+                          borderRadius: BorderRadius.circular(8),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minHeight: 48),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              widthFactor: 1,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    notification.actionLabel!,
+                                    style: AppTextStyles.labelLarge.copyWith(
+                                      color: AppColors.primary,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(
+                                    Icons.arrow_forward_rounded,
+                                    size: 16,
+                                    color: AppColors.primary,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    notification.title,
-                    style: AppTextStyles.titleSmall,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    notification.body,
-                    style: AppTextStyles.bodySmall.copyWith(height: 1.4),
-                  ),
-                  if (notification.hasAction) ...[
-                    const SizedBox(height: 8),
-                    InkWell(
-                      onTap: onAction,
-                      borderRadius: BorderRadius.circular(6),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              notification.actionLabel!,
-                              style: AppTextStyles.labelLarge.copyWith(
-                                color: AppColors.primary,
-                                fontSize: 13,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.arrow_forward_rounded,
-                              size: 15,
-                              color: AppColors.primary,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildLeading() {
-    if (notification.avatarUrl != null &&
-        notification.avatarUrl!.isNotEmpty) {
+    if (notification.avatarUrl != null && notification.avatarUrl!.isNotEmpty) {
       return UserAvatar(
         imageUrl: notification.avatarUrl,
         name: notification.title,
@@ -170,7 +181,7 @@ class NotificationTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: _categoryColor.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         notification.category.label,

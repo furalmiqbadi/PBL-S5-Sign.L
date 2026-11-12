@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/chat_controller.dart';
 import '../../models/chat_model.dart';
+import '../common/pushed_page.dart';
+import '../komunitas/komunitas_page.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/app_screen_header.dart';
@@ -10,6 +12,7 @@ import '../widgets/chat_list_tile.dart';
 import '../widgets/filter_chip_row.dart';
 import '../widgets/section_header.dart';
 import 'chat_room_view.dart';
+import 'new_chat_sheet.dart';
 
 /// Layar daftar percakapan (Chat).
 class ChatListScreen extends StatefulWidget {
@@ -42,7 +45,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 HeaderIconButton(
                   icon: Icons.edit_square,
                   semanticLabel: 'Tulis pesan baru',
-                  onTap: () {},
+                  onTap: _openNewChat,
                 ),
               ],
             ),
@@ -84,14 +87,27 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
+  static final OutlineInputBorder _softFieldBorder = OutlineInputBorder(
+    borderRadius: BorderRadius.circular(16),
+    borderSide: BorderSide.none,
+  );
+
   Widget _buildSearchField(ChatController controller) {
     return TextField(
       onChanged: controller.search,
       style: AppTextStyles.bodyMedium,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         hintText: 'Cari teman atau grup belajar...',
-        prefixIcon: Icon(Icons.search_rounded, color: AppColors.textMuted),
+        prefixIcon:
+            const Icon(Icons.search_rounded, color: AppColors.textMuted),
         isDense: true,
+        filled: true,
+        fillColor: AppColors.fieldFill,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: _softFieldBorder,
+        enabledBorder: _softFieldBorder,
+        focusedBorder: _softFieldBorder,
       ),
     );
   }
@@ -124,6 +140,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       return _buildMessageState(
         icon: Icons.wifi_off_rounded,
         message: controller.errorMessage!,
+        onRetry: controller.loadRooms,
       );
     }
 
@@ -136,9 +153,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
       itemCount: rooms.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final room = rooms[index];
         return ChatListTile(
@@ -155,9 +172,38 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
+  Future<void> _openNewChat() async {
+    final contact = await showModalBottomSheet<ChatContact>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => const NewChatSheet(),
+    );
+    if (contact == null || !mounted) return;
+
+    final room = await context.read<ChatController>().startChat(contact);
+    if (!mounted) return;
+    _openRoom(context, room);
+  }
+
+  void _openCommunity(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const PushedPage(
+          title: 'Komunitas',
+          child: KomunitasPage(),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMessageState({
     required IconData icon,
     required String message,
+    VoidCallback? onRetry,
   }) {
     return Center(
       child: Column(
@@ -171,69 +217,86 @@ class _ChatListScreenState extends State<ChatListScreen> {
             style: AppTextStyles.bodyMedium
                 .copyWith(color: AppColors.textSecondary),
           ),
+          if (onRetry != null) ...[
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: onRetry,
+              child: const Text('Coba lagi'),
+            ),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildCommunityBanner(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.pinkSoft,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: const BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: () => _openCommunity(context),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
             ),
-            child: const Icon(
-              Icons.campaign_rounded,
-              color: Colors.white,
-              size: 22,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.campaign_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Belajar lebih seru bersama!',
-                    style: AppTextStyles.titleSmall),
-                const SizedBox(height: 2),
-                Text(
-                  'Temukan teman latihan di komunitas.',
-                  style: AppTextStyles.bodySmall,
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Jelajahi komunitas',
-                      style: AppTextStyles.labelLarge.copyWith(
-                        color: AppColors.primary,
-                        fontSize: 13,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Belajar lebih seru bersama!',
+                      style: AppTextStyles.titleSmall),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Temukan teman latihan di komunitas.',
+                    style: AppTextStyles.bodySmall,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Jelajahi komunitas',
+                        style: AppTextStyles.labelLarge.copyWith(
+                          color: AppColors.primary,
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 15,
-                      color: AppColors.primary,
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 15,
+                        color: AppColors.primary,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

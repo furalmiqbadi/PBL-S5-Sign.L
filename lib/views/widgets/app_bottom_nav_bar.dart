@@ -158,32 +158,35 @@ class AppBottomNavBar extends StatelessWidget {
   static const double _centerSize = 66;
   static const double _overhang = 26;
 
+  /// Jarak bar melayang dari tepi layar.
+  static const double _sideMargin = 16;
+  static const double _floatGap = 12;
+
   @override
   Widget build(BuildContext context) {
     // Ruang aman bawah (notch/gesture bar) agar bar tidak tertutup.
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
     return SizedBox(
-      height: _overhang + _barHeight + bottomInset,
+      height: _overhang + _barHeight + _floatGap + bottomInset,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Permukaan bar (putih, sudut atas membulat, bayangan halus).
+          // Permukaan bar: pil putih melayang dengan bayangan lembut.
           Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
+            left: _sideMargin,
+            right: _sideMargin,
+            bottom: bottomInset + _floatGap,
             child: Container(
-              height: _barHeight + bottomInset,
+              height: _barHeight,
               decoration: BoxDecoration(
                 color: palette.barColor,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(22)),
+                borderRadius: BorderRadius.circular(28),
                 boxShadow: const [
                   BoxShadow(
-                    color: Color(0x14000000),
-                    blurRadius: 20,
-                    offset: Offset(0, -4),
+                    color: Color(0x1F000000),
+                    blurRadius: 28,
+                    offset: Offset(0, 8),
                   ),
                 ],
               ),
@@ -192,9 +195,9 @@ class AppBottomNavBar extends StatelessWidget {
 
           // Baris item. Slot tengah sengaja dikosongkan untuk tombol melayang.
           Positioned(
-            left: 0,
-            right: 0,
-            bottom: bottomInset,
+            left: _sideMargin,
+            right: _sideMargin,
+            bottom: bottomInset + _floatGap,
             height: _barHeight,
             child: Row(
               children: [

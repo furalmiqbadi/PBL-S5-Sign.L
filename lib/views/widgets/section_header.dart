@@ -28,7 +28,7 @@ class SectionHeader extends StatelessWidget {
   static TextStyle displayStyle(BuildContext context, {Color? color}) {
     final theme = Theme.of(context);
     return GoogleFonts.quicksand(
-      fontSize: 25,
+      fontSize: 22,
       fontWeight: FontWeight.w600,
       letterSpacing: 0,
       color: color ?? theme.colorScheme.onSurface,
@@ -61,7 +61,7 @@ class SectionHeader extends StatelessWidget {
     return Container(
       // Padding vertikal lega supaya header terasa lapang dan seimbang
       // dengan tinggi tombol aksi (48px).
-      padding: const EdgeInsets.fromLTRB(20, 14, 12, 14),
+      padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
       // Latar sama dengan latar halaman agar header menyatu dengan konten.
       color: AppColors.background,
       child: SizedBox(
@@ -156,7 +156,7 @@ class _HeaderIconButtonState extends State<HeaderIconButton> {
         : Icon(widget.icon, size: widget.iconSize, color: color);
 
     Widget button = Material(
-      color: Colors.transparent,
+      color: _active ? AppColors.pinkSoft : Colors.transparent,
       shape: const CircleBorder(),
       clipBehavior: Clip.antiAlias,
       child: InkWell(

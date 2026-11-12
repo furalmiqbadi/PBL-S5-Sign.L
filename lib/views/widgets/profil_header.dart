@@ -7,13 +7,12 @@ import 'section_header.dart';
 /// Header halaman Profil: judul di kiri, lalu di kanan tombol pengaturan.
 
 class ProfilHeader extends StatelessWidget {
-  // [Kode Asli] final VoidCallback? onMessages; -> Disembunyikan karena desain saat ini tidak memakai DM
-  // final VoidCallback? onMessages;
+  final VoidCallback? onMessages;
   final VoidCallback? onSettings;
 
   const ProfilHeader({
     super.key,
-    // this.onMessages,
+    this.onMessages,
     this.onSettings,
   });
 
