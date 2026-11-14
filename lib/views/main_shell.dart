@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../controllers/chat_controller.dart';
 import 'chat/chat_list_view.dart';
 import 'home/home_page.dart';
 import 'home/materi_page.dart';
@@ -32,7 +34,6 @@ class _MainShellState extends State<MainShell> {
   late final PageController _pageController;
 
   static const Color _pink = AppColors.primary;
-
 
   @override
   void initState() {
@@ -119,7 +120,8 @@ class _MainShellState extends State<MainShell> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(10),
@@ -136,7 +138,9 @@ class _MainShellState extends State<MainShell> {
                   const Spacer(),
                   const Icon(Icons.star_rounded, color: Colors.white, size: 18),
                   const SizedBox(width: 4),
-                  const Text('+100 XP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  const Text('+100 XP',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
                 ],
               ),
               const SizedBox(height: 12),
@@ -151,7 +155,8 @@ class _MainShellState extends State<MainShell> {
               const SizedBox(height: 6),
               const Text(
                 'Pilih gambar gestur tangan yang tepat untuk setiap huruf target. Dilengkapi sistem nyawa hati dan XP.',
-                style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+                style:
+                    TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -161,7 +166,8 @@ class _MainShellState extends State<MainShell> {
                     backgroundColor: Colors.white,
                     foregroundColor: _pink,
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   onPressed: () => _openQuiz(context),
@@ -178,21 +184,24 @@ class _MainShellState extends State<MainShell> {
         const SizedBox(height: 16),
         _buildActionCard(
           title: 'Kuis harian gestur',
-          description: 'Uji daya ingat 10 gestur acak hari ini dan dapatkan 50 XP!',
+          description:
+              'Uji daya ingat 10 gestur acak hari ini dan dapatkan 50 XP!',
           buttonText: 'Mulai Kuis Harian',
           onTap: () => _openQuiz(context),
         ),
         const SizedBox(height: 14),
         _buildActionCard(
           title: 'Tantangan kilat 60 detik',
-          description: 'Bentuk sebanyak mungkin gestur isyarat yang diminta sebelum waktu habis.',
+          description:
+              'Bentuk sebanyak mungkin gestur isyarat yang diminta sebelum waktu habis.',
           buttonText: 'Mulai Tantangan',
           onTap: () => _openQuiz(context),
         ),
         const SizedBox(height: 14),
         _buildActionCard(
           title: 'Evaluasi modul huruf vokal',
-          description: 'Selesaikan evaluasi untuk klaim sertifikat modul pemula.',
+          description:
+              'Selesaikan evaluasi untuk klaim sertifikat modul pemula.',
           buttonText: 'Mulai Evaluasi',
           onTap: () => _openQuiz(context),
         ),
@@ -222,9 +231,13 @@ class _MainShellState extends State<MainShell> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(title,
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
-          Text(description, style: const TextStyle(fontSize: 12, color: Colors.black87, height: 1.4)),
+          Text(description,
+              style: const TextStyle(
+                  fontSize: 12, color: Colors.black87, height: 1.4)),
           const SizedBox(height: 14),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -232,10 +245,12 @@ class _MainShellState extends State<MainShell> {
               foregroundColor: Colors.white,
               elevation: 0,
               minimumSize: const Size(0, 48),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
             ),
             onPressed: onTap,
-            child: Text(buttonText, style: const TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(buttonText,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -243,10 +258,12 @@ class _MainShellState extends State<MainShell> {
   }
 
   List<Widget> _buildPages(BuildContext context) {
+    final chatUnread = context.watch<ChatController>().totalUnreadMessages;
+
     return [
       HomePage(
         onOpenCommunity: () => _goTo(3), // Indeks 3: Komunitas
-        onOpenProfile: () => _goTo(4),   // Indeks 4: Profil
+        onOpenProfile: () => _goTo(4), // Indeks 4: Profil
       ),
       _HeaderPage(
         header: const MateriHeader(title: 'Kuis'),
@@ -257,7 +274,10 @@ class _MainShellState extends State<MainShell> {
         body: MateriPage(),
       ),
       _HeaderPage(
-        header: KomunitasHeader(onMessages: () => _openChat(context)),
+        header: KomunitasHeader(
+          unreadCount: chatUnread,
+          onMessages: () => _openChat(context),
+        ),
         body: const KomunitasPage(),
       ),
       _HeaderPage(
@@ -284,7 +304,8 @@ class _MainShellState extends State<MainShell> {
           controller: _pageController,
           physics: const NeverScrollableScrollPhysics(),
           children: [
-            for (final page in _buildPages(context)) _KeepAlivePage(child: page),
+            for (final page in _buildPages(context))
+              _KeepAlivePage(child: page),
           ],
         ),
         bottomNavigationBar: AppBottomNavBar(

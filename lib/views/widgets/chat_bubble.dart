@@ -28,8 +28,7 @@ class ChatBubble extends StatelessWidget {
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: isMe ? AppColors.primary : AppColors.fieldFill,
                 borderRadius: BorderRadius.only(
@@ -42,9 +41,7 @@ class ChatBubble extends StatelessWidget {
               child: Text(
                 message.text,
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: isMe
-                      ? AppColors.textOnPrimary
-                      : AppColors.textPrimary,
+                  color: isMe ? AppColors.textOnPrimary : AppColors.textPrimary,
                   height: 1.4,
                 ),
               ),
@@ -58,11 +55,10 @@ class ChatBubble extends StatelessWidget {
               if (isMe) ...[
                 const SizedBox(width: 4),
                 Icon(
-                  message.isRead ? Icons.done_all_rounded : Icons.done_rounded,
+                  Icons.done_all_rounded,
                   size: 15,
-                  color: message.isRead
-                      ? AppColors.primary
-                      : AppColors.textMuted,
+                  color:
+                      message.isRead ? AppColors.primary : AppColors.textMuted,
                 ),
               ],
             ],

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../controllers/chat_controller.dart';
 import '../../controllers/notification_controller.dart';
+import '../../models/chat_model.dart';
 import '../../models/notification_model.dart';
 import '../common/pushed_page.dart';
+import '../chat/chat_list_view.dart';
+import '../chat/chat_room_view.dart';
 import '../home/detail_materi_page.dart';
 import '../komunitas/komunitas_page.dart';
 import '../profile/profile_screen.dart';
@@ -73,6 +77,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
             title: 'Profil',
             child: ProfileScreen(),
           ),
+        ),
+      NotificationTarget.chat => MaterialPageRoute<void>(
+          builder: (_) => notification.targetId == null
+              ? const PushedPage(
+                  title: 'Chat',
+                  child: ChatListScreen(),
+                )
+              : _ChatNotificationTarget(roomId: notification.targetId!),
         ),
     };
 
@@ -158,6 +170,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           'Komunitas',
                           'Belajar',
                           'Pencapaian',
+                          'Chat',
                         ],
                         selectedIndex: controller.filter.index,
                         onSelected: (index) => controller
@@ -307,6 +320,52 @@ class _NotificationScreenState extends State<NotificationScreen> {
         onTap: () => _openNotification(context, controller, notification),
         onAction: () => _openNotification(context, controller, notification),
       ),
+    );
+  }
+}
+
+class _ChatNotificationTarget extends StatefulWidget {
+  const _ChatNotificationTarget({required this.roomId});
+
+  final String roomId;
+
+  @override
+  State<_ChatNotificationTarget> createState() =>
+      _ChatNotificationTargetState();
+}
+
+class _ChatNotificationTargetState extends State<_ChatNotificationTarget> {
+  late final Future<ChatRoom> _roomFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _roomFuture = context.read<ChatController>().loadRoomById(widget.roomId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<ChatRoom>(
+      future: _roomFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Chat')),
+            body: Center(
+              child: Text(
+                'Percakapan tidak dapat dibuka.',
+                style: AppTextStyles.bodyMedium,
+              ),
+            ),
+          );
+        }
+        if (!snapshot.hasData) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        return ChatRoomScreen(room: snapshot.data!);
+      },
     );
   }
 }

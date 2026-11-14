@@ -21,23 +21,54 @@ class ChatRoomScreen extends StatefulWidget {
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  int _prevMessageCount = 0;
+
+  /// Referensi langsung ke controller agar bisa digunakan di dispose()
+  /// tanpa mengakses BuildContext di luar widget lifecycle.
+  ChatController? _chatController;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final controller = context.read<ChatController>();
+      _chatController = controller;
       controller.openRoom(widget.room).then((_) {
-        if (mounted) _scrollToBottom();
+        if (mounted) {
+          _prevMessageCount = controller.activeMessages.length;
+          _scrollToBottom();
+        }
       });
+      // Listener untuk auto-scroll saat pesan baru masuk via realtime.
+      controller.addListener(_onControllerChanged);
     });
   }
 
   @override
   void dispose() {
+    // Lepas listener via referensi langsung (bukan context.read)
+    // agar aman dipanggil dari dispose().
+    final controller = _chatController;
+    if (controller != null) {
+      controller.removeListener(_onControllerChanged);
+      if (controller.activeRoom?.id == widget.room.id) {
+        controller.closeRoom();
+      }
+    }
     _inputController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  /// Dipanggil setiap [ChatController] memanggil notifyListeners().
+  /// Auto-scroll hanya ketika jumlah pesan bertambah.
+  void _onControllerChanged() {
+    if (!mounted) return;
+    final currentCount = _chatController?.activeMessages.length ?? 0;
+    if (currentCount > _prevMessageCount) {
+      _prevMessageCount = currentCount;
+      _scrollToBottom();
+    }
   }
 
   void _scrollToBottom() {
@@ -244,13 +275,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 title: Text(
                   muted ? 'Bunyikan notifikasi' : 'Bisukan notifikasi',
                 ),
-                onTap: () {
-                  controller.toggleMute(room.id);
+                onTap: () async {
+                  final succeeded = await controller.toggleMute(room.id);
+                  if (!mounted) return;
                   Navigator.pop(sheetContext);
                   _showSnack(
-                    muted
-                        ? 'Notifikasi percakapan dibunyikan.'
-                        : 'Notifikasi percakapan dibisukan.',
+                    succeeded
+                        ? controller.isMuted(room.id)
+                            ? 'Notifikasi percakapan dibisukan.'
+                            : 'Notifikasi percakapan dibunyikan.'
+                        : 'Gagal mengubah pengaturan notifikasi chat.',
                   );
                 },
               ),
@@ -336,13 +370,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       ),
                       side: const BorderSide(color: AppColors.border),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       Navigator.pop(sheetContext);
-                      controller.toggleMute(room.id);
+                      final succeeded = await controller.toggleMute(room.id);
                       _showSnack(
-                        controller.isMuted(room.id)
-                            ? 'Notifikasi percakapan dibisukan.'
-                            : 'Notifikasi percakapan dibunyikan.',
+                        succeeded
+                            ? controller.isMuted(room.id)
+                                ? 'Notifikasi percakapan dibisukan.'
+                                : 'Notifikasi percakapan dibunyikan.'
+                            : 'Gagal mengubah pengaturan notifikasi chat.',
                       );
                     },
                     icon: Icon(
@@ -374,7 +410,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Bersihkan riwayat?'),
         content: const Text(
-          'Semua pesan pada percakapan ini akan dihapus dari perangkat.',
+          'Riwayat pesan akan disembunyikan dari akunmu.',
         ),
         actions: [
           TextButton(
@@ -390,8 +426,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
     if (confirmed != true || !mounted) return;
 
-    await controller.clearActiveMessages();
-    _showSnack('Riwayat percakapan dibersihkan.');
+    final succeeded = await controller.clearActiveMessages();
+    _showSnack(
+      succeeded
+          ? 'Riwayat percakapan dibersihkan.'
+          : 'Gagal membersihkan riwayat percakapan.',
+    );
   }
 
   Future<void> _confirmBlock() async {

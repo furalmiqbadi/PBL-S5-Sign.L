@@ -16,6 +16,7 @@ class ChatRoom {
     this.memberCount,
     this.isOnline = false,
     this.lastSenderName,
+    this.isMuted = false,
   });
 
   final String id;
@@ -30,6 +31,7 @@ class ChatRoom {
 
   /// Nama pengirim terakhir (dipakai untuk preview grup, mis. "Siti: ...").
   final String? lastSenderName;
+  final bool isMuted;
 
   bool get hasUnread => unreadCount > 0;
 
@@ -47,6 +49,7 @@ class ChatRoom {
       memberCount: json['memberCount'] as int?,
       isOnline: json['isOnline'] as bool? ?? false,
       lastSenderName: json['lastSenderName'] as String?,
+      isMuted: json['isMuted'] as bool? ?? false,
     );
   }
 
@@ -61,6 +64,7 @@ class ChatRoom {
         'memberCount': memberCount,
         'isOnline': isOnline,
         'lastSenderName': lastSenderName,
+        'isMuted': isMuted,
       };
 
   ChatRoom copyWith({
@@ -74,6 +78,7 @@ class ChatRoom {
     int? memberCount,
     bool? isOnline,
     String? lastSenderName,
+    bool? isMuted,
   }) {
     return ChatRoom(
       id: id ?? this.id,
@@ -86,6 +91,7 @@ class ChatRoom {
       memberCount: memberCount ?? this.memberCount,
       isOnline: isOnline ?? this.isOnline,
       lastSenderName: lastSenderName ?? this.lastSenderName,
+      isMuted: isMuted ?? this.isMuted,
     );
   }
 }
@@ -132,6 +138,28 @@ class ChatMessage {
 
   /// Penanda pemisah "N pesan baru".
   final bool isNew;
+
+  ChatMessage copyWith({
+    String? id,
+    String? roomId,
+    String? senderId,
+    String? text,
+    DateTime? time,
+    bool? isMe,
+    bool? isRead,
+    bool? isNew,
+  }) {
+    return ChatMessage(
+      id: id ?? this.id,
+      roomId: roomId ?? this.roomId,
+      senderId: senderId ?? this.senderId,
+      text: text ?? this.text,
+      time: time ?? this.time,
+      isMe: isMe ?? this.isMe,
+      isRead: isRead ?? this.isRead,
+      isNew: isNew ?? this.isNew,
+    );
+  }
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
