@@ -11,23 +11,26 @@ class IsiMateriHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.background.withValues(alpha: 0.90),
+      color: AppColors.background,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
             onTap: onBack,
+            behavior: HitTestBehavior.opaque,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              constraints: const BoxConstraints(minHeight: 48),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.surfaceMuted,
-                borderRadius: BorderRadius.circular(9999),
+                color: AppColors.fieldFill,
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.arrow_back, size: 14, color: AppColors.textPrimary),
-                  const SizedBox(width: 6),
+                  const Icon(Icons.arrow_back_rounded, size: 18, color: AppColors.textPrimary),
+                  const SizedBox(width: 8),
                   Text(
                     'Kembali',
                     style: AppTextStyles.labelMedium.copyWith(
@@ -43,7 +46,7 @@ class IsiMateriHeader extends StatelessWidget {
           Row(
             children: [
               _badge(
-                bg: AppColors.orangeSoft.withValues(alpha: 0.60),
+                bg: AppColors.orangeSoft,
                 fg: AppColors.tertiary,
                 leading: SvgPicture.asset(
                   'assets/images/streak_fix.svg',
@@ -58,7 +61,7 @@ class IsiMateriHeader extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               _badge(
-                bg: AppColors.pinkSoft.withValues(alpha: 0.50),
+                bg: AppColors.purpleSoft,
                 fg: AppColors.secondary,
                 leading: SvgPicture.asset(
                   'assets/images/diamond_fix.svg',
@@ -85,19 +88,21 @@ class IsiMateriHeader extends StatelessWidget {
     required String text,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      constraints: const BoxConstraints(minHeight: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(9999),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           leading,
           const SizedBox(width: 4),
           Text(
             text,
             style: AppTextStyles.labelMedium.copyWith(
-              color: fg,
+              color: AppColors.textPrimary,
               fontWeight: FontWeight.w700,
             ),
           ),
