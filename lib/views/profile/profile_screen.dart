@@ -1,19 +1,47 @@
 import 'package:flutter/material.dart';
-import '../edit/edit_profile_screen.dart';
-import '../theme/app_colors.dart';
-import '../widgets/share_sheet.dart';
+import 'package:provider/provider.dart';
 
-class ProfileScreen extends StatelessWidget {
+import '../../controllers/profile_controller.dart';
+import '../../models/user_profile_model.dart';
+import '../theme/app_colors.dart';
+import '../widgets/featured_badge_catalog.dart';
+import '../widgets/share_sheet.dart';
+import '../widgets/user_avatar.dart';
+import '../edit/edit_profile_screen.dart';
+
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _loadRequested = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_loadRequested) return;
+    _loadRequested = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<ProfileController>().load();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final controller = context.watch<ProfileController>();
+    final profile = controller.profile;
+    final badges = profile?.featuredBadges ?? const <String>[];
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          _buildProfileHeader(context),
+          _buildProfileHeader(context, controller, profile),
           const SizedBox(height: 32),
           _buildSectionTitle(
             icon: Icons.military_tech_rounded,
@@ -29,9 +57,9 @@ class ProfileScreen extends StatelessWidget {
                     color: AppColors.pinkSoft,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
-                    '3 / 3 Dipilih',
-                    style: TextStyle(
+                  child: Text(
+                    '${badges.length} / 3 Dipilih',
+                    style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                       color: AppColors.primary,
@@ -47,15 +75,14 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   onPressed: () => showShareSheet(
                     context,
-                    text:
-                        'Aku membuka lencana Perfect 100, 7-Day Streak, dan Fast Signer di Sign.L! 🏅',
+                    text: _shareText(badges),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          _buildAchievementsRow(),
+          _buildAchievementsRow(badges),
           const SizedBox(height: 32),
           _buildSectionTitle(
             icon: Icons.school_rounded,
@@ -161,7 +188,26 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context) {
+  String _shareText(List<String> badgeIds) {
+    final titles = badgeIds
+        .map((id) => featuredBadgeById(id)?['title'])
+        .whereType<String>()
+        .toList(growable: false);
+    if (titles.isEmpty) {
+      return 'Aku sedang membangun profil isyaratku di Sign.L!';
+    }
+    return 'Aku membuka lencana ${titles.join(', ')} di Sign.L! 🏅';
+  }
+
+  Widget _buildProfileHeader(
+    BuildContext context,
+    ProfileController controller,
+    UserProfile? profile,
+  ) {
+    final name = profile?.displayName ?? 'Memuat profil...';
+    final username = profile?.displayUsername ?? '';
+    final bio = profile?.bio.trim() ?? '';
+
     return Column(
       children: [
         Stack(
@@ -186,9 +232,10 @@ class ProfileScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: AppColors.surface,
                 ),
-                child: const CircleAvatar(
-                  radius: 40,
-                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=47'),
+                child: UserAvatar(
+                  imageUrl: profile?.avatarUrl,
+                  name: name,
+                  size: 80,
                 ),
               ),
             ),
@@ -215,28 +262,24 @@ class ProfileScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text(
-              'Sarah Chen',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: AppColors.textPrimary,
+            Flexible(
+              child: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
             const SizedBox(width: 8),
-            // [Tugasmu] Tombol Edit Profil tepat di samping nama pengguna
             Material(
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(16),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const EditProfileScreen(),
-                    ),
-                  );
-                },
+                onTap: () => _openEditProfile(context),
                 child: Container(
                   height: 48,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -268,16 +311,58 @@ class ProfileScreen extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 4),
-        const Text(
-          '@sarah.creates',
-          style: TextStyle(
-            fontSize: 13,
-            color: AppColors.textSecondary,
+        if (username.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            username,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
           ),
-        ),
+        ],
+        if (bio.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            bio,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 12,
+              height: 1.4,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+        if (controller.isLoading && profile == null) ...[
+          const SizedBox(height: 12),
+          const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ],
+        if (!controller.isLoading && profile == null) ...[
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: () => controller.load(force: true),
+            icon: const Icon(Icons.refresh_rounded, size: 16),
+            label: Text(controller.errorMessage ?? 'Muat ulang profil'),
+          ),
+        ],
       ],
     );
+  }
+
+  Future<void> _openEditProfile(BuildContext context) async {
+    final controller = context.read<ProfileController>();
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+    );
+    if (!mounted) return;
+    controller.load(force: true);
   }
 
   Widget _buildSectionTitle({
@@ -305,34 +390,45 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAchievementsRow() {
+  Widget _buildAchievementsRow(List<String> badgeIds) {
+    final badges = badgeIds
+        .map(featuredBadgeById)
+        .whereType<Map<String, dynamic>>()
+        .take(3)
+        .toList(growable: false);
+
+    if (badges.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: const Text(
+          'Belum ada lencana unggulan.\nPilih lewat tombol Edit Profil.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 11,
+            height: 1.5,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      );
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildAchievementCard(
-          icon: Icons.stars_rounded,
-          iconBg: AppColors.pinkSoft,
-          iconColor: AppColors.primary,
-          title: 'Perfect 100',
-          subtitle: '100% Akurasi',
-          subtitleColor: AppColors.primary,
-        ),
-        _buildAchievementCard(
-          icon: Icons.local_fire_department_rounded,
-          iconBg: AppColors.orangeSoft,
-          iconColor: AppColors.tertiary,
-          title: '7-Day Streak',
-          subtitle: '7 Hari Beruntun',
-          subtitleColor: AppColors.tertiary,
-        ),
-        _buildAchievementCard(
-          icon: Icons.bolt_rounded,
-          iconBg: AppColors.purpleSoft,
-          iconColor: AppColors.secondary,
-          title: 'Fast Signer',
-          subtitle: '<1.2s Respons',
-          subtitleColor: AppColors.secondary,
-        ),
+        for (final badge in badges)
+          _buildAchievementCard(
+            icon: badge['icon'] as IconData,
+            iconBg: badge['bg'] as Color,
+            iconColor: badge['color'] as Color,
+            title: badge['title'] as String,
+            subtitle: badge['category'] as String,
+            subtitleColor: badge['color'] as Color,
+          ),
       ],
     );
   }
@@ -374,6 +470,8 @@ class ProfileScreen extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
@@ -384,6 +482,8 @@ class ProfileScreen extends StatelessWidget {
             Text(
               subtitle,
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,

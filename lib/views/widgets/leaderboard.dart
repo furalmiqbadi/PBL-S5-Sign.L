@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../controllers/profile_controller.dart';
+import '../../models/user_profile_model.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import 'user_avatar.dart';
 
 /// Membuka papan peringkat (layar penuh).
 Future<void> openLeaderboard(BuildContext context) {
@@ -27,25 +31,25 @@ class _Entry {
   final String name;
   final Map<_Period, int> xp;
   final bool isMe;
+  final String? avatarUrl;
 
-  const _Entry(this.name, this.xp, {this.isMe = false});
+  const _Entry(this.name, this.xp, {this.isMe = false, this.avatarUrl});
 }
 
 /// Data dummy. Ganti dengan data backend nanti.
 const List<_Entry> _entries = [
   _Entry('Budi Santoso',
       {_Period.week: 1420, _Period.month: 4820, _Period.all: 17250}),
-  _Entry('Dina S.',
-      {_Period.week: 1280, _Period.month: 4510, _Period.all: 18400}),
+  _Entry(
+      'Dina S.', {_Period.week: 1280, _Period.month: 4510, _Period.all: 18400}),
   _Entry('Sarah Chen',
       {_Period.week: 1150, _Period.month: 4120, _Period.all: 12800}),
-  _Entry('Kamu',
-      {_Period.week: 980, _Period.month: 3650, _Period.all: 9800},
+  _Entry('Kamu', {_Period.week: 980, _Period.month: 3650, _Period.all: 9800},
       isMe: true),
   _Entry('Ahmad Fauzi',
       {_Period.week: 870, _Period.month: 3380, _Period.all: 11900}),
-  _Entry('Larasati',
-      {_Period.week: 760, _Period.month: 2960, _Period.all: 14100}),
+  _Entry(
+      'Larasati', {_Period.week: 760, _Period.month: 2960, _Period.all: 14100}),
   _Entry('Rian Pratama',
       {_Period.week: 690, _Period.month: 2540, _Period.all: 8700}),
   _Entry('Maya Putri',
@@ -66,8 +70,16 @@ class LeaderboardScreen extends StatefulWidget {
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
   _Period _period = _Period.week;
 
-  List<_Entry> get _sorted {
-    final list = [..._entries];
+  List<_Entry> _sortedWith(UserProfile? profile) {
+    final list = _entries.map((e) {
+      if (!e.isMe) return e;
+      return _Entry(
+        profile?.displayName ?? e.name,
+        e.xp,
+        isMe: true,
+        avatarUrl: profile?.avatarUrl,
+      );
+    }).toList();
     list.sort((a, b) => (b.xp[_period] ?? 0).compareTo(a.xp[_period] ?? 0));
     return list;
   }
@@ -87,7 +99,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final sorted = _sorted;
+    final profile = context.watch<ProfileController>().profile;
+    final sorted = _sortedWith(profile);
     final top3 = sorted.take(3).toList();
     final rest = sorted.skip(3).toList();
 
@@ -122,7 +135,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             child: Text(
               'Peringkat diperbarui setiap hari pada pukul 00.00.',
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textMuted),
+              style:
+                  AppTextStyles.bodySmall.copyWith(color: AppColors.textMuted),
             ),
           ),
         ],
@@ -204,15 +218,21 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             shape: BoxShape.circle,
             border: Border.all(color: ringColor, width: 3),
           ),
-          child: CircleAvatar(
-            radius: radius,
-            backgroundColor: e.isMe ? AppColors.primary : AppColors.purpleSoft,
-            child: Icon(
-              Icons.person,
-              size: radius * 0.85,
-              color: e.isMe ? AppColors.textOnPrimary : AppColors.secondary,
-            ),
-          ),
+          child: e.isMe || e.avatarUrl != null
+              ? UserAvatar(
+                  imageUrl: e.avatarUrl,
+                  name: e.name,
+                  size: radius * 2,
+                )
+              : CircleAvatar(
+                  radius: radius,
+                  backgroundColor: AppColors.purpleSoft,
+                  child: Icon(
+                    Icons.person,
+                    size: radius * 0.85,
+                    color: AppColors.secondary,
+                  ),
+                ),
         ),
         const SizedBox(height: 8),
         Text(
@@ -306,7 +326,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   Widget _buildRow(_Entry e, int rank) {
     final me = e.isMe;
     return Container(
-      color: me ? AppColors.pinkSoft.withValues(alpha: 0.3) : Colors.transparent,
+      color:
+          me ? AppColors.pinkSoft.withValues(alpha: 0.3) : Colors.transparent,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
@@ -321,15 +342,22 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: me ? AppColors.primary : AppColors.purpleSoft,
-            child: Icon(
-              Icons.person,
-              size: 20,
-              color: me ? AppColors.textOnPrimary : AppColors.secondary,
+          if (me || e.avatarUrl != null)
+            UserAvatar(
+              imageUrl: e.avatarUrl,
+              name: e.name,
+              size: 40,
+            )
+          else
+            const CircleAvatar(
+              radius: 20,
+              backgroundColor: AppColors.purpleSoft,
+              child: Icon(
+                Icons.person,
+                size: 20,
+                color: AppColors.secondary,
+              ),
             ),
-          ),
           const SizedBox(width: 12),
           Expanded(
             child: Row(

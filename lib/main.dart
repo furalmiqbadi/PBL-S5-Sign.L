@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/chat_controller.dart';
 import 'controllers/notification_controller.dart';
+import 'controllers/profile_controller.dart';
 import 'controllers/settings_controller.dart';
 import 'services/auth_recovery.dart';
 import 'services/supabase_config.dart';
@@ -73,6 +74,7 @@ class SignLApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => NotificationController(),
         ),
+        ChangeNotifierProvider(create: (_) => ProfileController()),
         // `..load()` membaca preferensi tersimpan (mis. ukuran teks) saat app dibuka.
         ChangeNotifierProvider(create: (_) => SettingsController()..load()),
       ],
@@ -144,6 +146,7 @@ class _SessionSyncState extends State<_SessionSync> {
       _userId = null;
       context.read<ChatController>().reset();
       context.read<NotificationController>().reset();
+      context.read<ProfileController>().reset();
       return;
     }
 
@@ -162,6 +165,7 @@ class _SessionSyncState extends State<_SessionSync> {
     final notifications = context.read<NotificationController>();
     chat.loadRooms();
     notifications.load(force: true);
+    context.read<ProfileController>().load(force: true);
   }
 
   @override

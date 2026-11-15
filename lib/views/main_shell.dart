@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/chat_controller.dart';
+import '../controllers/profile_controller.dart';
 import 'chat/chat_list_view.dart';
 import 'home/home_page.dart';
 import 'home/materi_page.dart';
@@ -59,25 +60,23 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  static const List<AppNavItem> _items = [
-    AppNavItem(
-      icon: Icons.home_outlined,
-      activeIcon: Icons.home_rounded,
-      label: 'Beranda',
-    ),
-    AppNavItem(
-      icon: Icons.assignment_outlined,
-      activeIcon: Icons.assignment_rounded,
-      label: 'Kuis',
-    ),
-    AppNavItem(
-      svgAsset: 'assets/images/komunitas.svg',
-      label: 'Komunitas',
-    ),
-    AppNavItem(imageUrl: _profilePhotoUrl),
-  ];
-
-  static const String? _profilePhotoUrl = null;
+  List<AppNavItem> _navItems(String? avatarUrl) => [
+        const AppNavItem(
+          icon: Icons.home_outlined,
+          activeIcon: Icons.home_rounded,
+          label: 'Beranda',
+        ),
+        const AppNavItem(
+          icon: Icons.assignment_outlined,
+          activeIcon: Icons.assignment_rounded,
+          label: 'Kuis',
+        ),
+        const AppNavItem(
+          svgAsset: 'assets/images/komunitas.svg',
+          label: 'Komunitas',
+        ),
+        AppNavItem(imageUrl: avatarUrl),
+      ];
 
   void _openChat(BuildContext context) {
     Navigator.of(context).push(
@@ -291,6 +290,8 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final profile = context.watch<ProfileController>().profile;
+
     return PopScope<void>(
       canPop: _index == 0,
       onPopInvokedWithResult: (didPop, _) {
@@ -309,7 +310,8 @@ class _MainShellState extends State<MainShell> {
           ],
         ),
         bottomNavigationBar: AppBottomNavBar(
-          items: _items,
+          items: _navItems(profile?.avatarUrl),
+          avatarName: profile?.displayName,
           selectedIndex: _index,
           onSelect: _goTo,
           onCenterTap: () => _goTo(AppBottomNavBar.centerIndex),

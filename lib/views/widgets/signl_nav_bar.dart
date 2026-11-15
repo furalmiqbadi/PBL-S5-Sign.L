@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../controllers/profile_controller.dart';
 import '../theme/app_colors.dart';
 import 'app_bottom_nav_bar.dart';
 
@@ -27,30 +29,31 @@ class SignlNavBar extends StatelessWidget {
   final VoidCallback? onCenterTap;
 
   /// Tepat 4 item untuk slot kiri/kanan; tombol tengah terpisah.
-  static const List<AppNavItem> _items = [
-    AppNavItem(
-      icon: Icons.home_outlined,
-      activeIcon: Icons.home_rounded,
-      label: 'Beranda',
-    ),
-    AppNavItem(
-      icon: Icons.assignment_outlined,
-      activeIcon: Icons.assignment_rounded,
-      label: 'Kuis',
-    ),
-    AppNavItem(
-      svgAsset: 'assets/images/komunitas.svg',
-      label: 'Komunitas',
-    ),
-    AppNavItem(imageUrl: _profilePhotoUrl),
-  ];
-
-  static const String? _profilePhotoUrl = null;
+  List<AppNavItem> _navItems(String? avatarUrl) => [
+        const AppNavItem(
+          icon: Icons.home_outlined,
+          activeIcon: Icons.home_rounded,
+          label: 'Beranda',
+        ),
+        const AppNavItem(
+          icon: Icons.assignment_outlined,
+          activeIcon: Icons.assignment_rounded,
+          label: 'Kuis',
+        ),
+        const AppNavItem(
+          svgAsset: 'assets/images/komunitas.svg',
+          label: 'Komunitas',
+        ),
+        AppNavItem(imageUrl: avatarUrl),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final profile = context.watch<ProfileController>().profile;
+
     return AppBottomNavBar(
-      items: _items,
+      items: _navItems(profile?.avatarUrl),
+      avatarName: profile?.displayName,
       selectedIndex: selectedIndex,
       onSelect: (index) {
         if (onSelect != null) {

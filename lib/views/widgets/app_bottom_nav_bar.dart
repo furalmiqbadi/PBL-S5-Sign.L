@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import 'user_avatar.dart';
 
 /// URL foto profil dummy yang dipakai bila pengguna belum memasang foto.
 ///
@@ -138,6 +139,12 @@ class AppBottomNavBar extends StatelessWidget {
   /// Foto profil yang dipakai bila [AppNavItem.imageUrl] null.
   final String dummyAvatarUrl;
 
+  /// Nama pengguna untuk inisial saat foto profil belum tersedia.
+  ///
+  /// Bila diisi, item foto profil memakai inisial ini sebagai cadangan,
+  /// bukan [dummyAvatarUrl].
+  final String? avatarName;
+
   const AppBottomNavBar({
     super.key,
     required this.items,
@@ -149,6 +156,7 @@ class AppBottomNavBar extends StatelessWidget {
     this.palette = const NavBarPalette(),
     this.labelStyle,
     this.dummyAvatarUrl = kDummyAvatarUrl,
+    this.avatarName,
   }) : assert(items.length == 4, 'AppBottomNavBar memerlukan tepat 4 item');
 
   /// Indeks visual tombol tengah.
@@ -243,6 +251,7 @@ class AppBottomNavBar extends StatelessWidget {
         inactiveColor: palette.inactiveColor,
         labelStyle: labelStyle,
         dummyAvatarUrl: dummyAvatarUrl,
+        avatarName: avatarName,
         onTap: () => onSelect(destIndex),
       ),
     );
@@ -256,6 +265,7 @@ class _NavItemButton extends StatefulWidget {
   final Color inactiveColor;
   final TextStyle? labelStyle;
   final String dummyAvatarUrl;
+  final String? avatarName;
   final VoidCallback onTap;
 
   const _NavItemButton({
@@ -266,6 +276,7 @@ class _NavItemButton extends StatefulWidget {
     required this.dummyAvatarUrl,
     required this.onTap,
     this.labelStyle,
+    this.avatarName,
   });
 
   @override
@@ -281,8 +292,7 @@ class _NavItemButtonState extends State<_NavItemButton> {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        widget.isSelected ? widget.activeColor : widget.inactiveColor;
+    final color = widget.isSelected ? widget.activeColor : widget.inactiveColor;
 
     return Semantics(
       button: true,
@@ -298,9 +308,7 @@ class _NavItemButtonState extends State<_NavItemButton> {
           scale: _pressed ? 0.88 : 1.0,
           duration: const Duration(milliseconds: 120),
           curve: Curves.easeOut,
-          child: widget.item.isAvatar
-              ? _buildAvatar()
-              : _buildIconItem(color),
+          child: widget.item.isAvatar ? _buildAvatar() : _buildIconItem(color),
         ),
       ),
     );
@@ -308,7 +316,8 @@ class _NavItemButtonState extends State<_NavItemButton> {
 
   /// Item foto profil: avatar bulat, tanpa label.
   Widget _buildAvatar() {
-    final url = widget.item.imageUrl ?? widget.dummyAvatarUrl;
+    final url = widget.item.imageUrl ??
+        (widget.avatarName == null ? widget.dummyAvatarUrl : null);
     return Center(
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -316,26 +325,14 @@ class _NavItemButtonState extends State<_NavItemButton> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: widget.isSelected
-                ? widget.activeColor
-                : Colors.transparent,
+            color: widget.isSelected ? widget.activeColor : Colors.transparent,
             width: 2,
           ),
         ),
-        child: ClipOval(
-          child: Image.network(
-            url,
-            width: 30,
-            height: 30,
-            fit: BoxFit.cover,
-            // Cadangan bila foto gagal dimuat (mis. offline).
-            errorBuilder: (_, __, ___) => Container(
-              width: 30,
-              height: 30,
-              color: widget.inactiveColor.withValues(alpha: 0.15),
-              child: Icon(Icons.person, size: 20, color: widget.inactiveColor),
-            ),
-          ),
+        child: UserAvatar(
+          imageUrl: url,
+          name: widget.avatarName ?? 'Pengguna',
+          size: 30,
         ),
       ),
     );
@@ -466,9 +463,8 @@ class _CenterButtonState extends State<_CenterButton> {
               shape: BoxShape.circle,
               // Cincin penanda saat tab tengah aktif.
               border: Border.all(
-                color: widget.isSelected
-                    ? widget.activeColor
-                    : Colors.transparent,
+                color:
+                    widget.isSelected ? widget.activeColor : Colors.transparent,
                 width: 2,
               ),
             ),

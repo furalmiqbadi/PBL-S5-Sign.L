@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
+import '../../controllers/profile_controller.dart';
 import '../../controllers/settings_controller.dart';
 import '../../models/app_settings.dart';
 import '../auth/auth_views.dart';
 import '../edit/edit_profile_screen.dart';
 import '../theme/app_colors.dart';
+import '../widgets/user_avatar.dart';
 
 // ============================================================================
 // 1. KONSTANTA
@@ -79,7 +81,8 @@ class _SettingScreenState extends State<SettingScreen> {
     );
     if (v == null) return;
     await c.setLanguage(v);
-    if (v == 'en') _toast('Terjemahan English belum tersedia, pilihan disimpan.');
+    if (v == 'en')
+      _toast('Terjemahan English belum tersedia, pilihan disimpan.');
   }
 
   Future<void> _pickReminderTime(SettingsController c) async {
@@ -136,8 +139,9 @@ class _SettingScreenState extends State<SettingScreen> {
                   title: Text(
                     o.title,
                     style: TextStyle(
-                      fontWeight:
-                          o.value == selected ? FontWeight.w800 : FontWeight.w600,
+                      fontWeight: o.value == selected
+                          ? FontWeight.w800
+                          : FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),
                   ),
@@ -411,7 +415,8 @@ class _SettingScreenState extends State<SettingScreen> {
               }
             },
             itemBuilder: (_) => const [
-              PopupMenuItem(value: 'reset', child: Text('Atur ulang pengaturan')),
+              PopupMenuItem(
+                  value: 'reset', child: Text('Atur ulang pengaturan')),
             ],
           ),
         ],
@@ -476,6 +481,7 @@ class _ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final profile = context.watch<ProfileController>().profile;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(),
@@ -492,43 +498,33 @@ class _ProfileCard extends StatelessWidget {
               padding: const EdgeInsets.all(2),
               decoration: const BoxDecoration(
                   shape: BoxShape.circle, color: AppColors.surface),
-              child: ClipOval(
-                child: Image.network(
-                  'https://i.pravatar.cc/150?img=47',
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.cover,
-                  // Cadangan bila offline.
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 48,
-                    height: 48,
-                    color: AppColors.border,
-                    child: const Icon(Icons.person, color: AppColors.textSecondary),
-                  ),
-                ),
+              child: UserAvatar(
+                imageUrl: profile?.avatarUrl,
+                name: profile?.displayName ?? 'Pengguna',
+                size: 48,
               ),
             ),
           ),
           const SizedBox(width: 12),
           // Nama + level (Expanded agar tombol di kanan tidak overflow)
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Sarah Chen',
+                  profile?.displayName ?? 'Memuat profil...',
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textPrimary,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Level 8 Signer',
+                  profile?.levelLabel ?? 'Level Signer',
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 11, color: AppColors.textSecondary),
                 ),
               ],
