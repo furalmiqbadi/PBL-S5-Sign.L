@@ -122,6 +122,8 @@ class ChatMessage {
     this.isMe = false,
     this.isRead = false,
     this.isNew = false,
+    this.senderName,
+    this.senderAvatarUrl,
   });
 
   final String id;
@@ -139,6 +141,12 @@ class ChatMessage {
   /// Penanda pemisah "N pesan baru".
   final bool isNew;
 
+  /// Nama tampilan pengirim, dipakai pada gelembung chat grup.
+  final String? senderName;
+
+  /// Foto profil pengirim, dipakai pada gelembung chat grup.
+  final String? senderAvatarUrl;
+
   ChatMessage copyWith({
     String? id,
     String? roomId,
@@ -148,6 +156,8 @@ class ChatMessage {
     bool? isMe,
     bool? isRead,
     bool? isNew,
+    String? senderName,
+    String? senderAvatarUrl,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -158,6 +168,8 @@ class ChatMessage {
       isMe: isMe ?? this.isMe,
       isRead: isRead ?? this.isRead,
       isNew: isNew ?? this.isNew,
+      senderName: senderName ?? this.senderName,
+      senderAvatarUrl: senderAvatarUrl ?? this.senderAvatarUrl,
     );
   }
 
@@ -171,6 +183,8 @@ class ChatMessage {
       isMe: json['isMe'] as bool? ?? false,
       isRead: json['isRead'] as bool? ?? false,
       isNew: json['isNew'] as bool? ?? false,
+      senderName: json['senderName'] as String?,
+      senderAvatarUrl: json['senderAvatarUrl'] as String?,
     );
   }
 
@@ -183,5 +197,7 @@ class ChatMessage {
         'isMe': isMe,
         'isRead': isRead,
         'isNew': isNew,
+        'senderName': senderName,
+        'senderAvatarUrl': senderAvatarUrl,
       };
 }

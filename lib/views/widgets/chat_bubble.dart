@@ -9,15 +9,24 @@ import 'time_labels.dart';
 ///
 /// - Pesan dari pengguna ([ChatMessage.isMe]) rata kanan, warna primary.
 /// - Pesan dari lawan bicara rata kiri, warna fieldFill lembut.
+/// - [showSenderName] menampilkan nama pengirim di atas bubble (chat grup).
 class ChatBubble extends StatelessWidget {
-  const ChatBubble({super.key, required this.message});
+  const ChatBubble({
+    super.key,
+    required this.message,
+    this.showSenderName = false,
+  });
 
   final ChatMessage message;
+
+  /// Tampilkan nama pengirim untuk pesan orang lain di chat grup.
+  final bool showSenderName;
 
   @override
   Widget build(BuildContext context) {
     final isMe = message.isMe;
     final maxWidth = MediaQuery.of(context).size.width * 0.74;
+    final senderName = message.senderName?.trim();
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -25,6 +34,19 @@ class ChatBubble extends StatelessWidget {
         crossAxisAlignment:
             isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
+          if (showSenderName && !isMe)
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 4),
+              child: Text(
+                senderName == null || senderName.isEmpty
+                    ? 'Pengguna'
+                    : senderName,
+                style: AppTextStyles.labelSmall.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth),
             child: Container(

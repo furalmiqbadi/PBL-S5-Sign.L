@@ -525,13 +525,23 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
 
     final items = <Widget>[const ChatDayDivider(label: 'Hari ini')];
+    final isGroup = controller.activeRoom?.isGroup ?? widget.room.isGroup;
     var newDividerInserted = false;
-    for (final message in messages) {
+    for (var i = 0; i < messages.length; i++) {
+      final message = messages[i];
       if (message.isNew && !newDividerInserted) {
         items.add(const ChatNewMessageDivider());
         newDividerInserted = true;
       }
-      items.add(ChatBubble(message: message));
+      final previousSenderId = i > 0 ? messages[i - 1].senderId : null;
+      final showSenderName =
+          isGroup && !message.isMe && previousSenderId != message.senderId;
+      items.add(
+        ChatBubble(
+          message: message,
+          showSenderName: showSenderName,
+        ),
+      );
     }
 
     return ListView(

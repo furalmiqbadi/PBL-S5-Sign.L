@@ -69,6 +69,45 @@ class SupabaseChatService implements ChatService {
     }
   }
 
+  /// Cache nama/foto pengirim untuk gelembung chat grup.
+  ///
+  /// Sumbernya RPC `get_chat_contacts` yang sudah dipakai untuk daftar kontak.
+  /// Profil di bawah RLS hanya bisa dibaca milik sendiri, jadi nama pengirim
+  /// lain harus lewat RPC tersebut.
+  Map<String, ChatContact>? _contactCache;
+  DateTime? _contactCacheAt;
+  static const Duration _contactCacheTtl = Duration(minutes: 2);
+
+  Future<Map<String, ChatContact>> _senderMap({
+    bool force = false,
+    String? requireId,
+  }) async {
+    final cachedAt = _contactCacheAt;
+    final cacheFresh = _contactCache != null &&
+        cachedAt != null &&
+        DateTime.now().difference(cachedAt) < _contactCacheTtl;
+    final cacheHasSender =
+        requireId == null || (_contactCache?.containsKey(requireId) ?? false);
+    if (!force && cacheFresh && cacheHasSender) {
+      return _contactCache!;
+    }
+    // Cache masih segar tapi pengirim belum ada (mis. anggota baru) → muat ulang.
+    final retry = !force && cacheFresh && !cacheHasSender;
+
+    final contacts = await getContacts();
+    _contactCache = {for (final contact in contacts) contact.id: contact};
+    _contactCacheAt = DateTime.now();
+    if (retry && !_contactCache!.containsKey(requireId)) {
+      return _senderMap(force: true, requireId: requireId);
+    }
+    return _contactCache!;
+  }
+
+  String _nonEmptyText(Object? value, String fallback) {
+    final text = value is String ? value.trim() : '';
+    return text.isEmpty ? fallback : text;
+  }
+
   void _requireAuthenticated() {
     if (_client.auth.currentUser == null) {
       throw StateError('Silakan login untuk menggunakan chat.');
@@ -86,9 +125,10 @@ class SupabaseChatService implements ChatService {
     final rows = await _client.rpc('get_chat_rooms') as List<dynamic>;
     return rows.map((value) {
       final row = Map<String, dynamic>.from(value as Map);
+      final lastSender = _nonEmptyText(row['last_sender_name'], '');
       return ChatRoom(
         id: row['id'].toString(),
-        name: row['name'] as String? ?? 'Percakapan',
+        name: _nonEmptyText(row['name'], 'Percakapan'),
         avatarUrl: row['avatar_url'] as String?,
         lastMessage: row['last_message'] as String? ?? '',
         lastMessageTime: DateTime.tryParse(
@@ -98,7 +138,7 @@ class SupabaseChatService implements ChatService {
         unreadCount: (row['unread_count'] as num?)?.toInt() ?? 0,
         isGroup: row['is_group'] as bool? ?? false,
         memberCount: (row['member_count'] as num?)?.toInt(),
-        lastSenderName: row['last_sender_name'] as String?,
+        lastSenderName: lastSender.isEmpty ? null : lastSender,
         isMuted: row['is_muted'] as bool? ?? false,
       );
     }).toList();
@@ -110,10 +150,14 @@ class SupabaseChatService implements ChatService {
     final rows = await _client.rpc('get_chat_contacts') as List<dynamic>;
     return rows.map((value) {
       final row = Map<String, dynamic>.from(value as Map);
-      final username = row['username'] as String?;
+      final username = _nonEmptyText(row['username'], '');
+      final fullName = _nonEmptyText(row['full_name'], '');
+      final name = fullName.isNotEmpty
+          ? fullName
+          : (username.isNotEmpty ? username : 'Pengguna');
       return ChatContact(
         id: row['user_id'].toString(),
-        name: row['full_name'] as String? ?? username ?? 'Pengguna',
+        name: name,
         avatarUrl: row['avatar_url'] as String?,
       );
     }).toList();
@@ -127,8 +171,12 @@ class SupabaseChatService implements ChatService {
         .select('id, room_id, sender_id, body, created_at')
         .eq('room_id', roomId)
         .order('created_at', ascending: true);
+    final senders = await _senderMap(force: true).catchError(
+      (_) => const <String, ChatContact>{},
+    );
     return rows.map((row) {
       final senderId = row['sender_id'] as String;
+      final sender = senders[senderId];
       return ChatMessage(
         id: row['id'] as String,
         roomId: row['room_id'] as String,
@@ -136,6 +184,8 @@ class SupabaseChatService implements ChatService {
         text: row['body'] as String,
         time: DateTime.parse(row['created_at'] as String).toLocal(),
         isMe: senderId == userId,
+        senderName: sender?.name,
+        senderAvatarUrl: sender?.avatarUrl,
       );
     }).toList();
   }
@@ -263,10 +313,24 @@ class SupabaseChatService implements ChatService {
                 column: 'room_id',
                 value: roomId,
               ),
-              callback: (payload) {
+              callback: (payload) async {
                 if (controller.isClosed) return;
                 final row = payload.newRecord;
                 final senderId = row['sender_id'] as String? ?? '';
+                String? senderName;
+                String? senderAvatarUrl;
+                if (senderId != userId) {
+                  try {
+                    final sender = (await _senderMap(
+                      requireId: senderId,
+                    ))[senderId];
+                    senderName = sender?.name;
+                    senderAvatarUrl = sender?.avatarUrl;
+                  } catch (_) {
+                    // Nama pengirim opsional; pesan tetap ditampilkan.
+                  }
+                }
+                if (controller.isClosed) return;
                 controller.add(
                   ChatMessage(
                     id: row['id'] as String? ?? '',
@@ -278,6 +342,8 @@ class SupabaseChatService implements ChatService {
                         )?.toLocal() ??
                         DateTime.now(),
                     isMe: senderId == userId,
+                    senderName: senderName,
+                    senderAvatarUrl: senderAvatarUrl,
                   ),
                 );
               },
@@ -660,6 +726,7 @@ class InMemoryChatService implements ChatService {
           id: 'm2',
           roomId: roomId,
           senderId: 'dina',
+          senderName: 'Dina S.',
           text: 'Hai Sarah, tentu! Kirim video gerakannya, ya. '
               'Kita belajar bareng 💪',
           time: at(10, 34),
@@ -677,6 +744,7 @@ class InMemoryChatService implements ChatService {
           id: 'm4',
           roomId: roomId,
           senderId: 'dina',
+          senderName: 'Dina S.',
           text: 'Sudah hampir pas! Coba tegakkan telunjuk dan rapatkan jari '
               'lainnya. Jangan lupa rilekskan tangan, ya.',
           time: at(10, 39),
@@ -695,6 +763,7 @@ class InMemoryChatService implements ChatService {
           id: 'm6',
           roomId: roomId,
           senderId: 'dina',
+          senderName: 'Dina S.',
           text: 'Sama-sama! Sampai nanti di sesi latihan 😊',
           time: at(10, 42),
           isNew: true,
@@ -707,6 +776,7 @@ class InMemoryChatService implements ChatService {
         id: '$roomId-1',
         roomId: roomId,
         senderId: 'other',
+        senderName: 'Pengguna',
         text: 'Hai! Selamat datang di ruang percakapan. 👋',
         time: at(9, 0),
       ),

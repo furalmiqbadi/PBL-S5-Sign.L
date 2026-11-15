@@ -41,6 +41,12 @@ void main() {
       await controller.openRoom(dina);
       expect(controller.unreadRoomsCount, 2);
       expect(controller.totalUnreadMessages, 3);
+      expect(
+        controller.activeMessages
+            .firstWhere((message) => !message.isMe)
+            .senderName,
+        'Dina S.',
+      );
 
       await controller.sendMessage('Halo Dina');
       expect(
