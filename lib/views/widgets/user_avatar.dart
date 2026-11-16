@@ -41,11 +41,22 @@ class UserAvatar extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          ClipOval(
-            child: SizedBox(
-              width: size,
-              height: size,
-              child: isGroup
+          DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: SizedBox(
+                width: size,
+                height: size,
+                child: isGroup
                   ? _groupPlaceholder()
                   : (imageUrl != null && imageUrl!.isNotEmpty
                       ? Image.network(
@@ -58,6 +69,7 @@ class UserAvatar extends StatelessWidget {
                           },
                         )
                       : _initialPlaceholder()),
+              ),
             ),
           ),
           if (showOnlineBadge && !isGroup)
