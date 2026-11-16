@@ -1,11 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sign_l/controllers/notification_controller.dart';
 import 'package:sign_l/models/notification_model.dart';
+import 'package:sign_l/services/notification_service.dart';
 
 void main() {
   group('NotificationController', () {
     test('memuat, memfilter, dan mencari notifikasi', () async {
-      final controller = NotificationController();
+      final controller =
+          NotificationController(service: NotificationService.inMemory());
       await controller.load();
 
       expect(controller.unreadCount, 3);
@@ -20,16 +22,17 @@ void main() {
     });
 
     test('status dibaca bertahan saat data dimuat ulang', () async {
-      final controller = NotificationController();
+      final controller =
+          NotificationController(service: NotificationService.inMemory());
       await controller.load();
 
-      controller.markAsRead('n1');
+      await controller.markAsRead('n1');
       expect(controller.unreadCount, 2);
 
       await controller.load(force: true);
       expect(controller.unreadCount, 2);
 
-      controller.markAllAsRead();
+      await controller.markAllAsRead();
       expect(controller.unreadCount, 0);
 
       await controller.load(force: true);
@@ -46,6 +49,18 @@ void main() {
       );
 
       expect(notification.target, NotificationTarget.achievement);
+    });
+
+    test('reset membersihkan data saat logout', () async {
+      final controller =
+          NotificationController(service: NotificationService.inMemory());
+      await controller.load();
+
+      controller.reset();
+
+      expect(controller.notifications, isEmpty);
+      expect(controller.unreadCount, 0);
+      expect(controller.errorMessage, isNull);
     });
   });
 }

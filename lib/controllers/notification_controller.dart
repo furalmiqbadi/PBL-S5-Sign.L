@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../models/notification_model.dart';
 import '../services/notification_service.dart';
 
 /// Filter kategori pada layar Notifikasi.
-enum NotificationFilter { semua, komunitas, belajar, pencapaian }
+enum NotificationFilter { semua, komunitas, belajar, pencapaian, chat }
 
 /// Thin Controller untuk fitur Notifikasi.
 ///
@@ -23,6 +25,9 @@ class NotificationController extends ChangeNotifier {
   String query = '';
   bool _hasLoaded = false;
 
+  // --- Realtime subscription ---
+  StreamSubscription<AppNotification>? _notifSub;
+
   /// Notifikasi setelah difilter berdasarkan kategori dan kata kunci.
   List<AppNotification> get notifications {
     final Iterable<AppNotification> base;
@@ -38,6 +43,9 @@ class NotificationController extends ChangeNotifier {
         break;
       case NotificationFilter.pencapaian:
         base = _byCategory(NotificationCategory.pencapaian);
+        break;
+      case NotificationFilter.chat:
+        base = _byCategory(NotificationCategory.chat);
         break;
     }
 
@@ -79,15 +87,32 @@ class NotificationController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
 
+    var loaded = false;
     try {
       _notifications = await _service.getNotifications();
       _hasLoaded = true;
+      loaded = true;
     } catch (e) {
       errorMessage = 'Gagal memuat notifikasi. Silakan coba lagi.';
     } finally {
       isLoading = false;
       notifyListeners();
     }
+
+    if (!loaded) return;
+
+    // Subscribe stream notifikasi baru secara realtime.
+    // Re-subscribe setiap force reload agar pakai credentials user terbaru.
+    _notifSub?.cancel();
+    _notifSub = _service.watchNewNotifications().listen((notif) {
+      // Hindari duplikat jika notif sudah ada di cache.
+      final alreadyExists = _notifications.any((n) => n.id == notif.id);
+      if (alreadyExists) return;
+
+      // Prepend notifikasi baru (urutan terbaru di atas).
+      _notifications = [notif, ..._notifications];
+      notifyListeners();
+    });
   }
 
   void setFilter(NotificationFilter value) {
@@ -103,23 +128,47 @@ class NotificationController extends ChangeNotifier {
   }
 
   /// Menandai satu notifikasi telah dibaca.
-  void markAsRead(String id) {
+  Future<void> markAsRead(String id) async {
     final target = _notifications.where((item) => item.id == id);
     if (target.isEmpty || target.first.isRead) return;
 
+    final previous = _notifications;
     _notifications = _notifications
         .map((item) => item.id == id ? item.copyWith(isRead: true) : item)
         .toList();
-    _service.markAsRead(id);
     notifyListeners();
+    try {
+      await _service.markAsRead(id);
+    } catch (e) {
+      errorMessage = 'Gagal menyimpan status notifikasi.';
+      _notifications = previous;
+      notifyListeners();
+    }
   }
 
   /// Menandai seluruh notifikasi telah dibaca.
-  void markAllAsRead() {
+  Future<void> markAllAsRead() async {
     if (unreadCount == 0) return;
+    final previous = _notifications;
     _notifications =
         _notifications.map((item) => item.copyWith(isRead: true)).toList();
-    _service.markAllAsRead();
+    notifyListeners();
+    try {
+      await _service.markAllAsRead();
+    } catch (e) {
+      errorMessage = 'Gagal menyimpan status notifikasi.';
+      _notifications = previous;
+      notifyListeners();
+    }
+  }
+
+  /// Membersihkan notifikasi user lama setelah logout.
+  void reset() {
+    _notifSub?.cancel();
+    _notifSub = null;
+    _notifications = [];
+    _hasLoaded = false;
+    errorMessage = null;
     notifyListeners();
   }
 
@@ -128,4 +177,10 @@ class NotificationController extends ChangeNotifier {
 
   bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
+
+  @override
+  void dispose() {
+    _notifSub?.cancel();
+    super.dispose();
+  }
 }

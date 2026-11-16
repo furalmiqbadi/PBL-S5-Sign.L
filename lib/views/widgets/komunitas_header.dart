@@ -15,7 +15,7 @@ class KomunitasHeader extends StatelessWidget {
 
   const KomunitasHeader({
     super.key,
-    this.unreadCount = 2,
+    required this.unreadCount,
     this.onLeaderboard,
     this.onMessages,
   });
@@ -34,7 +34,11 @@ class KomunitasHeader extends StatelessWidget {
         HeaderIconButton(
           svgAsset: 'assets/images/dm_fix.svg',
           semanticLabel: 'Pesan langsung',
-          badge: unreadCount > 0 ? '$unreadCount' : null,
+          badge: unreadCount > 9
+              ? '9+'
+              : unreadCount > 0
+                  ? '$unreadCount'
+                  : null,
           onTap: onMessages,
         ),
       ],

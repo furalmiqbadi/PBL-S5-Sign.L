@@ -16,6 +16,7 @@ class ChatRoom {
     this.memberCount,
     this.isOnline = false,
     this.lastSenderName,
+    this.isMuted = false,
   });
 
   final String id;
@@ -30,6 +31,7 @@ class ChatRoom {
 
   /// Nama pengirim terakhir (dipakai untuk preview grup, mis. "Siti: ...").
   final String? lastSenderName;
+  final bool isMuted;
 
   bool get hasUnread => unreadCount > 0;
 
@@ -47,6 +49,7 @@ class ChatRoom {
       memberCount: json['memberCount'] as int?,
       isOnline: json['isOnline'] as bool? ?? false,
       lastSenderName: json['lastSenderName'] as String?,
+      isMuted: json['isMuted'] as bool? ?? false,
     );
   }
 
@@ -61,6 +64,7 @@ class ChatRoom {
         'memberCount': memberCount,
         'isOnline': isOnline,
         'lastSenderName': lastSenderName,
+        'isMuted': isMuted,
       };
 
   ChatRoom copyWith({
@@ -74,6 +78,7 @@ class ChatRoom {
     int? memberCount,
     bool? isOnline,
     String? lastSenderName,
+    bool? isMuted,
   }) {
     return ChatRoom(
       id: id ?? this.id,
@@ -86,6 +91,7 @@ class ChatRoom {
       memberCount: memberCount ?? this.memberCount,
       isOnline: isOnline ?? this.isOnline,
       lastSenderName: lastSenderName ?? this.lastSenderName,
+      isMuted: isMuted ?? this.isMuted,
     );
   }
 }
@@ -116,6 +122,8 @@ class ChatMessage {
     this.isMe = false,
     this.isRead = false,
     this.isNew = false,
+    this.senderName,
+    this.senderAvatarUrl,
   });
 
   final String id;
@@ -133,6 +141,38 @@ class ChatMessage {
   /// Penanda pemisah "N pesan baru".
   final bool isNew;
 
+  /// Nama tampilan pengirim, dipakai pada gelembung chat grup.
+  final String? senderName;
+
+  /// Foto profil pengirim, dipakai pada gelembung chat grup.
+  final String? senderAvatarUrl;
+
+  ChatMessage copyWith({
+    String? id,
+    String? roomId,
+    String? senderId,
+    String? text,
+    DateTime? time,
+    bool? isMe,
+    bool? isRead,
+    bool? isNew,
+    String? senderName,
+    String? senderAvatarUrl,
+  }) {
+    return ChatMessage(
+      id: id ?? this.id,
+      roomId: roomId ?? this.roomId,
+      senderId: senderId ?? this.senderId,
+      text: text ?? this.text,
+      time: time ?? this.time,
+      isMe: isMe ?? this.isMe,
+      isRead: isRead ?? this.isRead,
+      isNew: isNew ?? this.isNew,
+      senderName: senderName ?? this.senderName,
+      senderAvatarUrl: senderAvatarUrl ?? this.senderAvatarUrl,
+    );
+  }
+
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
       id: json['id'] as String,
@@ -143,6 +183,8 @@ class ChatMessage {
       isMe: json['isMe'] as bool? ?? false,
       isRead: json['isRead'] as bool? ?? false,
       isNew: json['isNew'] as bool? ?? false,
+      senderName: json['senderName'] as String?,
+      senderAvatarUrl: json['senderAvatarUrl'] as String?,
     );
   }
 
@@ -155,5 +197,7 @@ class ChatMessage {
         'isMe': isMe,
         'isRead': isRead,
         'isNew': isNew,
+        'senderName': senderName,
+        'senderAvatarUrl': senderAvatarUrl,
       };
 }

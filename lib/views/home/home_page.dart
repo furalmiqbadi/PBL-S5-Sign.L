@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/chat_controller.dart';
 import '../../controllers/notification_controller.dart';
+import '../../controllers/profile_controller.dart';
 import '../chat/chat_list_view.dart';
 import '../komunitas/komunitas_page.dart';
 import '../widgets/leaderboard.dart';
@@ -12,6 +13,7 @@ import '../notification/notification_view.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/auth_widgets.dart' show SignLogo, SignWordmark;
+import '../widgets/user_avatar.dart';
 
 class HomePage extends StatefulWidget {
   final VoidCallback? onOpenCommunity;
@@ -75,7 +77,6 @@ class _HomePageState extends State<HomePage> {
   void _openLeaderboard() {
     showLeaderboardSheet(context);
   }
-
 
   void _openNotifications() {
     Navigator.push(
@@ -151,6 +152,7 @@ class _HomePageState extends State<HomePage> {
     final notificationUnread =
         context.watch<NotificationController>().unreadCount;
     final chatUnread = context.watch<ChatController>().totalUnreadMessages;
+    final profile = context.watch<ProfileController>().profile;
 
     return Row(
       children: [
@@ -210,11 +212,10 @@ class _HomePageState extends State<HomePage> {
         // FOTO PROFIL SUDAH DISAMBUNGKAN KE PAGE PROFIL
         GestureDetector(
           onTap: _openProfile,
-          child: CircleAvatar(
-            radius: 16,
-            backgroundImage:
-                const NetworkImage('https://i.pravatar.cc/100?img=5'),
-            onBackgroundImageError: (_, __) {},
+          child: UserAvatar(
+            imageUrl: profile?.avatarUrl,
+            name: profile?.displayName ?? 'Pengguna',
+            size: 32,
           ),
         ),
       ],
@@ -231,8 +232,8 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Row(
         children: [
-          _buildStatItem(Icons.local_fire_department_rounded, AppColors.tertiary,
-              'Streak', '7 Hari'),
+          _buildStatItem(Icons.local_fire_department_rounded,
+              AppColors.tertiary, 'Streak', '7 Hari'),
           _buildStatDivider(),
           _buildStatItem(
               Icons.favorite_rounded, AppColors.danger, 'Nyawa', '5/5'),
@@ -273,8 +274,8 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Text(
                     label,
-                    style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textSecondary, fontSize: 10),
+                    style: AppTextStyles.labelSmall
+                        .copyWith(color: AppColors.textSecondary, fontSize: 10),
                   ),
                   Text(
                     value,
@@ -542,6 +543,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildLeaderboardSnippetCard() {
+    final profile = context.watch<ProfileController>().profile;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -594,14 +597,21 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 20),
           _buildLeaderboardItem(1, 'Budi Santoso', '1,420 XP', false),
           _buildLeaderboardItem(2, 'Dina S.', '1,280 XP', false),
-          _buildLeaderboardItem(3, 'Sarah Chen', '1,150 XP', true),
+          _buildLeaderboardItem(
+            3,
+            profile?.displayName ?? 'Kamu',
+            '1,150 XP',
+            true,
+            avatarUrl: profile?.avatarUrl,
+          ),
         ],
       ),
     );
   }
 
   Widget _buildLeaderboardItem(
-      int rank, String name, String xp, bool isCurrentUser) {
+      int rank, String name, String xp, bool isCurrentUser,
+      {String? avatarUrl}) {
     Widget medalIcon;
     if (rank == 1) {
       medalIcon =
@@ -640,9 +650,10 @@ class _HomePageState extends State<HomePage> {
           medalIcon,
           const SizedBox(width: 12),
           if (isCurrentUser) ...[
-            const CircleAvatar(
-              radius: 16,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/100?img=5'),
+            UserAvatar(
+              imageUrl: avatarUrl,
+              name: name,
+              size: 32,
             ),
             const SizedBox(width: 12),
           ],

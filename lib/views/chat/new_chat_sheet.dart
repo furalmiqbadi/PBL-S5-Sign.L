@@ -131,6 +131,25 @@ class _NewChatSheetState extends State<NewChatSheet> {
                           color: AppColors.primary,
                         ),
                       )
+                    : controller.contactsErrorMessage != null
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  controller.contactsErrorMessage!,
+                                  textAlign: TextAlign.center,
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: controller.loadContacts,
+                                  child: const Text('Coba lagi'),
+                                ),
+                              ],
+                            ),
+                          )
                     : contacts.isEmpty
                         ? Center(
                             child: Text(
@@ -171,7 +190,7 @@ class _NewChatSheetState extends State<NewChatSheet> {
                                 subtitle: Text(
                                   contact.isOnline
                                       ? 'Aktif sekarang'
-                                      : 'Tersedia di komunitas',
+                                      : 'Tersedia di kontak',
                                   style: AppTextStyles.labelSmall,
                                 ),
                                 onTap: () => Navigator.pop(context, contact),

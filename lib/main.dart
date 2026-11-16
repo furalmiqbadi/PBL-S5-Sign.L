@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -5,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/chat_controller.dart';
 import 'controllers/notification_controller.dart';
+import 'controllers/profile_controller.dart';
 import 'controllers/settings_controller.dart';
 import 'services/auth_recovery.dart';
 import 'services/supabase_config.dart';
@@ -67,10 +70,11 @@ class SignLApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),
-        ChangeNotifierProvider(create: (_) => ChatController()..loadRooms()),
+        ChangeNotifierProvider(create: (_) => ChatController()),
         ChangeNotifierProvider(
-          create: (_) => NotificationController()..load(),
+          create: (_) => NotificationController(),
         ),
+        ChangeNotifierProvider(create: (_) => ProfileController()),
         // `..load()` membaca preferensi tersimpan (mis. ukuran teks) saat app dibuka.
         ChangeNotifierProvider(create: (_) => SettingsController()..load()),
       ],
@@ -86,10 +90,12 @@ class SignLApp extends StatelessWidget {
             (c) => c.settings.textSize.scale,
           );
           final base = MediaQuery.textScalerOf(context).scale(1);
-          return MediaQuery(
-            data: MediaQuery.of(context)
-                .copyWith(textScaler: TextScaler.linear(base * scale)),
-            child: child!,
+          return _SessionSync(
+            child: MediaQuery(
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: TextScaler.linear(base * scale)),
+              child: child!,
+            ),
           );
         },
         home: AuthRecoveryListener(
@@ -99,6 +105,77 @@ class SignLApp extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Menjaga data chat dan notifikasi mengikuti akun Supabase yang aktif.
+class _SessionSync extends StatefulWidget {
+  const _SessionSync({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_SessionSync> createState() => _SessionSyncState();
+}
+
+class _SessionSyncState extends State<_SessionSync> {
+  StreamSubscription<AuthState>? _authSub;
+  String? _userId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startSync());
+  }
+
+  void _startSync() {
+    try {
+      final auth = Supabase.instance.client.auth;
+      _authSub = auth.onAuthStateChange.listen(_handleAuthState);
+      final currentUser = auth.currentUser;
+      if (currentUser != null) {
+        _syncUser(currentUser.id);
+      }
+    } catch (_) {
+      // Supabase tidak tersedia saat unit/widget test atau konfigurasi belum ada.
+    }
+  }
+
+  void _handleAuthState(AuthState state) {
+    if (!mounted) return;
+    if (state.event == AuthChangeEvent.signedOut || state.session == null) {
+      _userId = null;
+      context.read<ChatController>().reset();
+      context.read<NotificationController>().reset();
+      context.read<ProfileController>().reset();
+      return;
+    }
+
+    final userId = state.session!.user.id;
+    if (state.event == AuthChangeEvent.initialSession ||
+        state.event == AuthChangeEvent.signedIn ||
+        userId != _userId) {
+      _syncUser(userId);
+    }
+  }
+
+  void _syncUser(String userId) {
+    if (!mounted || _userId == userId) return;
+    _userId = userId;
+    final chat = context.read<ChatController>();
+    final notifications = context.read<NotificationController>();
+    chat.loadRooms();
+    notifications.load(force: true);
+    context.read<ProfileController>().load(force: true);
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 /// Nama lama agar widget test bawaan Flutter tetap kompatibel.

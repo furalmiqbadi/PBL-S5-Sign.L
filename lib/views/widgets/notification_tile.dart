@@ -30,6 +30,8 @@ class NotificationTile extends StatelessWidget {
         return AppColors.tertiary;
       case NotificationCategory.pencapaian:
         return AppColors.secondary;
+      case NotificationCategory.chat:
+        return AppColors.primary;
     }
   }
 
@@ -41,6 +43,8 @@ class NotificationTile extends StatelessWidget {
         return Icons.local_fire_department_rounded;
       case NotificationCategory.pencapaian:
         return Icons.workspace_premium_rounded;
+      case NotificationCategory.chat:
+        return Icons.chat_bubble_rounded;
     }
   }
 

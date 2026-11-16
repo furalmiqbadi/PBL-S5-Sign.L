@@ -12,6 +12,7 @@ import '../widgets/chat_list_tile.dart';
 import '../widgets/filter_chip_row.dart';
 import '../widgets/section_header.dart';
 import 'chat_room_view.dart';
+import 'create_group_sheet.dart';
 import 'new_chat_sheet.dart';
 
 /// Layar daftar percakapan (Chat).
@@ -44,8 +45,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
               actions: [
                 HeaderIconButton(
                   icon: Icons.edit_square,
-                  semanticLabel: 'Tulis pesan baru',
-                  onTap: _openNewChat,
+                  semanticLabel: 'Tulis pesan atau buat grup',
+                  onTap: _openComposeMenu,
                 ),
               ],
             ),
@@ -172,6 +173,56 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
+  /// Menampilkan pilihan: chat baru atau buat grup.
+  Future<void> _openComposeMenu() async {
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(
+                Icons.chat_bubble_outline_rounded,
+                color: AppColors.primary,
+              ),
+              title: Text('Chat baru', style: AppTextStyles.titleSmall),
+              onTap: () => Navigator.pop(sheetContext, 'chat'),
+            ),
+            ListTile(
+              leading: const Icon(
+                Icons.group_add_rounded,
+                color: AppColors.primary,
+              ),
+              title: Text('Buat grup', style: AppTextStyles.titleSmall),
+              onTap: () => Navigator.pop(sheetContext, 'group'),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || choice == null) return;
+    if (choice == 'group') {
+      await _openGroup();
+    } else {
+      await _openNewChat();
+    }
+  }
+
   Future<void> _openNewChat() async {
     final contact = await showModalBottomSheet<ChatContact>(
       context: context,
@@ -184,9 +235,44 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
     if (contact == null || !mounted) return;
 
-    final room = await context.read<ChatController>().startChat(contact);
-    if (!mounted) return;
-    _openRoom(context, room);
+    try {
+      final room = await context.read<ChatController>().startChat(contact);
+      if (!mounted) return;
+      _openRoom(context, room);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal memulai chat. Coba lagi.')),
+      );
+    }
+  }
+
+  Future<void> _openGroup() async {
+    final draft = await showModalBottomSheet<NewGroupDraft>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => const CreateGroupSheet(),
+    );
+    if (draft == null || !mounted) return;
+
+    try {
+      final room = await context.read<ChatController>().startGroup(
+            name: draft.name,
+            members: draft.members,
+          );
+      if (!mounted) return;
+      _openRoom(context, room);
+    } catch (e) {
+      debugPrint('startGroup failed: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal membuat grup. Coba lagi.')),
+      );
+    }
   }
 
   void _openCommunity(BuildContext context) {
