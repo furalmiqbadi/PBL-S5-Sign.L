@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../controllers/notification_controller.dart';
 import '../../models/notification_model.dart';
 import '../common/pushed_page.dart';
+import '../chat/chat_list_view.dart';
 import '../home/detail_materi_page.dart';
 import '../komunitas/komunitas_page.dart';
 import '../profile/profile_screen.dart';
@@ -74,6 +75,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
             title: 'Profil',
             child: ProfileScreen(),
           ),
+        ),
+      NotificationTarget.chat => MaterialPageRoute<void>(
+          builder: (_) => const ChatListScreen(),
         ),
     };
 

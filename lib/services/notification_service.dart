@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -18,7 +20,7 @@ class NotificationService {
         _seed = seed;
 
   static const String _kolom =
-      'id, title, body, category, is_read, created_at, action_label, avatar_url';
+      'id, title, body, category, is_read, created_at, action_label, avatar_url, target_type, target_id';
 
   SupabaseClient? get _safeClient {
     if (_customClient != null) return _customClient;
@@ -56,6 +58,46 @@ class NotificationService {
       debugPrint('[Notifikasi] Gagal membaca: ${e.message}');
       throw Exception('Gagal memuat notifikasi. Coba lagi.');
     }
+  }
+
+  Stream<AppNotification> watchNewNotifications() {
+    final client = _safeClient;
+    final userId = client?.auth.currentUser?.id;
+    if (_seed != null || client == null || userId == null) {
+      return const Stream.empty();
+    }
+
+    late StreamController<AppNotification> controller;
+    RealtimeChannel? channel;
+    controller = StreamController<AppNotification>.broadcast(
+      onListen: () {
+        channel = client
+            .channel(
+              'notifications:$userId:${DateTime.now().millisecondsSinceEpoch}',
+            )
+            .onPostgresChanges(
+              event: PostgresChangeEvent.insert,
+              schema: 'public',
+              table: 'notifications',
+              filter: PostgresChangeFilter(
+                type: PostgresChangeFilterType.eq,
+                column: 'user_id',
+                value: userId,
+              ),
+              callback: (payload) {
+                if (!controller.isClosed) {
+                  controller.add(_dariRow(payload.newRecord));
+                }
+              },
+            )
+            .subscribe();
+      },
+      onCancel: () {
+        channel?.unsubscribe();
+        controller.close();
+      },
+    );
+    return controller.stream;
   }
 
   /// Menandai satu notifikasi telah dibaca.
@@ -105,6 +147,15 @@ class NotificationService {
       isRead: row['is_read'] == true,
       actionLabel: row['action_label'] as String?,
       avatarUrl: row['avatar_url'] as String?,
+      destination: _targetDari(row['target_type'] as String?),
+      targetId: row['target_id'] as String?,
     );
   }
+}
+
+NotificationTarget? _targetDari(String? value) {
+  for (final target in NotificationTarget.values) {
+    if (target.name == value) return target;
+  }
+  return null;
 }

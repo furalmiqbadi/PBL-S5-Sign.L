@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -172,6 +174,88 @@ class ChatService {
       debugPrint('[Chat] Gagal memuat pesan: ${e.message}');
       throw Exception('Gagal memuat pesan. Coba lagi.');
     }
+  }
+
+  Stream<ChatMessage> watchMessages(String roomId) {
+    final client = _safeClient;
+    final me = _myId;
+    if (client == null || me == null) return const Stream.empty();
+
+    late StreamController<ChatMessage> controller;
+    RealtimeChannel? channel;
+    controller = StreamController<ChatMessage>.broadcast(
+      onListen: () {
+        channel = client
+            .channel(
+              'chat_messages:$roomId:${DateTime.now().millisecondsSinceEpoch}',
+            )
+            .onPostgresChanges(
+              event: PostgresChangeEvent.insert,
+              schema: 'public',
+              table: 'chat_messages',
+              filter: PostgresChangeFilter(
+                type: PostgresChangeFilterType.eq,
+                column: 'conversation_id',
+                value: roomId,
+              ),
+              callback: (payload) {
+                if (controller.isClosed) return;
+                final row = payload.newRecord;
+                final senderId = row['sender_id']?.toString() ?? '';
+                controller.add(
+                  ChatMessage(
+                    id: row['id']?.toString() ?? '',
+                    roomId: row['conversation_id']?.toString() ?? roomId,
+                    senderId: senderId,
+                    text: row['isi'] as String? ?? '',
+                    time: DateTime.tryParse(
+                          row['created_at'] as String? ?? '',
+                        )?.toLocal() ??
+                        DateTime.now(),
+                    isMe: senderId == me,
+                    isRead: senderId == me,
+                    isAdmin: row['dari_admin'] as bool? ?? false,
+                  ),
+                );
+              },
+            )
+            .subscribe();
+      },
+      onCancel: () {
+        channel?.unsubscribe();
+        controller.close();
+      },
+    );
+    return controller.stream;
+  }
+
+  Stream<void> watchRoomListChanges() {
+    final client = _safeClient;
+    if (client == null || _myId == null) return const Stream.empty();
+
+    late StreamController<void> controller;
+    RealtimeChannel? channel;
+    controller = StreamController<void>.broadcast(
+      onListen: () {
+        channel = client
+            .channel(
+                'chat_room_changes:${DateTime.now().millisecondsSinceEpoch}')
+            .onPostgresChanges(
+              event: PostgresChangeEvent.insert,
+              schema: 'public',
+              table: 'chat_messages',
+              callback: (_) {
+                if (!controller.isClosed) controller.add(null);
+              },
+            )
+            .subscribe();
+      },
+      onCancel: () {
+        channel?.unsubscribe();
+        controller.close();
+      },
+    );
+    return controller.stream;
   }
 
   /// Mengirim pesan baru. Ditolak bila ruang hanya-baca dan pengirim bukan
