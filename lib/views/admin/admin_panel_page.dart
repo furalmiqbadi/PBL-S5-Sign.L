@@ -14,7 +14,6 @@ class AdminPanelPage extends StatelessWidget {
   static const int totalPengguna = 1284;
   static const int penggunaAktif = 312;
   static const int laporanChat = 2;
-  static const int videoAIReview = 6;
 
   // Keluar dari panel admin, kembali ke halaman masuk
   Future<void> _logout(BuildContext context) async {
@@ -86,16 +85,6 @@ class AdminPanelPage extends StatelessWidget {
           ),
           _menuTile(
             context,
-            icon: Icons.videocam_outlined,
-            iconBg: const Color(0xFFF3E8FD),
-            iconColor: AppColors.secondary,
-            title: 'Review Video & Foto Kiriman Pengguna',
-            subtitle: '$videoAIReview video menunggu tinjauan',
-            badge: videoAIReview,
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReviewVideoAIPage())),
-          ),
-          _menuTile(
-            context,
             icon: Icons.people_alt_outlined,
             iconBg: const Color(0xFFE8F5E9),
             iconColor: AppColors.success,
@@ -157,7 +146,7 @@ class AdminPanelPage extends StatelessWidget {
             subtitle: 'Riwayat aksi semua admin',
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LogAktivitasPage())),
           ),
-          
+
           // ===== TOMBOL KELUAR DARI AKUN (BARU) =====
           const SizedBox(height: 32),
           Container(
@@ -183,16 +172,6 @@ class AdminPanelPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          
-          // Footer opsional agar terlihat lebih rapi
-          Text(
-            'Sign.L Admin Panel • Versi 1.0.0',
-            style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.textMuted,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
         ],
       ),
     );
@@ -233,7 +212,7 @@ class AdminPanelPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Ada ${laporanBaru + laporanChat + videoAIReview} tugas yang perlu ditinjau.',
+                  'Ada ${laporanBaru + laporanChat} tugas yang perlu ditinjau.',
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: Colors.white.withValues(alpha: 0.9),
                   ),
