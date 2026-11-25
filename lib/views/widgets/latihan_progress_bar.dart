@@ -23,7 +23,7 @@ class LatihanProgressBar extends StatelessWidget {
                   TextSpan(
                     text: 'LATIHAN ${gestur.latihanKe} ',
                     style: const TextStyle(
-                      color: AppColors.secondary,
+                      color: AppColors.primary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -46,21 +46,21 @@ class LatihanProgressBar extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 6),
-        // Bar segmented: biru = selesai, ungu muda = sisa
+        const SizedBox(height: 8),
+        // Bar segmented: biru = selesai, biru muda = sisa
         ClipRRect(
           borderRadius: BorderRadius.circular(9999),
           child: SizedBox(
-            height: 12,
+            height: 8,
             child: Row(
               children: [
                 Flexible(
                   flex: gestur.latihanKe,
-                  child: Container(color: AppColors.secondary),
+                  child: Container(color: AppColors.primary),
                 ),
                 Flexible(
                   flex: gestur.totalLatihan - gestur.latihanKe,
-                  child: Container(color: AppColors.purpleSoft),
+                  child: Container(color: AppColors.pinkSoft),
                 ),
               ],
             ),

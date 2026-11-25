@@ -11,25 +11,6 @@
 - [ ] `test` — test
 - [ ] `chore` — konfigurasi/tooling
 
-## Masalah
-
-<!-- Apa yang salah atau belum ada? -->
-
-## Solusi
-
-<!-- Apa yang diubah dan kenapa memilih cara ini? -->
-
-## Cara uji
-
-<!-- Langkah yang bisa diikuti reviewer. -->
-
-1.
-2.
-3.
-
-## Screenshot
-
-<!-- Wajib untuk perubahan UI. Tulis "tidak ada perubahan UI" kalau tidak relevan. -->
 
 ## Checklist
 
