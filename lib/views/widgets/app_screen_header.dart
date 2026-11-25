@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 import 'section_header.dart';
 
 /// Header untuk halaman yang di-*push* (Chat, Notifikasi).
 ///
-/// Menggabungkan tombol kembali di kiri dengan [SectionHeader] milik tim di
-/// kanannya, di dalam satu bilah putih yang sama agar garis pemisah bawah
-/// tetap menyambung. `SectionHeader` sendiri tidak menyediakan slot leading,
-/// sehingga tombol kembali ditambahkan di sini tanpa mengubah file teman.
+/// Menumpang [SectionHeader] agar padding, tinggi, tipografi, dan tombol
+/// kembali sama persis dengan header tab lain. Tombol kembali dipasang
+/// sebagai `leading` sehingga judul tetap rata kiri dengan konten halaman.
 class AppScreenHeader extends StatelessWidget {
   const AppScreenHeader({
     super.key,
@@ -23,44 +22,19 @@ class AppScreenHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!showBack) {
-      return SectionHeader(title: title, actions: actions);
-    }
-
-    // IntrinsicHeight memberi tinggi yang terbatas & seragam untuk kedua anak
-    // sehingga garis pemisah bawah menyambung tanpa perlu tinggi tetap.
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _BackButton(onTap: () => Navigator.of(context).maybePop()),
-          Expanded(child: SectionHeader(title: title, actions: actions)),
-        ],
-      ),
-    );
-  }
-}
-
-class _BackButton extends StatelessWidget {
-  const _BackButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(left: 4),
-      // Latar mengikuti header section agar bilah ini menyatu.
-      color: AppColors.background,
-      child: Center(
-        child: IconButton(
-          onPressed: onTap,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-          iconSize: 20,
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-        ),
-      ),
+    return SectionHeader(
+      title: title,
+      // 20px (headlineSmall): satu tingkat di bawah judul tab 22px supaya
+      // hierarki navigasi tetap terbaca.
+      titleStyle: AppTextStyles.headlineSmall,
+      leading: showBack
+          ? HeaderIconButton(
+              icon: Icons.arrow_back_rounded,
+              semanticLabel: 'Kembali',
+              onTap: () => Navigator.of(context).maybePop(),
+            )
+          : null,
+      actions: actions,
     );
   }
 }

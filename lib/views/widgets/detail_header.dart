@@ -1,162 +1,128 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../models/bab_model.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import 'app_ui.dart';
+import 'section_header.dart';
+import 'stat_pill.dart';
 
+/// Header halaman detail materi: tombol kembali, judul, progres, lalu kartu
+/// ringkasan bab yang sedang dibuka.
+///
+/// Semua elemen berada dalam satu kolom agar tombol kembali sejajar dengan
+/// judul (bukan mengambang di tengah kartu), dan pill progres memakai
+/// [StatPill] yang sama dengan header tab Materi.
 class DetailHeader extends StatelessWidget {
-  const DetailHeader({super.key});
+  final String title;
+  final Bab bab;
+  final VoidCallback? onBack;
+
+  const DetailHeader({
+    super.key,
+    required this.bab,
+    this.title = 'Detail Materi',
+    this.onBack,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final percent = (bab.progress * 100).round();
+    final statusColor = babStatusColor(bab.status);
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Flexible(
+            if (onBack != null) ...[
+              // Chrome sama dengan header tab: kotak 48px putih berbingkai.
+              HeaderIconButton(
+                icon: Icons.arrow_back_rounded,
+                semanticLabel: 'Kembali',
+                onTap: onBack,
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
               child: Text(
-                'Detail Materi',
+                title,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.titleLarge.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: AppTextStyles.headlineSmall,
               ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: BorderRadius.circular(9999),
-                  ),
-                  child: Row(
-                    children: [
-                      SvgPicture.asset(
-                        'assets/images/diamond_fix.svg',
-                        width: 12,
-                        height: 12,
-                        colorFilter: const ColorFilter.mode(
-                          AppColors.secondary,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '190 / 250',
-                        style: AppTextStyles.labelXSmall.copyWith(
-                          color: AppColors.textSecondary,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: const BoxDecoration(
-                    color: AppColors.surfaceMuted,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.person, size: 16, color: AppColors.textSecondary),
-                ),
-              ],
+            const SizedBox(width: 8),
+            StatPill(
+              icon: Icons.bolt_rounded,
+              value: '$percent%',
+              accent: AppColors.primary,
+              semanticLabel: 'Progres $percent persen',
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: AppColors.surfaceMuted,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border.withValues(alpha: 0.20)),
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadii.xl),
+            border: Border.all(color: AppColors.border),
+            boxShadow: AppShadows.card,
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(9999),
-                  border: Border.all(color: AppColors.border.withValues(alpha: 0.30)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
+                  color: statusColor.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(AppRadii.sm),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                child: Text(
+                  bab.number,
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: statusColor,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 20,
-                      height: 20,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [AppColors.tertiary, AppColors.primary, AppColors.secondary],
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '01',
-                        style: AppTextStyles.labelXSmall.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
+                    Text(
+                      bab.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.titleSmall.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(height: 2),
                     Text(
-                      'Bab 1: Alfabet',
-                      style: AppTextStyles.labelMedium.copyWith(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                      bab.progressText,
+                      style: AppTextStyles.labelXSmall.copyWith(
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(9999),
-                  border: Border.all(color: AppColors.border.withValues(alpha: 0.20)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '42%',
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    SizedBox(
-                      width: 44,
-                      height: 8,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(9999),
-                        child: const LinearProgressIndicator(
-                          value: 0.42,
-                          backgroundColor: AppColors.border,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                        ),
-                      ),
-                    ),
-                  ],
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 56,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadii.pill),
+                  child: LinearProgressIndicator(
+                    value: bab.progress,
+                    minHeight: 8,
+                    backgroundColor: AppColors.pinkSoft,
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  ),
                 ),
               ),
             ],

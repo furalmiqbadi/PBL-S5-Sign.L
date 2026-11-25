@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../models/nama_tampil.dart';
+import '../../models/profil_model.dart';
+import '../../services/profil_service.dart';
 import '../theme/app_colors.dart';
 import 'app_bottom_nav_bar.dart';
 
@@ -12,7 +15,7 @@ import 'app_bottom_nav_bar.dart';
 /// utama berada di `MainShell`, menekan item secara default akan menutup
 /// halaman ini dan kembali ke shell. Kirim [onSelect]/[onCenterTap] untuk
 /// mengganti perilaku tersebut.
-class SignlNavBar extends StatelessWidget {
+class SignlNavBar extends StatefulWidget {
   const SignlNavBar({
     super.key,
     this.selectedIndex = 3,
@@ -26,8 +29,28 @@ class SignlNavBar extends StatelessWidget {
   final ValueChanged<int>? onSelect;
   final VoidCallback? onCenterTap;
 
+  @override
+  State<SignlNavBar> createState() => _SignlNavBarState();
+}
+
+class _SignlNavBarState extends State<SignlNavBar> {
+  final ProfilService _profilService = ProfilService();
+  ProfilPengguna? _profil;
+
+  @override
+  void initState() {
+    super.initState();
+    _muatProfil();
+  }
+
+  Future<void> _muatProfil() async {
+    final profil = await _profilService.profilSaya();
+    if (!mounted) return;
+    setState(() => _profil = profil);
+  }
+
   /// Tepat 4 item untuk slot kiri/kanan; tombol tengah terpisah.
-  static const List<AppNavItem> _items = [
+  static const List<AppNavItem> _itemsDasar = [
     AppNavItem(
       icon: Icons.home_outlined,
       activeIcon: Icons.home_rounded,
@@ -42,26 +65,33 @@ class SignlNavBar extends StatelessWidget {
       svgAsset: 'assets/images/komunitas.svg',
       label: 'Komunitas',
     ),
-    AppNavItem(imageUrl: _profilePhotoUrl),
   ];
-
-  static const String? _profilePhotoUrl = null;
 
   @override
   Widget build(BuildContext context) {
     return AppBottomNavBar(
-      items: _items,
-      selectedIndex: selectedIndex,
+      items: [
+        ..._itemsDasar,
+        AppNavItem(
+          imageUrl: _profil?.avatarUrl,
+          name: (_profil?.nama.isNotEmpty ?? false)
+              ? _profil!.nama
+              : labelNamaNetral,
+        ),
+      ],
+      selectedIndex: widget.selectedIndex,
       onSelect: (index) {
+        final onSelect = widget.onSelect;
         if (onSelect != null) {
-          onSelect!(index);
+          onSelect(index);
         } else {
           Navigator.of(context).maybePop();
         }
       },
       onCenterTap: () {
+        final onCenterTap = widget.onCenterTap;
         if (onCenterTap != null) {
-          onCenterTap!();
+          onCenterTap();
         } else {
           Navigator.of(context).maybePop();
         }

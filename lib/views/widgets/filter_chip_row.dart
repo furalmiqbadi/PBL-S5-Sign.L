@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
+import 'app_ui.dart';
 
 /// Baris chip filter yang dapat digulir horizontal.
 ///
-/// Chip terpilih berwarna [AppColors.primary] dengan teks putih.
+/// Chip terpilih menggunakan [AppChoiceChip] agar selaras di seluruh aplikasi.
 class FilterChipRow extends StatelessWidget {
   const FilterChipRow({
     super.key,
@@ -21,36 +20,18 @@ class FilterChipRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 40,
+      height: 44,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.zero,
         itemCount: labels.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final isSelected = index == selectedIndex;
-          return GestureDetector(
-            onTap: () => onSelected(index),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOut,
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : AppColors.surface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.border,
-                ),
-              ),
-              child: Text(
-                labels[index],
-                style: AppTextStyles.labelLarge.copyWith(
-                  color: isSelected
-                      ? AppColors.textOnPrimary
-                      : AppColors.textPrimary,
-                ),
-              ),
+          return Center(
+            child: AppChoiceChip(
+              label: labels[index],
+              isSelected: index == selectedIndex,
+              onTap: () => onSelected(index),
             ),
           );
         },

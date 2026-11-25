@@ -13,16 +13,16 @@ Menyimpan antarmuka halaman kamera interaktif untuk verifikasi dan latihan gestu
 ## 📌 Apa yang Diisi di Sini?
 - `camera_screen.dart`:
   - Menampilkan preview lensa kamera HP (`CameraPreview`).
-  - Overlay panduan gestur tangan (bounding box atau siluet tangan referensi).
-  - Tombol aksi jepret / otomatis deteksi frame.
+  - Overlay panduan gestur tangan (bingkai posisi tangan).
+  - Tombol "Deteksi" menjepret satu frame lalu menjalankan inferensi.
   - Kartu petunjuk huruf/isyarat target (misal: "Bentuk huruf 'A' sekarang").
-- `gesture_result_bottom_sheet.dart`:
-  - Panel bawah (modal) yang muncul setelah AI memproses gambar.
-  - Menampilkan animasi Lottie (hijau jika benar, merah jika salah ala Duolingo).
-  - Skor akurasi kepercayaan (*confidence score*), suara/haptic feedback, serta tombol "Lanjut".
+  - Hasil deteksi (cocok/tidak + keyakinan) tampil lewat `showAppBottomSheet`.
 
 ---
 
 ## 🔗 Hubungan dengan Komponen Lain:
-- Mengambil data dan aksi dari `CameraController`.
-- Tidak ada inisialisasi TFLite di sini; pemanggilan inferensi dioper ke `CameraController.captureAndDetect()`.
+- Inferensi model ada di `lib/services/ml_service.dart` (`MlService.instance`),
+  memakai `assets/ml/model.tflite` + `assets/ml/labels.txt`.
+- Bila berkas model belum valid, UI menampilkan pesan "model belum tersedia"
+  (tidak crash). Ganti `model.tflite` dengan model hasil training terbaru.
+

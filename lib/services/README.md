@@ -15,10 +15,11 @@ Folder ini adalah **jantung logika berat (Heavy Business Logic) dan integrasi ek
 ---
 
 ## 📄 3 File Utama yang Wajib Dibuat di Sini:
-1. `ml_service.dart`:
+1. `ml_service.dart` *(sudah dibuat)*:
    - Memuat file model AI (`assets/ml/model.tflite`) dan label (`assets/ml/labels.txt`) menggunakan `tflite_flutter`.
-   - Melakukan pra-pemrosesan gambar (crop, resize ke 224x224, normalisasi pixel 0.0 - 1.0) menggunakan package `image`.
+   - Melakukan pra-pemrosesan gambar (resize sesuai bentuk masukan model, normalisasi pixel 0.0 - 1.0) menggunakan package `image`.
    - Menjalankan inferensi pada tensor input dan mengembalikan prediksi gestur beserta tingkat kepercayaan (*confidence*).
+   - Bila berkas model tidak valid, mengembalikan pesan "model belum tersedia" (tidak crash).
 2. `auth_service.dart`:
    - Menangani autentikasi Firebase (`firebase_auth`).
    - Fungsi: `signInWithEmail`, `signUpWithEmail`, `signInWithGoogle`, `signOut`, dan mendengarkan stream perubahan status user (`authStateChanges`).
@@ -27,6 +28,14 @@ Folder ini adalah **jantung logika berat (Heavy Business Logic) dan integrasi ek
    - Fungsi: `createUserProfile`, `getUserProfile`, `updateUserXpAndStreak`, `saveLessonProgress`, dan stream data leaderboard.
 4. *(Opsional)* `local_storage_service.dart`:
    - Menyimpan cache sementara (seperti token sesi atau cache streak) menggunakan `shared_preferences`.
+
+## Sesi autentikasi
+- `secure_session_storage.dart`: penyimpanan sesi Supabase terenkripsi
+  (`flutter_secure_storage` → Android Keystore / iOS Keychain), sekaligus
+  memindahkan sesi lama dari `SharedPreferences` satu kali.
+- `session_bootstrap.dart`: pemeriksaan sesi saat aplikasi diluncurkan —
+  perbarui token yang kedaluwarsa, toleran saat offline, dan bersihkan sesi
+  bila server menolak refresh token.
 
 ---
 

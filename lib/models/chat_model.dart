@@ -3,6 +3,8 @@
 /// Tidak boleh berisi logika UI, Firebase, maupun perhitungan berat.
 library;
 
+import 'nama_tampil.dart';
+
 /// Representasi sebuah ruang percakapan (personal atau grup).
 class ChatRoom {
   const ChatRoom({
@@ -16,6 +18,8 @@ class ChatRoom {
     this.memberCount,
     this.isOnline = false,
     this.lastSenderName,
+    this.isReadOnly = false,
+    this.peerId,
   });
 
   final String id;
@@ -30,6 +34,12 @@ class ChatRoom {
 
   /// Nama pengirim terakhir (dipakai untuk preview grup, mis. "Siti: ...").
   final String? lastSenderName;
+
+  /// `true` untuk ruang laporan: pelapor hanya bisa membaca balasan admin.
+  final bool isReadOnly;
+
+  /// Id lawan bicara (admin untuk ruang laporan, pengguna untuk admin).
+  final String? peerId;
 
   bool get hasUnread => unreadCount > 0;
 
@@ -47,6 +57,8 @@ class ChatRoom {
       memberCount: json['memberCount'] as int?,
       isOnline: json['isOnline'] as bool? ?? false,
       lastSenderName: json['lastSenderName'] as String?,
+      isReadOnly: json['isReadOnly'] as bool? ?? false,
+      peerId: json['peerId'] as String?,
     );
   }
 
@@ -61,6 +73,8 @@ class ChatRoom {
         'memberCount': memberCount,
         'isOnline': isOnline,
         'lastSenderName': lastSenderName,
+        'isReadOnly': isReadOnly,
+        'peerId': peerId,
       };
 
   ChatRoom copyWith({
@@ -74,6 +88,8 @@ class ChatRoom {
     int? memberCount,
     bool? isOnline,
     String? lastSenderName,
+    bool? isReadOnly,
+    String? peerId,
   }) {
     return ChatRoom(
       id: id ?? this.id,
@@ -86,8 +102,34 @@ class ChatRoom {
       memberCount: memberCount ?? this.memberCount,
       isOnline: isOnline ?? this.isOnline,
       lastSenderName: lastSenderName ?? this.lastSenderName,
+      isReadOnly: isReadOnly ?? this.isReadOnly,
+      peerId: peerId ?? this.peerId,
     );
   }
+}
+
+/// Kontak yang dapat diajak memulai percakapan baru.
+class ChatContact {
+  const ChatContact({
+    required this.id,
+    required this.name,
+    this.username = '',
+    this.avatarUrl,
+    this.role = 'pembelajar',
+    this.isOnline = false,
+  });
+
+  final String id;
+  final String name;
+  final String username;
+  final String? avatarUrl;
+  final String role;
+  final bool isOnline;
+
+  bool get isAdmin => role == 'admin';
+
+  /// Label peran siap tampil, mis. `Admin`, `Mentor Tuli`, `Pembelajar`.
+  String get peran => labelPeran(role);
 }
 
 /// Representasi satu pesan di dalam ruang percakapan.
@@ -101,6 +143,7 @@ class ChatMessage {
     this.isMe = false,
     this.isRead = false,
     this.isNew = false,
+    this.isAdmin = false,
   });
 
   final String id;
@@ -118,6 +161,9 @@ class ChatMessage {
   /// Penanda pemisah "N pesan baru".
   final bool isNew;
 
+  /// `true` bila pesan dikirim admin (balasan laporan / bantuan).
+  final bool isAdmin;
+
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
       id: json['id'] as String,
@@ -128,6 +174,7 @@ class ChatMessage {
       isMe: json['isMe'] as bool? ?? false,
       isRead: json['isRead'] as bool? ?? false,
       isNew: json['isNew'] as bool? ?? false,
+      isAdmin: json['isAdmin'] as bool? ?? false,
     );
   }
 
@@ -140,5 +187,6 @@ class ChatMessage {
         'isMe': isMe,
         'isRead': isRead,
         'isNew': isNew,
+        'isAdmin': isAdmin,
       };
 }

@@ -1,83 +1,87 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../services/kuis_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../widgets/app_ui.dart';
+import '../widgets/share_sheet.dart';
 
-class _Soal {
-  final String target;
-  final List<String> pilihan;
-  const _Soal(this.target, this.pilihan);
-}
-
+/// Layar pengerjaan satu kuis dari tabel `soal`.
+///
+/// Soal, opsi, dan jawaban benar dibaca langsung dari Supabase. Hasil
+/// pengerjaan disimpan ke `hasil_kuis` sebagai nilai 0-100.
 class QuizPage extends StatefulWidget {
-  const QuizPage({super.key});
+  final KuisInfo kuis;
+
+  const QuizPage({super.key, required this.kuis});
 
   @override
   State<QuizPage> createState() => _QuizPageState();
 }
 
 class _QuizPageState extends State<QuizPage> {
-  // Huruf yang dipakai untuk soal (10 soal). Sesuaikan dengan gambar yang kamu punya.
-  static const List<String> _hurufList = [
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'
-  ];
+  final KuisService _service = KuisService();
 
-  late List<_Soal> _soal;
+  List<SoalKuis> _soal = const [];
+  bool _loading = true;
+  String? _error;
+
   int _index = 0;
-  int? _selected; 
+  int? _selected;
   bool _checked = false;
   int _benar = 0;
-  int _hearts = 5;
-  int _xp = 0;
+  bool _tersimpan = false;
 
   @override
   void initState() {
     super.initState();
-    _buatSoal();
+    _muat();
   }
 
-  void _buatSoal() {
-    final rnd = Random();
-    final targets = List<String>.from(_hurufList)..shuffle(rnd);
-    _soal = targets.map((t) {
-      final lain = List<String>.from(_hurufList)..remove(t);
-      lain.shuffle(rnd);
-      final pilihan = [t, ...lain.take(3)]..shuffle(rnd);
-      return _Soal(t, pilihan);
-    }).toList();
-    _index = 0;
-    _selected = null;
-    _checked = false;
-    _benar = 0;
-    _hearts = 5;
-    _xp = 0;
+  Future<void> _muat() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final soal = await _service.fetchSoal(widget.kuis.id);
+      if (!mounted) return;
+      setState(() {
+        _soal = soal;
+        _loading = false;
+        _index = 0;
+        _selected = null;
+        _checked = false;
+        _benar = 0;
+        _tersimpan = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e is Exception
+            ? e.toString().replaceFirst('Exception: ', '')
+            : '$e';
+      });
+    }
   }
 
-  _Soal get _current => _soal[_index];
+  SoalKuis get _current => _soal[_index];
+
   bool get _jawabanBenar =>
-      _selected != null && _current.pilihan[_selected!] == _current.target;
-
-  String _imgPath(String huruf) =>
-      'assets/images/kuis${huruf.toLowerCase()}.jpg';
+      _selected != null && _current.opsi[_selected!] == _current.jawabanBenar;
 
   void _periksa() {
     if (_selected == null || _checked) return;
     setState(() {
       _checked = true;
-      if (_jawabanBenar) {
-        _benar++;
-        _xp += 10;
-      } else {
-        _hearts--;
-      }
+      if (_jawabanBenar) _benar++;
     });
   }
 
   void _lanjut() {
-    final habis = _hearts <= 0;
-    final terakhir = _index >= _soal.length - 1;
-    if (habis || terakhir) {
+    if (_index >= _soal.length - 1) {
       _tampilHasil();
       return;
     }
@@ -88,239 +92,131 @@ class _QuizPageState extends State<QuizPage> {
     });
   }
 
-  void _tampilHasil() {
-    final lulus = _benar >= (_soal.length * 0.6).ceil();
-    final String pesan = lulus
-        ? 'Hebat! Kamu sudah menguasai alfabet BISINDO.'
-        : (_hearts <= 0
-            ? 'Nyawa habis, coba lagi ya.'
-            : 'Minimal benar ${(_soal.length * 0.6).ceil()} dari ${_soal.length} soal untuk lulus.');
+  void _ulangi() {
+    setState(() {
+      _index = 0;
+      _selected = null;
+      _checked = false;
+      _benar = 0;
+    });
+  }
 
-    showDialog(
-      context: context,
+  int get _skor => _soal.isEmpty ? 0 : (_benar * 100 / _soal.length).round();
+
+  Future<void> _tampilHasil() async {
+    final total = _soal.length;
+    final skor = _skor;
+    final lulus = skor >= 60;
+
+    if (!_tersimpan) {
+      _tersimpan = true;
+      await _service.simpanHasil(kuisId: widget.kuis.id, skor: skor);
+    }
+    if (!mounted) return;
+
+    final ulangi = await showAppDialog(
+      context,
+      title: lulus ? 'Lulus!' : 'Belum Lulus',
+      message: lulus
+          ? 'Hebat! Kamu sudah menguasai materi ini.'
+          : 'Minimal 60 untuk lulus. Pelajari lagi materinya lalu coba kembali.',
+      icon: lulus ? Icons.emoji_events_rounded : Icons.sentiment_dissatisfied,
+      iconColor: lulus ? AppColors.primary : AppColors.textSecondary,
+      centerHeader: true,
+      confirmLabel: lulus ? 'Selesai' : 'Ulangi',
+      cancelLabel: 'Selesai',
+      showCancel: !lulus,
       barrierDismissible: false,
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.topCenter,
-          children: [
-            // Kartu utama
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(top: 44),
-              padding: const EdgeInsets.fromLTRB(20, 56, 20, 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+      content: Column(
+        children: [
+          Row(
+            children: [
+              _statBox(
+                Icons.check_circle_rounded,
+                'BENAR',
+                '$_benar/$total',
+                AppColors.primary,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    lulus ? 'Lulus!' : 'Belum Lulus',
-                    style: TextStyle(
-                      color: lulus ? AppColors.primary : AppColors.textPrimary,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    pesan,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                        height: 1.5),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      _statBox(
-                        const Icon(Icons.check_circle,
-                            color: AppColors.primary, size: 22),
-                        'BENAR',
-                        '$_benar/${_soal.length}',
-                        AppColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      _statBox(
-                        _svgIcon(
-                            'assets/images/diamond_fix.svg', 22, AppColors.secondary),
-                        'DIAMOND',
-                        '$_xp',
-                        AppColors.secondary,
-                      ),
-                      const SizedBox(width: 8),
-                      _statBox(
-                        _svgIcon(
-                            'assets/images/heart_fix.svg', 22, AppColors.danger),
-                        'HATI',
-                        '$_hearts',
-                        AppColors.danger,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  if (lulus)
-                    _gradientButton('Selesai', () {
-                      Navigator.pop(ctx);
-                      Navigator.pop(context);
-                    })
-                  else
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            height: 48,
-                            child: OutlinedButton(
-                              onPressed: () {
-                                Navigator.pop(ctx);
-                                Navigator.pop(context);
-                              },
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.textPrimary,
-                                side: const BorderSide(
-                                    color: AppColors.border, width: 2),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: const Text(
-                                'Selesai',
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _gradientButton('Ulangi', () {
-                            Navigator.pop(ctx);
-                            setState(_buatSoal);
-                          }),
-                        ),
-                      ],
-                    ),
-                ],
+              const SizedBox(width: 8),
+              _statBox(
+                Icons.percent_rounded,
+                'SKOR',
+                '$skor',
+                AppColors.secondary,
+              ),
+              const SizedBox(width: 8),
+              _statBox(
+                Icons.star_rounded,
+                'XP',
+                '+${widget.kuis.xpReward}',
+                AppColors.tertiary,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: () => showShareSheet(
+                context,
+                text:
+                    'Aku baru menyelesaikan ${widget.kuis.judul} di Sign.L: $_benar/$total soal benar (skor $skor).',
+                mediaUrl: widget.kuis.bannerUrl,
+              ),
+              icon: const Icon(Icons.ios_share_rounded, size: 18),
+              label: const Text('Bagikan Hasil'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadii.md),
+                ),
               ),
             ),
-            // Ikon bulat di atas kartu
-            Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: lulus ? AppColors.brandGradient : null,
-                color: lulus ? null : AppColors.textSecondary,
-                border: Border.all(color: Colors.white, width: 5),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Icon(
-                lulus ? Icons.emoji_events : Icons.sentiment_dissatisfied,
-                color: Colors.white,
-                size: 44,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+
+    if (!mounted) return;
+    if (lulus) {
+      Navigator.pop(context);
+    } else if (ulangi == true) {
+      _ulangi();
+    } else {
+      Navigator.pop(context);
+    }
   }
 
-  /// Ikon SVG yang di-tint sesuai [color] agar konsisten dengan token tema.
-  Widget _svgIcon(String asset, double size, Color color) {
-    return SvgPicture.asset(
-      asset,
-      width: size,
-      height: size,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  }
-
-  Widget _statBox(Widget icon, String label, String value, Color color) {
+  Widget _statBox(IconData icon, String label, String value, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withValues(alpha: 0.25)),
+          borderRadius: BorderRadius.circular(AppRadii.md),
         ),
         child: Column(
           children: [
-            icon,
+            Icon(icon, color: color, size: 22),
             const SizedBox(height: 4),
             Text(
               value,
-              style: TextStyle(
-                  color: color, fontSize: 18, fontWeight: FontWeight.w800),
+              style: AppTextStyles.titleMedium.copyWith(
+                color: color,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(
+              style: AppTextStyles.labelXSmall.copyWith(
                 color: AppColors.textSecondary,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
                 letterSpacing: 0.6,
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _gradientButton(String label, VoidCallback onTap) {
-    return Container(
-      height: 48,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: AppColors.brandGradient,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Center(
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
         ),
       ),
     );
@@ -334,27 +230,97 @@ class _QuizPageState extends State<QuizPage> {
         child: Column(
           children: [
             _buildTopBar(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 16),
-                    _buildTargetCard(),
-                    const SizedBox(height: 16),
-                    _buildOptionsGrid(),
-                    const SizedBox(height: 20),
-                    if (_checked) _buildFeedback(),
-                    _buildActionButton(),
-                    const SizedBox(height: 12),
-                    _buildFooter(),
-                  ],
-                ),
-              ),
-            ),
+            Expanded(child: _buildBody()),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return _buildMessage(
+        icon: Icons.cloud_off_rounded,
+        title: 'Gagal memuat soal',
+        message: _error!,
+        action: OutlinedButton(
+          onPressed: _muat,
+          child: const Text('Coba Lagi'),
+        ),
+      );
+    }
+    if (_soal.isEmpty) {
+      return _buildMessage(
+        icon: Icons.quiz_outlined,
+        title: 'Belum ada soal',
+        message:
+            'Kuis ini belum memiliki soal. Hubungi admin untuk melengkapinya.',
+        action: OutlinedButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Kembali'),
+        ),
+      );
+    }
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 16),
+          _buildQuestionCard(),
+          const SizedBox(height: 16),
+          _buildOptions(),
+          const SizedBox(height: 20),
+          if (_checked) ...[
+            _buildFeedback(),
+            const SizedBox(height: 12),
+          ],
+          _buildActionButton(),
+          const SizedBox(height: 12),
+          _buildFooter(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessage({
+    required IconData icon,
+    required String title,
+    required String message,
+    required Widget action,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: AppCard(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: const BoxDecoration(
+                  color: AppColors.surfaceTonal,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: AppColors.textSecondary, size: 26),
+              ),
+              const SizedBox(height: 14),
+              Text(title, style: AppTextStyles.titleMedium),
+              const SizedBox(height: 6),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodySmall.copyWith(height: 1.5),
+              ),
+              const SizedBox(height: 16),
+              action,
+            ],
+          ),
         ),
       ),
     );
@@ -367,40 +333,45 @@ class _QuizPageState extends State<QuizPage> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.close, color: AppColors.textPrimary),
+            icon: const Icon(Icons.close_rounded, color: AppColors.textPrimary),
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(9999),
+              borderRadius: BorderRadius.circular(AppRadii.pill),
               child: LinearProgressIndicator(
-                value: (_index + (_checked ? 1 : 0)) / _soal.length,
+                value: _soal.isEmpty
+                    ? 0
+                    : (_index + (_checked ? 1 : 0)) / _soal.length,
                 minHeight: 12,
                 backgroundColor: AppColors.border,
                 valueColor: const AlwaysStoppedAnimation<Color>(
-                    AppColors.primary),
+                  AppColors.primary,
+                ),
               ),
             ),
           ),
           const SizedBox(width: 12),
-          _svgIcon('assets/images/heart_fix.svg', 18, AppColors.danger),
+          SvgPicture.asset(
+            'assets/images/diamond_fix.svg',
+            width: 18,
+            height: 18,
+            colorFilter: const ColorFilter.mode(
+              AppColors.secondary,
+              BlendMode.srcIn,
+            ),
+          ),
           const SizedBox(width: 4),
-          Text('$_hearts',
-              style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700)),
-          const SizedBox(width: 12),
-          _svgIcon('assets/images/diamond_fix.svg', 18, AppColors.secondary),
-          const SizedBox(width: 4),
-          Text('$_xp',
-              style: const TextStyle(
-                  color: AppColors.secondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700)),
+          Text(
+            '+${widget.kuis.xpReward}',
+            style: AppTextStyles.labelMedium.copyWith(
+              color: AppColors.secondary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );
@@ -412,128 +383,97 @@ class _QuizPageState extends State<QuizPage> {
       children: [
         Row(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(9999),
-              ),
-              child: const Text(
-                'ALFABET BISINDO',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.4,
-                ),
-              ),
+            AppStatusBadge(
+              label: widget.kuis.judul.toUpperCase(),
+              color: AppColors.primary,
+              backgroundColor: AppColors.pinkSoft,
             ),
             const SizedBox(width: 8),
             Text(
               'Pertanyaan ${_index + 1} dari ${_soal.length}',
-              style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500),
+              style: AppTextStyles.labelXSmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 10),
-        const Text(
-          'Manakah gestur tangan untuk huruf:',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            height: 1.27,
-            letterSpacing: -0.55,
-          ),
-        ),
+        if (_current.adaGambarPertanyaan) ...[
+          _buildGambarPertanyaan(_current.gambarPertanyaan!),
+          const SizedBox(height: 10),
+        ],
+        if (_current.pertanyaan.isNotEmpty)
+          Text(_current.pertanyaan, style: AppTextStyles.headlineSmall),
       ],
     );
   }
 
-  Widget _buildTargetCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+  Widget _buildGambarPertanyaan(String url) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadii.lg),
+      child: AspectRatio(
+        aspectRatio: 16 / 10,
+        child: Image.network(
+          url,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, progress) {
+            if (progress == null) return child;
+            return Container(
+              color: AppColors.surfaceTonal,
+              alignment: Alignment.center,
+              child: const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stack) => Container(
+            color: AppColors.surfaceTonal,
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.image_not_supported_outlined,
+              color: AppColors.textSecondary,
+            ),
           ),
-        ],
+        ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    );
+  }
+
+  Widget _buildQuestionCard() {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'HURUF TARGET',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.8,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '"${_current.target}"',
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.7,
-                ),
-              ),
-            ],
+          Text(
+            'PILIH SATU JAWABAN',
+            style: AppTextStyles.labelXSmall.copyWith(
+              color: AppColors.textSecondary,
+              letterSpacing: 0.6,
+            ),
           ),
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.05),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.volume_up, color: AppColors.primary),
-              onPressed: () {
-                // TODO: putar audio huruf
-              },
-            ),
+          const SizedBox(height: 6),
+          Text(
+            _current.opsi.isNotEmpty
+                ? '${_current.opsi.length} pilihan tersedia'
+                : 'Opsi belum tersedia',
+            style: AppTextStyles.bodySmall,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildOptionsGrid() {
-    final pilihan = _current.pilihan;
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: pilihan.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.05,
-      ),
-      itemBuilder: (context, i) {
-        final huruf = pilihan[i];
-        final bool selected = _selected == i;
-        final bool isCorrect = huruf == _current.target;
+  Widget _buildOptions() {
+    return Column(
+      children: List.generate(_current.opsi.length, (i) {
+        final opsi = _current.opsi[i];
+        final gambar = _current.gambarOpsi(i);
+        final selected = _selected == i;
+        final isCorrect = opsi == _current.jawabanBenar;
 
-        // Warna border/badge sesuai status
-        Color accent = Colors.transparent;
+        Color? accent;
         if (_checked) {
           if (isCorrect) {
             accent = AppColors.success;
@@ -543,129 +483,152 @@ class _QuizPageState extends State<QuizPage> {
         } else if (selected) {
           accent = AppColors.primary;
         }
-        final bool aktif = accent != Colors.transparent;
 
-        return GestureDetector(
-          onTap: _checked ? null : () => setState(() => _selected = i),
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(width: 2, color: accent),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: AppCard(
+            onTap: _checked ? null : () => setState(() => _selected = i),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            borderRadius: AppRadii.md,
+            borderColor: accent ?? AppColors.border,
+            borderWidth: accent != null ? 2 : 1,
+            shadows: accent != null ? AppShadows.card : AppShadows.soft,
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: accent ?? AppColors.surfaceMuted,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    String.fromCharCode(65 + i),
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: accent != null
+                          ? Colors.white
+                          : AppColors.textSecondary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    _imgPath(huruf),
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: AppColors.border,
-                      child: const Icon(Icons.pan_tool_alt_outlined,
-                          color: AppColors.textSecondary, size: 40),
-                    ),
-                  ),
-                  Positioned(
-                    left: 4,
-                    top: 4,
-                    child: Container(
-                      width: 26,
-                      height: 26,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: aktif ? accent : AppColors.border,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        // Label A-D sesuai posisi, bukan huruf aslinya
-                        String.fromCharCode(65 + i),
-                        style: TextStyle(
-                          color: aktif ? Colors.white : AppColors.textPrimary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (aktif)
-                    Positioned(
-                      right: 4,
-                      top: 4,
-                      child: Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          color: accent,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          _checked && !isCorrect ? Icons.close : Icons.check,
-                          color: Colors.white,
-                          size: 14,
-                        ),
-                      ),
-                    ),
+                const SizedBox(width: 12),
+                if (gambar != null) ...[
+                  _buildGambarOpsi(gambar, accent),
+                  const SizedBox(width: 10),
                 ],
-              ),
+                Expanded(
+                  child: Text(
+                    opsi,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textPrimary,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+                if (accent != null) ...[
+                  const SizedBox(width: 8),
+                  Icon(
+                    _checked && !isCorrect
+                        ? Icons.close_rounded
+                        : Icons.check_rounded,
+                    color: accent,
+                    size: 20,
+                  ),
+                ],
+              ],
             ),
           ),
         );
-      },
+      }),
+    );
+  }
+
+  Widget _buildGambarOpsi(String url, Color? accent) {
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceTonal,
+        borderRadius: BorderRadius.circular(AppRadii.sm),
+        border: accent != null
+            ? Border.all(color: accent, width: 2)
+            : Border.all(color: AppColors.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Image.network(
+        url,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) => progress == null
+            ? child
+            : const Center(
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+        errorBuilder: (context, error, stack) => const Icon(
+          Icons.image_not_supported_outlined,
+          size: 20,
+          color: AppColors.textSecondary,
+        ),
+      ),
     );
   }
 
   Widget _buildFeedback() {
     final benar = _jawabanBenar;
+    final color = benar ? AppColors.success : AppColors.danger;
+    final penjelasan = _current.penjelasan;
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: (benar ? AppColors.success : AppColors.danger)
-            .withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(benar ? Icons.check_circle : Icons.cancel,
-              color: benar ? AppColors.success : AppColors.danger),
-          const SizedBox(width: 8),
-          if (benar) ...[
-            _svgIcon('assets/images/diamond_fix.svg', 14, AppColors.secondary),
-            const SizedBox(width: 4),
-          ],
-          Expanded(
-            child: Text(
-              benar
-                  ? 'Benar! +10'
-                  : 'Kurang tepat. Jawaban yang benar ditandai hijau.',
-              style: TextStyle(
-                color: benar ? AppColors.success : AppColors.danger,
-                fontWeight: FontWeight.w600,
+          Row(
+            children: [
+              Icon(benar ? Icons.check_circle : Icons.cancel, color: color),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  benar
+                      ? 'Benar! Jawabanmu tepat.'
+                      : 'Kurang tepat. Jawaban benar ditandai hijau.',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (penjelasan.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              penjelasan,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.4,
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildActionButton() {
-    final bool bisaPeriksa = _selected != null;
-    final bool terakhir = _index >= _soal.length - 1;
-    final String label = !_checked
-        ? 'Periksa Jawaban'
-        : (terakhir || _hearts <= 0 ? 'Lihat Hasil' : 'Lanjut');
+    final bisaPeriksa = _selected != null;
+    final terakhir = _index >= _soal.length - 1;
+    final label =
+        !_checked ? 'Periksa Jawaban' : (terakhir ? 'Lihat Hasil' : 'Lanjut');
 
     return SizedBox(
       width: double.infinity,
@@ -674,12 +637,12 @@ class _QuizPageState extends State<QuizPage> {
         onPressed: _checked ? _lanjut : (bisaPeriksa ? _periksa : null),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.textOnPrimary,
           disabledBackgroundColor: AppColors.border,
           disabledForegroundColor: AppColors.textSecondary,
-          elevation: 1,
+          elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadii.md),
           ),
         ),
         child: Row(
@@ -687,11 +650,10 @@ class _QuizPageState extends State<QuizPage> {
           children: [
             Text(
               label,
-              style:
-                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward, size: 18),
+            const Icon(Icons.arrow_forward_rounded, size: 18),
           ],
         ),
       ),
@@ -699,14 +661,17 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   Widget _buildFooter() {
-    return const Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.info_outline, size: 14, color: AppColors.textSecondary),
-        SizedBox(width: 6),
+        const Icon(Icons.info_outline,
+            size: 14, color: AppColors.textSecondary),
+        const SizedBox(width: 6),
         Text(
           'Bahasa Isyarat Indonesia (BISINDO)',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          style: AppTextStyles.labelXSmall.copyWith(
+            color: AppColors.textSecondary,
+          ),
         ),
       ],
     );

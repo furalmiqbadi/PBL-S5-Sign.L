@@ -8,7 +8,7 @@ import 'time_labels.dart';
 /// Gelembung pesan pada ruang percakapan.
 ///
 /// - Pesan dari pengguna ([ChatMessage.isMe]) rata kanan, warna primary.
-/// - Pesan dari lawan bicara rata kiri, warna pink lembut.
+/// - Pesan dari lawan bicara rata kiri, warna fieldFill lembut.
 class ChatBubble extends StatelessWidget {
   const ChatBubble({super.key, required this.message});
 
@@ -20,36 +20,51 @@ class ChatBubble extends StatelessWidget {
     final maxWidth = MediaQuery.of(context).size.width * 0.74;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
         crossAxisAlignment:
             isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
+          if (!isMe && message.isAdmin) ...[
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 3),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.verified_rounded,
+                    size: 13,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Admin',
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isMe ? AppColors.primary : AppColors.pinkSoft,
+                color: isMe ? AppColors.primary : AppColors.fieldFill,
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(18),
-                  topRight: const Radius.circular(18),
-                  bottomLeft: Radius.circular(isMe ? 18 : 4),
-                  bottomRight: Radius.circular(isMe ? 4 : 18),
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isMe ? 20 : 4),
+                  bottomRight: Radius.circular(isMe ? 4 : 20),
                 ),
-                border: isMe
-                    ? null
-                    : Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.12),
-                      ),
               ),
               child: Text(
                 message.text,
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: isMe
-                      ? AppColors.textOnPrimary
-                      : AppColors.textPrimary,
+                  color: isMe ? AppColors.textOnPrimary : AppColors.textPrimary,
                   height: 1.4,
                 ),
               ),
@@ -65,9 +80,8 @@ class ChatBubble extends StatelessWidget {
                 Icon(
                   message.isRead ? Icons.done_all_rounded : Icons.done_rounded,
                   size: 15,
-                  color: message.isRead
-                      ? AppColors.primary
-                      : AppColors.textMuted,
+                  color:
+                      message.isRead ? AppColors.primary : AppColors.textMuted,
                 ),
               ],
             ],
@@ -87,7 +101,7 @@ class ChatDayDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
         children: [
           const Expanded(child: Divider(color: AppColors.border)),
@@ -114,7 +128,7 @@ class ChatNewMessageDivider extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Center(
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
             color: AppColors.pinkSoft,
             borderRadius: BorderRadius.circular(20),

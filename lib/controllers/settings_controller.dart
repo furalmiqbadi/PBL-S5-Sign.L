@@ -59,8 +59,8 @@ class SettingsController extends ChangeNotifier {
     return _update(_settings.copyWith(dailyReminder: v));
   }
 
-  Future<void> setReminderTime(int hour, int minute) => _update(
-      _settings.copyWith(reminderHour: hour, reminderMinute: minute));
+  Future<void> setReminderTime(int hour, int minute) =>
+      _update(_settings.copyWith(reminderHour: hour, reminderMinute: minute));
 
   Future<void> setStreakReminder(bool v) {
     _feedback();

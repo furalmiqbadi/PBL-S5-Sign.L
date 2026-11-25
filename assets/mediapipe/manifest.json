@@ -1,0 +1,10 @@
+{
+  "note": "Written by `dart run mediapipe_core:bundle_models`. List models in pubspec.yaml instead of editing this file.",
+  "models": [
+    {
+      "model": "mediapipe_vision: hand_landmarker",
+      "file": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+      "url": "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
+    }
+  ]
+}

@@ -1,5 +1,16 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../../models/nama_tampil.dart';
+import '../../models/profil_model.dart';
+import '../../services/auth_service.dart';
+import '../../services/image_compress_service.dart';
+import '../../services/profil_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../widgets/app_ui.dart';
 
 /// Halaman Edit Profil Sign-L
 /// Sesuai referensi Figma & Stitch:
@@ -7,7 +18,7 @@ import '../theme/app_colors.dart';
 /// - Informasi Dasar (Nama, Username, Bio, Email terverifikasi, Nomor Telepon)
 /// - Pencapaian Unggulan (Kelola slot maksimal 3 lencana)
 /// - Preferensi Isyarat (Tingkat Kemahiran & Motivasi Belajar)
-/// - Tingkatan Role Akun (Timeline level Penjelajah 65%)
+/// - Tingkatan Role Akun (timeline 3 tingkat berdasarkan `profiles.level`)
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -16,33 +27,66 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  final ProfilService _profilService = ProfilService();
+  final AuthService _authService = AuthService();
+
+  // Foto profil: berkas lokal yang baru dipilih, atau URL tersimpan di server.
+  final ImagePicker _picker = ImagePicker();
+  String? _avatarPath;
+  String _avatarUrl = '';
+
+  ProfilPengguna? _profil;
+  bool _loading = true;
+  bool _saving = false;
+
   // Form Controllers
   late final TextEditingController _nameController;
   late final TextEditingController _usernameController;
   late final TextEditingController _bioController;
-  late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
 
-  // State Preferensi Isyarat
-  String _selectedLevel = 'Tingkat Menengah (Level 2)';
-  String _selectedLevelDesc = 'BISINDO & Pemahaman Ekspresif';
-  String _selectedLevelCode = 'L2';
+  /// Email akun diambil dari sesi Supabase Auth (tidak dapat diubah di sini).
+  String get _email => _authService.currentUser?.email ?? '';
 
-  final Set<String> _selectedMotivations = {
+  /// Tingkat kemahiran isyarat disimpan di kolom `profiles.level`.
+  int _level = 1;
+
+  final Set<String> _selectedMotivations = {};
+
+  // State Pencapaian Unggulan (maksimal 3 slot)
+  final List<String> _selectedBadgeIds = [];
+
+  static const List<Map<String, dynamic>> _daftarLevel = [
+    {
+      'level': 1,
+      'code': 'L1',
+      'title': 'Tingkat Pemula (Level 1)',
+      'desc': 'Alfabet, Angka & Frasa Dasar BISINDO',
+    },
+    {
+      'level': 2,
+      'code': 'L2',
+      'title': 'Tingkat Menengah (Level 2)',
+      'desc': 'BISINDO & Pemahaman Ekspresif',
+    },
+    {
+      'level': 3,
+      'code': 'L3',
+      'title': 'Tingkat Mahir (Level 3)',
+      'desc': 'Percakapan Kompleks & Cerita Isyarat',
+    },
+  ];
+
+  static const List<String> _daftarMotivasi = [
     'Komunikasi Keluarga',
     'Pekerjaan',
     'Teman Tuli',
-  };
-
-  // State Pencapaian Unggulan (Maksimal 3 slot)
-  final List<String> _selectedBadgeIds = [
-    'perfect_100',
-    'streak_7',
-    'fast_signer',
+    'Advokasi Sosial',
+    'Hobi & Edukasi',
   ];
 
-  // Data Master Lencana Pencapaian
-  final List<Map<String, dynamic>> _allBadges = [
+  // Katalog lencana. Status terbuka dihitung dari data profil nyata.
+  static const List<Map<String, dynamic>> _allBadges = [
     {
       'id': 'perfect_100',
       'title': 'Perfect 100',
@@ -50,7 +94,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'icon': Icons.stars_rounded,
       'color': AppColors.primary,
       'bg': AppColors.pinkSoft,
-      'isUnlocked': true,
       'category': 'Evaluasi',
     },
     {
@@ -60,7 +103,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'icon': Icons.local_fire_department_rounded,
       'color': AppColors.secondary,
       'bg': AppColors.purpleSoft,
-      'isUnlocked': true,
       'category': 'Konsistensi',
     },
     {
@@ -70,7 +112,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'icon': Icons.bolt_rounded,
       'color': AppColors.tertiary,
       'bg': AppColors.orangeSoft,
-      'isUnlocked': true,
       'category': 'Kecepatan',
     },
     {
@@ -80,7 +121,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'icon': Icons.auto_stories_rounded,
       'color': AppColors.info,
       'bg': AppColors.infoSoft,
-      'isUnlocked': true,
       'category': 'Eksplorasi',
     },
     {
@@ -90,7 +130,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'icon': Icons.forum_rounded,
       'color': AppColors.success,
       'bg': AppColors.successSoft,
-      'isUnlocked': false,
       'category': 'Komunitas',
     },
     {
@@ -100,24 +139,57 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'icon': Icons.workspace_premium_rounded,
       'color': AppColors.secondary,
       'bg': AppColors.purpleSoft,
-      'isUnlocked': false,
       'category': 'Kurikulum',
     },
   ];
 
+  ImageProvider<Object>? get _avatarImage {
+    if (_avatarPath != null) return FileImage(File(_avatarPath!));
+    if (_avatarUrl.isNotEmpty) return NetworkImage(_avatarUrl);
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: 'Sarah Chen');
-    _usernameController = TextEditingController(text: '@sarah.creates');
-    _bioController = TextEditingController(
-      text: 'Pelajar Bahasa Isyarat BISINDO Pemula • Passionate in Accessibility',
-    );
-    _emailController = TextEditingController(text: 'sarah.chen@example.com');
-    _phoneController = TextEditingController(text: '+62 812-3456-7890');
+    _nameController = TextEditingController();
+    _usernameController = TextEditingController();
+    _bioController = TextEditingController();
+    _phoneController = TextEditingController();
 
     _bioController.addListener(() {
       setState(() {});
+    });
+    _nameController.addListener(() {
+      if (_avatarImage == null) setState(() {});
+    });
+
+    _muatProfil();
+  }
+
+  /// Mengisi formulir dengan data profil nyata dari Supabase.
+  Future<void> _muatProfil() async {
+    setState(() => _loading = true);
+    final profil = await _profilService.profilSaya(force: true);
+    if (!mounted) return;
+    setState(() {
+      _profil = profil;
+      _loading = false;
+      if (profil != null) {
+        _nameController.text = profil.nama;
+        _usernameController.text =
+            profil.username.isEmpty ? '' : '@${profil.username}';
+        _bioController.text = profil.bio;
+        _phoneController.text = profil.phone;
+        _avatarUrl = profil.avatarUrl;
+        _level = profil.level.clamp(1, 3);
+        _selectedMotivations
+          ..clear()
+          ..addAll(profil.motivation);
+        _selectedBadgeIds
+          ..clear()
+          ..addAll(profil.featuredBadges.take(3));
+      }
     });
   }
 
@@ -126,244 +198,258 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController.dispose();
     _usernameController.dispose();
     _bioController.dispose();
-    _emailController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
 
-  void _saveProfile() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle_rounded, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Perubahan profil berhasil disimpan!'),
-          ],
-        ),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-    Navigator.pop(context);
+  Future<void> _saveProfile() async {
+    if (_saving) return;
+    final nama = _nameController.text.trim();
+    final username = _usernameController.text.trim();
+    if (nama.isEmpty) {
+      showAppSnackBar(context, 'Nama lengkap wajib diisi.',
+          type: AppSnackType.warning);
+      return;
+    }
+    if (username.isEmpty) {
+      showAppSnackBar(context, 'Username wajib diisi.',
+          type: AppSnackType.warning);
+      return;
+    }
+
+    setState(() => _saving = true);
+    try {
+      String? avatarUrl;
+      if (_avatarPath != null) {
+        avatarUrl = await _profilService.unggahAvatar(_avatarPath!);
+      }
+
+      final profil = await _profilService.simpanProfil(
+        nama: nama,
+        username: username,
+        bio: _bioController.text,
+        phone: _phoneController.text,
+        level: _level,
+        motivation: _selectedMotivations.toList(),
+        featuredBadges: _selectedBadgeIds,
+        avatarUrl: avatarUrl,
+      );
+      if (!mounted) return;
+      setState(() {
+        _profil = profil;
+        _avatarPath = null;
+        _avatarUrl = profil?.avatarUrl ?? _avatarUrl;
+      });
+      showAppSnackBar(
+        context,
+        'Perubahan profil berhasil disimpan!',
+        type: AppSnackType.success,
+      );
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        e is Exception ? e.toString().replaceFirst('Exception: ', '') : '$e',
+        type: AppSnackType.error,
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  /// Memilih foto profil lalu mengompresnya agar file tersimpan kecil
+  /// (maksimal 512 px, kualitas 70%).
+  Future<void> _pickAvatar(ImageSource source) async {
+    try {
+      final XFile? file = await _picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 70,
+      );
+      if (file == null || !mounted) return;
+      // Simpan sebagai WebP agar file benar-benar kecil.
+      final webpPath = await ImageCompressService.toWebP(
+        file.path,
+        maxWidth: 512,
+        quality: 70,
+      );
+      if (!mounted) return;
+      setState(() => _avatarPath = webpPath);
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        'Gagal membuka kamera/galeri.',
+        type: AppSnackType.error,
+      );
+    }
   }
 
   void _showChangePhotoModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+    showAppBottomSheet<void>(
+      context,
+      title: 'Ubah Foto Profil',
+      icon: Icons.photo_camera_outlined,
+      contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Ubah Foto Profil',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: AppColors.pinkSoft,
-                    child: Icon(Icons.photo_camera_rounded, color: AppColors.primary),
-                  ),
-                  title: const Text('Ambil Foto Baru', style: TextStyle(fontWeight: FontWeight.w600)),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Kamera dibuka...')),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: AppColors.purpleSoft,
-                    child: Icon(Icons.photo_library_rounded, color: AppColors.secondary),
-                  ),
-                  title: const Text('Pilih dari Galeri', style: TextStyle(fontWeight: FontWeight.w600)),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Galeri dibuka...')),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: AppColors.pinkSoft,
-                    child: Icon(Icons.delete_outline_rounded, color: Colors.red),
-                  ),
-                  title: const Text('Hapus Foto Profil', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red)),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Foto profil dihapus')),
-                    );
-                  },
-                ),
-              ],
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppSheetOptionTile(
+              icon: Icons.photo_camera_rounded,
+              iconColor: AppColors.primary,
+              iconBackground: AppColors.pinkSoft,
+              title: 'Ambil Foto Baru',
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickAvatar(ImageSource.camera);
+              },
             ),
-          ),
+            AppSheetOptionTile(
+              icon: Icons.photo_library_rounded,
+              iconColor: AppColors.secondary,
+              iconBackground: AppColors.purpleSoft,
+              title: 'Pilih dari Galeri',
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickAvatar(ImageSource.gallery);
+              },
+            ),
+            AppSheetOptionTile(
+              icon: Icons.delete_outline_rounded,
+              iconColor: AppColors.danger,
+              iconBackground: AppColors.dangerSoft,
+              title: 'Hapus Foto Profil',
+              titleColor: AppColors.danger,
+              onTap: () {
+                Navigator.pop(ctx);
+                setState(() {
+                  _avatarPath = null;
+                  _avatarUrl = '';
+                });
+                showAppSnackBar(context, 'Foto profil dihapus');
+              },
+            ),
+          ],
         );
       },
     );
   }
 
   void _showLevelPicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+    showAppBottomSheet<void>(
+      context,
+      title: 'Tingkat Kemahiran Isyarat',
+      icon: Icons.school_outlined,
+      contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       builder: (ctx) {
-        final levels = [
-          {
-            'code': 'L1',
-            'title': 'Tingkat Pemula (Level 1)',
-            'desc': 'Alfabet, Angka & Frasa Dasar BISINDO',
-          },
-          {
-            'code': 'L2',
-            'title': 'Tingkat Menengah (Level 2)',
-            'desc': 'BISINDO & Pemahaman Ekspresif',
-          },
-          {
-            'code': 'L3',
-            'title': 'Tingkat Mahir (Level 3)',
-            'desc': 'Percakapan Kompleks & Cerita Isyarat',
-          },
-        ];
-
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Pilih Tingkat Kemahiran Isyarat',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                for (final lvl in levels)
-                  ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: lvl['title'] == _selectedLevel
-                          ? AppColors.primary
-                          : AppColors.purpleSoft,
-                      child: Text(
-                        lvl['code']!,
-                        style: TextStyle(
-                          color: lvl['title'] == _selectedLevel
-                              ? Colors.white
-                              : AppColors.secondary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      lvl['title']!,
-                      style: TextStyle(
-                        fontWeight: lvl['title'] == _selectedLevel
-                            ? FontWeight.bold
-                            : FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    subtitle: Text(lvl['desc']!, style: const TextStyle(fontSize: 12)),
-                    trailing: lvl['title'] == _selectedLevel
-                        ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
-                        : null,
-                    onTap: () {
-                      setState(() {
-                        _selectedLevel = lvl['title']!;
-                        _selectedLevelDesc = lvl['desc']!;
-                        _selectedLevelCode = lvl['code']!;
-                      });
-                      Navigator.pop(ctx);
-                    },
-                  ),
-              ],
-            ),
-          ),
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final lvl in _daftarLevel)
+              AppSheetOptionTile(
+                icon: switch (lvl['level']) {
+                  1 => Icons.looks_one_rounded,
+                  2 => Icons.looks_two_rounded,
+                  _ => Icons.looks_3_rounded,
+                },
+                iconColor: lvl['level'] == _level
+                    ? AppColors.primary
+                    : AppColors.secondary,
+                iconBackground: lvl['level'] == _level
+                    ? AppColors.pinkSoft
+                    : AppColors.purpleSoft,
+                title: lvl['title'] as String,
+                subtitle: lvl['desc'] as String,
+                isSelected: lvl['level'] == _level,
+                onTap: () {
+                  setState(() => _level = lvl['level'] as int);
+                  Navigator.pop(ctx);
+                },
+              ),
+          ],
         );
       },
     );
   }
 
+  /// Status terbuka lencana diturunkan dari data nyata: streak dan level.
+  bool _badgeTerbuka(Map<String, dynamic> badge) {
+    final profil = _profil;
+    if (profil == null) return false;
+    return switch (badge['id']) {
+      'streak_7' => profil.streak >= 7,
+      'master_signer' => _level >= 3,
+      'kamus_explorer' => profil.xp >= 500,
+      _ => false,
+    };
+  }
+
+  int get _jumlahTerbuka => _allBadges.where(_badgeTerbuka).length;
+
+  int get _jumlahTerkunci => _allBadges.length - _jumlahTerbuka;
+
+  int get _jumlahTotalLencana => _allBadges.length;
+
+  /// "4 bulan" sejak `profiles.created_at`.
+  String get _lamaBergabung {
+    final dibuat = _profil?.dibuat;
+    if (dibuat == null) return 'Baru bergabung';
+    final hari = DateTime.now().difference(dibuat).inDays;
+    if (hari < 30) return 'Bergabung $hari hari lalu';
+    final bulan = (hari / 30).floor();
+    if (bulan < 12) return 'Bergabung $bulan bulan lalu';
+    return 'Bergabung ${(bulan / 12).floor()} tahun lalu';
+  }
+
+  /// Role akun dari tabel `profiles.role`.
+  String get _roleLabel => _profil?.roleLabel ?? 'Pembelajar';
+
+  /// Inisial nama untuk fallback avatar.
+  String get _inisial {
+    final nama = _nameController.text.trim();
+    final sumber = nama.isNotEmpty ? nama : (_profil?.nama ?? '');
+    if (sumber.trim().isEmpty) return '?';
+    final kata = sumber.trim().split(RegExp(r'\s+'));
+    if (kata.length == 1) {
+      return String.fromCharCode(kata.first.runes.first).toUpperCase();
+    }
+    return '${String.fromCharCode(kata.first.runes.first)}'
+            '${String.fromCharCode(kata[1].runes.first)}'
+        .toUpperCase();
+  }
+
   void _showRoleDetailDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Icon(Icons.explore_rounded, color: AppColors.secondary),
-            SizedBox(width: 8),
-            Text(
-              'Detail Role: Penjelajah',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Status Sarah Chen:',
-              style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-            ),
-            SizedBox(height: 4),
-            Text(
-              '• Bergabung: 4 bulan lalu\n'
-              '• Progres menuju Mahir: 65%\n'
-              '• Estimasi naik level: 2 bulan lagi dengan latihan rutin\n'
-              '• Benefit aktif: Kustomisasi 3 lencana profil publik',
-              style: TextStyle(fontSize: 13, height: 1.5, color: AppColors.textPrimary),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Mengerti', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+    showAppDialog(
+      context,
+      icon: Icons.explore_rounded,
+      iconColor: AppColors.secondary,
+      iconBackground: AppColors.purpleSoft,
+      title: 'Detail Role: $_roleLabel',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Status ${_profil?.nama ?? labelNamaNetral}:',
+            style: const TextStyle(
+                fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '• $_lamaBergabung\n'
+            '• Total XP: ${ProfilPengguna.formatAngka(_profil?.xp ?? 0)}\n'
+            '• Streak: ${_profil?.streak ?? 0} hari\n'
+            '• Tingkat kemahiran: Level $_level',
+            style: const TextStyle(
+                fontSize: 13, height: 1.55, color: AppColors.textSecondary),
           ),
         ],
       ),
+      showCancel: false,
+      confirmLabel: 'Mengerti',
     );
   }
 
@@ -375,7 +461,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (modalContext, setModalState) {
-            int filterTabIndex = 0; // 0: Semua (6), 1: Sudah Didapat (4), 2: Belum Terbuka (2)
+            int filterTabIndex =
+                0; // 0: Semua, 1: Sudah Didapat, 2: Belum Terbuka
             String selectedCategory = 'Semua Kategori';
 
             return DraggableScrollableSheet(
@@ -386,9 +473,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 // Filter badge list
                 List<Map<String, dynamic>> displayedBadges = _allBadges;
                 if (filterTabIndex == 1) {
-                  displayedBadges = _allBadges.where((b) => b['isUnlocked'] == true).toList();
+                  displayedBadges = _allBadges.where(_badgeTerbuka).toList();
                 } else if (filterTabIndex == 2) {
-                  displayedBadges = _allBadges.where((b) => b['isUnlocked'] == false).toList();
+                  displayedBadges =
+                      _allBadges.where((b) => !_badgeTerbuka(b)).toList();
                 }
 
                 if (selectedCategory != 'Semua Kategori') {
@@ -399,8 +487,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                 return Container(
                   decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    color: AppColors.surface,
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(24)),
                   ),
                   child: Column(
                     children: [
@@ -411,7 +500,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           width: 44,
                           height: 4.5,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
+                            color: AppColors.border,
                             borderRadius: BorderRadius.circular(3),
                           ),
                         ),
@@ -469,7 +558,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   color: AppColors.surfaceMuted,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.close_rounded, size: 18, color: AppColors.textPrimary),
+                                child: const Icon(Icons.close_rounded,
+                                    size: 18, color: AppColors.textPrimary),
                               ),
                             ),
                           ],
@@ -494,7 +584,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: AppColors.purpleSoft,
                                     borderRadius: BorderRadius.circular(10),
@@ -528,10 +619,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
+                                const Text(
                                   'STATUS PENCAPAIAN',
                                   style: TextStyle(
                                     fontSize: 10,
@@ -541,8 +632,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '6 Total Lencana',
-                                  style: TextStyle(
+                                  '$_jumlahTotalLencana Total Lencana',
+                                  style: const TextStyle(
                                     fontSize: 10,
                                     color: AppColors.textSecondary,
                                   ),
@@ -555,21 +646,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               child: Row(
                                 children: [
                                   _buildModalTabPill(
-                                    label: 'Semua (6)',
+                                    label: 'Semua ($_jumlahTotalLencana)',
                                     isSelected: filterTabIndex == 0,
-                                    onTap: () => setModalState(() => filterTabIndex = 0),
+                                    onTap: () =>
+                                        setModalState(() => filterTabIndex = 0),
                                   ),
                                   const SizedBox(width: 8),
                                   _buildModalTabPill(
-                                    label: 'Sudah Didapat (4)',
+                                    label: 'Sudah Didapat ($_jumlahTerbuka)',
                                     isSelected: filterTabIndex == 1,
-                                    onTap: () => setModalState(() => filterTabIndex = 1),
+                                    onTap: () =>
+                                        setModalState(() => filterTabIndex = 1),
                                   ),
                                   const SizedBox(width: 8),
                                   _buildModalTabPill(
-                                    label: 'Belum Terbuka (2)',
+                                    label: 'Belum Terbuka ($_jumlahTerkunci)',
                                     isSelected: filterTabIndex == 2,
-                                    onTap: () => setModalState(() => filterTabIndex = 2),
+                                    onTap: () =>
+                                        setModalState(() => filterTabIndex = 2),
                                   ),
                                 ],
                               ),
@@ -596,15 +690,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             const SizedBox(height: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 14),
                               decoration: BoxDecoration(
-                                color: AppColors.background,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AppColors.border),
+                                color: AppColors.fieldFill,
+                                borderRadius: BorderRadius.circular(16),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.layers_outlined, size: 16, color: AppColors.primary),
+                                  const Icon(Icons.layers_outlined,
+                                      size: 16, color: AppColors.primary),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
@@ -616,7 +711,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       ),
                                     ),
                                   ),
-                                  const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppColors.textSecondary),
+                                  const Icon(Icons.keyboard_arrow_down_rounded,
+                                      size: 18, color: AppColors.textSecondary),
                                 ],
                               ),
                             ),
@@ -629,31 +725,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 10),
                           decoration: BoxDecoration(
                             color: AppColors.purpleSoft,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.border),
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Row(
+                          child: Row(
                             children: [
-                              Icon(Icons.check_circle_rounded, color: AppColors.secondary, size: 18),
-                              SizedBox(width: 10),
+                              const Icon(Icons.check_circle_rounded,
+                                  color: AppColors.secondary, size: 18),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Status Role: Penjelajah',
-                                      style: TextStyle(
+                                      'Status Role: $_roleLabel',
+                                      style: const TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.textPrimary,
                                       ),
                                     ),
                                     Text(
-                                      'Akses kustomisasi 3 lencana profil aktif',
-                                      style: TextStyle(
+                                      'Lencana terbuka: $_jumlahTerbuka dari $_jumlahTotalLencana',
+                                      style: const TextStyle(
                                         fontSize: 10,
                                         color: AppColors.textSecondary,
                                       ),
@@ -662,8 +759,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 ),
                               ),
                               Text(
-                                '65% Menuju Mahir',
-                                style: TextStyle(
+                                'Level $_level',
+                                style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.secondary,
@@ -679,31 +776,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Expanded(
                         child: ListView.separated(
                           controller: scrollController,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 8),
                           itemCount: displayedBadges.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
                           itemBuilder: (ctx, index) {
                             final badge = displayedBadges[index];
                             final String id = badge['id'];
-                            final bool isSelected = _selectedBadgeIds.contains(id);
-                            final bool isUnlocked = badge['isUnlocked'] as bool;
+                            final bool isSelected =
+                                _selectedBadgeIds.contains(id);
+                            final bool isUnlocked = _badgeTerbuka(badge);
 
                             return Container(
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? (badge['color'] as Color)
-                                      : AppColors.border,
-                                  width: isSelected ? 1.5 : 1,
-                                ),
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(24),
+                                border: isSelected
+                                    ? Border.all(
+                                        color: badge['color'] as Color,
+                                        width: 1.5,
+                                      )
+                                    : null,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.02),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
@@ -711,55 +811,95 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
-                                          color: isUnlocked ? (badge['color'] as Color) : Colors.grey.shade200,
+                                          color: isUnlocked
+                                              ? (badge['color'] as Color)
+                                              : AppColors.fieldFill,
                                           shape: BoxShape.circle,
                                         ),
                                         child: Icon(
                                           badge['icon'] as IconData,
-                                          color: isUnlocked ? Colors.white : Colors.grey.shade400,
+                                          color: isUnlocked
+                                              ? AppColors.textOnPrimary
+                                              : AppColors.textMuted,
                                           size: 20,
                                         ),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 Text(
                                                   badge['title'] as String,
                                                   style: const TextStyle(
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.bold,
-                                                    color: AppColors.textPrimary,
+                                                    color:
+                                                        AppColors.textPrimary,
                                                   ),
                                                 ),
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 3),
                                                   decoration: BoxDecoration(
                                                     color: isSelected
-                                                        ? (badge['color'] as Color).withValues(alpha: 0.15)
-                                                        : AppColors.surfaceMuted,
-                                                    borderRadius: BorderRadius.circular(8),
+                                                        ? (badge['color']
+                                                                as Color)
+                                                            .withValues(
+                                                                alpha: 0.15)
+                                                        : AppColors.fieldFill,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
                                                   ),
-                                                  child: Text(
-                                                    isSelected
-                                                        ? '✓ Terpilih'
-                                                        : (isUnlocked ? 'Tersedia untuk Dipilih' : '🔒 Belum Terbuka'),
-                                                    style: TextStyle(
-                                                      fontSize: 10,
-                                                      fontWeight: FontWeight.w700,
-                                                      color: isSelected
-                                                          ? (badge['color'] as Color)
-                                                          : AppColors.textSecondary,
-                                                    ),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      if (!isSelected &&
+                                                          !isUnlocked) ...[
+                                                        const Icon(
+                                                          Icons
+                                                              .lock_outline_rounded,
+                                                          size: 12,
+                                                          color: AppColors
+                                                              .textSecondary,
+                                                        ),
+                                                        const SizedBox(
+                                                            width: 4),
+                                                      ],
+                                                      Text(
+                                                        isSelected
+                                                            ? 'Terpilih'
+                                                            : (isUnlocked
+                                                                ? 'Tersedia untuk Dipilih'
+                                                                : 'Belum Terbuka'),
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color: isSelected
+                                                              ? (badge['color']
+                                                                  as Color)
+                                                              : AppColors
+                                                                  .textSecondary,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                               ],
@@ -779,25 +919,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     ],
                                   ),
                                   const SizedBox(height: 10),
-                                  const Divider(height: 1, thickness: 0.8, color: AppColors.border),
+                                  const Divider(
+                                      height: 1,
+                                      thickness: 0.8,
+                                      color: AppColors.border),
                                   const SizedBox(height: 8),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Row(
                                         children: [
                                           Icon(
-                                            isUnlocked ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
+                                            isUnlocked
+                                                ? Icons.check_circle_rounded
+                                                : Icons.lock_outline_rounded,
                                             size: 14,
-                                            color: isUnlocked ? AppColors.success : AppColors.textMuted,
+                                            color: isUnlocked
+                                                ? AppColors.success
+                                                : AppColors.textMuted,
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            isUnlocked ? 'Sudah Didapat' : 'Belum Terbuka',
+                                            isUnlocked
+                                                ? 'Sudah Didapat'
+                                                : 'Belum Terbuka',
                                             style: TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.w600,
-                                              color: isUnlocked ? AppColors.success : AppColors.textMuted,
+                                              color: isUnlocked
+                                                  ? AppColors.success
+                                                  : AppColors.textMuted,
                                             ),
                                           ),
                                         ],
@@ -810,14 +962,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             });
                                             setModalState(() {});
                                           },
+                                          borderRadius:
+                                              BorderRadius.circular(16),
                                           child: const Padding(
-                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 14),
                                             child: Text(
                                               'Hapus',
                                               style: TextStyle(
-                                                fontSize: 11,
+                                                fontSize: 12,
                                                 fontWeight: FontWeight.bold,
-                                                color: Colors.red,
+                                                color: AppColors.danger,
                                               ),
                                             ),
                                           ),
@@ -826,11 +981,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                         InkWell(
                                           onTap: () {
                                             if (_selectedBadgeIds.length >= 3) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text('Batas maksimal 3 lencana terpilih! Hapus salah satu terlebih dahulu.'),
-                                                  duration: Duration(seconds: 2),
-                                                ),
+                                              showAppSnackBar(
+                                                context,
+                                                'Batas maksimal 3 lencana terpilih! Hapus salah satu terlebih dahulu.',
+                                                type: AppSnackType.warning,
+                                                duration:
+                                                    const Duration(seconds: 2),
                                               );
                                               return;
                                             }
@@ -839,19 +995,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             });
                                             setModalState(() {});
                                           },
-                                          child: const Row(
-                                            children: [
-                                              Icon(Icons.add_circle_outline_rounded, size: 14, color: AppColors.primary),
-                                              SizedBox(width: 4),
-                                              Text(
-                                                'Pilih Ini',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppColors.primary,
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          child: const Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 14),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                    Icons
+                                                        .add_circle_outline_rounded,
+                                                    size: 14,
+                                                    color: AppColors.primary),
+                                                SizedBox(width: 4),
+                                                Text(
+                                                  'Pilih Ini',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: AppColors.primary,
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
                                         )
                                       else
@@ -891,17 +1057,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        height: 40,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.surfaceMuted,
+          color: isSelected ? AppColors.primary : AppColors.fieldFill,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: isSelected ? Colors.white : AppColors.textPrimary,
+            color: isSelected ? AppColors.textOnPrimary : AppColors.textPrimary,
           ),
         ),
       ),
@@ -913,30 +1081,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Edit Profil',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w800,
-            fontSize: 18,
-          ),
-        ),
-        centerTitle: true,
+        title: const Text('Edit Profil'),
+        centerTitle: false,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: TextButton.icon(
-              onPressed: _saveProfile,
-              icon: const Icon(Icons.check_rounded, color: AppColors.primary, size: 18),
-              label: const Text(
-                'Simpan',
-                style: TextStyle(
+              onPressed: (_saving || _loading) ? null : _saveProfile,
+              icon: _saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.check_rounded,
+                      color: AppColors.primary, size: 18),
+              label: Text(
+                _saving ? 'Menyimpan' : 'Simpan',
+                style: const TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
@@ -946,33 +1114,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        child: Column(
-          children: [
-            // 1. Avatar Section
-            _buildAvatarSection(),
-            const SizedBox(height: 24),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: Column(
+                children: [
+                  // 1. Avatar Section
+                  _buildAvatarSection(),
+                  const SizedBox(height: 24),
 
-            // 2. Card: Informasi Dasar
-            _buildCardInformasiDasar(),
-            const SizedBox(height: 20),
+                  // 2. Card: Informasi Dasar
+                  _buildCardInformasiDasar(),
+                  const SizedBox(height: 20),
 
-            // 3. Card: Pencapaian Unggulan
-            _buildCardPencapaianUnggulan(),
-            const SizedBox(height: 20),
+                  // 3. Card: Pencapaian Unggulan
+                  _buildCardPencapaianUnggulan(),
+                  const SizedBox(height: 20),
 
-            // 4. Card: Preferensi Isyarat
-            _buildCardPreferensiIsyarat(),
-            const SizedBox(height: 20),
+                  // 4. Card: Preferensi Isyarat
+                  _buildCardPreferensiIsyarat(),
+                  const SizedBox(height: 20),
 
-            // 5. Card: Tingkatan Role Akun
-            _buildCardRoleAkun(),
-            const SizedBox(height: 32),
-            
-          ],
-        ),
-      ),
+                  // 5. Card: Tingkatan Role Akun
+                  _buildCardRoleAkun(),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
     );
   }
 
@@ -985,38 +1154,60 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: AppColors.brandGradient,
+                  color: AppColors.pinkSoft,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Container(
                   padding: const EdgeInsets.all(3),
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white,
+                    color: AppColors.surface,
                   ),
-                  child: const CircleAvatar(
+                  child: CircleAvatar(
                     radius: 46,
-                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=47'),
+                    backgroundColor: AppColors.primary,
+                    backgroundImage: _avatarImage,
+                    child: _avatarImage == null
+                        ? Text(
+                            _inisial,
+                            style: const TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textOnPrimary,
+                            ),
+                          )
+                        : null,
                   ),
                 ),
               ),
               Positioned(
-                bottom: 2,
-                right: 2,
+                bottom: 0,
+                right: 0,
                 child: InkWell(
                   onTap: _showChangePhotoModal,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt_rounded,
-                      color: Colors.white,
-                      size: 16,
+                  customBorder: const CircleBorder(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.surface, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        color: AppColors.textOnPrimary,
+                        size: 16,
+                      ),
                     ),
                   ),
                 ),
@@ -1027,9 +1218,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         const SizedBox(height: 10),
         InkWell(
           onTap: _showChangePhotoModal,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1105,17 +1296,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           const SizedBox(height: 14),
 
-          // Email
+          // Email (read-only, dari akun Supabase)
           _buildFieldLabel('Email'),
           const SizedBox(height: 6),
-          _buildInputField(
-            controller: _emailController,
+          _buildReadOnlyField(
+            value: _email.isEmpty ? 'Belum tersedia' : _email,
             prefixIcon: Icons.mail_outline_rounded,
-            suffixIcon: const Icon(
-              Icons.check_circle_rounded,
-              color: AppColors.primary,
-              size: 20,
-            ),
           ),
           const SizedBox(height: 14),
 
@@ -1132,9 +1318,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildCardPencapaianUnggulan() {
-    final selectedBadgesData = _allBadges
-        .where((b) => _selectedBadgeIds.contains(b['id']))
-        .toList();
+    final selectedBadgesData =
+        _allBadges.where((b) => _selectedBadgeIds.contains(b['id'])).toList();
 
     return _buildContainerCard(
       child: Column(
@@ -1147,9 +1332,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: AppColors.pinkSoft,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.military_tech_rounded, color: AppColors.primary, size: 20),
+                child: const Icon(Icons.military_tech_rounded,
+                    color: AppColors.primary, size: 20),
               ),
               const SizedBox(width: 10),
               const Expanded(
@@ -1167,7 +1353,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     SizedBox(height: 2),
                     Text(
                       'Maksimal 3 lencana disematkan di profil',
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -1197,8 +1384,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               padding: const EdgeInsets.all(16),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.fieldFill,
+                borderRadius: BorderRadius.circular(16),
               ),
               child: const Text(
                 'Belum ada lencana yang disematkan.\nPilih dari daftar di bawah!',
@@ -1221,20 +1408,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           // Tombol Kelola & Lihat Semua Pencapaian
           InkWell(
             onTap: _openAchievementSelectionModal,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: AppColors.pinkSoft,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.pinkSoft),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: const Row(
                 children: [
                   CircleAvatar(
                     radius: 16,
                     backgroundColor: AppColors.primary,
-                    child: Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 18),
+                    child: Icon(Icons.workspace_premium_rounded,
+                        color: Colors.white, size: 18),
                   ),
                   SizedBox(width: 12),
                   Expanded(
@@ -1252,7 +1439,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         SizedBox(height: 2),
                         Text(
                           '4 Terbuka, 2 Terkunci • Pilih & Ganti lencana',
-                          style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                          style: TextStyle(
+                              fontSize: 10, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -1267,23 +1455,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           // Tombol Dashed Outline: + Kelola Lencana Lainnya
           InkWell(
             onTap: _openAchievementSelectionModal,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              constraints: const BoxConstraints(minHeight: 48),
+              padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.6),
-                  width: 1.2,
-                ),
+                color: AppColors.fieldFill,
+                borderRadius: BorderRadius.circular(16),
               ),
               child: const Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add_circle_outline_rounded, size: 15, color: AppColors.primary),
+                    Icon(Icons.add_circle_outline_rounded,
+                        size: 15, color: AppColors.primary),
                     SizedBox(width: 6),
                     Text(
                       'Kelola Lencana Lainnya',
@@ -1307,18 +1493,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final Color badgeColor = badge['color'] as Color;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: badgeColor, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: badgeColor.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        color: badge['bg'] as Color,
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1334,7 +1512,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 child: Icon(
                   badge['icon'] as IconData,
-                  color: Colors.white,
+                  color: AppColors.textOnPrimary,
                   size: 20,
                 ),
               ),
@@ -1355,17 +1533,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: badgeColor,
+                            color: AppColors.surface,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Text(
-                            '✓ Terpilih (Maks 3)',
+                            'Terpilih (Maks 3)',
                             style: TextStyle(
-                              fontSize: 9,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ),
@@ -1391,7 +1570,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.check_circle_rounded, size: 14, color: AppColors.primary),
+                  Icon(Icons.check_circle_rounded,
+                      size: 14, color: AppColors.primary),
                   SizedBox(width: 4),
                   Text(
                     'Selesai • Ditampilkan di profil',
@@ -1404,23 +1584,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ],
               ),
               InkWell(
+                borderRadius: BorderRadius.circular(16),
                 onTap: () {
                   setState(() {
                     _selectedBadgeIds.remove(badge['id']);
                   });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Lencana ${badge['title']} dilepas dari profil'),
-                      duration: const Duration(seconds: 1),
-                    ),
+                  showAppSnackBar(
+                    context,
+                    'Lencana ${badge['title']} dilepas dari profil',
+                    duration: const Duration(seconds: 1),
                   );
                 },
                 child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                   child: Text(
                     'Hapus',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textSecondary,
                     ),
@@ -1435,6 +1615,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildCardPreferensiIsyarat() {
+    final Map<String, dynamic> levelAktif = _daftarLevel.firstWhere(
+      (l) => l['level'] == _level,
+      orElse: () => _daftarLevel.first,
+    );
+
     return _buildContainerCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1451,13 +1636,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const SizedBox(height: 8),
           InkWell(
             onTap: _showLevelPicker,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border),
+                color: AppColors.fieldFill,
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 children: [
@@ -1465,7 +1649,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     radius: 16,
                     backgroundColor: AppColors.secondary,
                     child: Text(
-                      _selectedLevelCode,
+                      levelAktif['code'] as String,
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -1479,7 +1663,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _selectedLevel,
+                          levelAktif['title'] as String,
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -1488,13 +1672,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          _selectedLevelDesc,
-                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          levelAktif['desc'] as String,
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.secondary),
+                  const Icon(Icons.keyboard_arrow_down_rounded,
+                      color: AppColors.secondary),
                 ],
               ),
             ),
@@ -1508,11 +1694,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildMotivationChip('Komunikasi Keluarga', AppColors.primary, Colors.white),
-              _buildMotivationChip('Pekerjaan', AppColors.purpleSoft, AppColors.secondary),
-              _buildMotivationChip('Teman Tuli', AppColors.orangeSoft, AppColors.tertiary),
-              _buildMotivationChip('Advokasi Sosial', AppColors.background, AppColors.textPrimary),
-              _buildMotivationChip('Hobi & Edukasi', AppColors.background, AppColors.textPrimary),
+              for (final m in _daftarMotivasi) _buildMotivationChip(m),
             ],
           ),
         ],
@@ -1520,7 +1702,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildMotivationChip(String label, Color bgColor, Color textColor) {
+  Widget _buildMotivationChip(String label) {
     final bool isSelected = _selectedMotivations.contains(label);
 
     return InkWell(
@@ -1535,29 +1717,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       },
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? bgColor : AppColors.background,
+          color: isSelected ? AppColors.primary : AppColors.fieldFill,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? Colors.transparent : AppColors.border,
-          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               isSelected ? Icons.check_rounded : Icons.add_rounded,
-              size: 14,
-              color: isSelected ? textColor : AppColors.textSecondary,
+              size: 16,
+              color: isSelected
+                  ? AppColors.textOnPrimary
+                  : AppColors.textSecondary,
             ),
             const SizedBox(width: 4),
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? textColor : AppColors.textSecondary,
+                color: isSelected
+                    ? AppColors.textOnPrimary
+                    : AppColors.textSecondary,
               ),
             ),
           ],
@@ -1577,9 +1761,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: AppColors.purpleSoft,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.workspace_premium_outlined, color: AppColors.secondary, size: 20),
+                child: const Icon(Icons.workspace_premium_outlined,
+                    color: AppColors.secondary, size: 20),
               ),
               const SizedBox(width: 10),
               const Expanded(
@@ -1597,7 +1782,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     SizedBox(height: 2),
                     Text(
                       'Loyalitas & Masa Pakai Sign-L',
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -1608,9 +1794,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   color: AppColors.purpleSoft,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'Penjelajah',
-                  style: TextStyle(
+                child: Text(
+                  _roleLabel,
+                  style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: AppColors.secondary,
@@ -1623,11 +1809,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
           // Highlight Status Banner
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.pinkSoft,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.pinkSoft),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               children: [
@@ -1639,9 +1824,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       children: [
                         Row(
                           children: [
-                            const Text(
-                              'Status Anda: Penjelajah',
-                              style: TextStyle(
+                            Text(
+                              'Status Anda: $_roleLabel',
+                              style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textPrimary,
@@ -1649,43 +1834,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppColors.secondary,
-                                borderRadius: BorderRadius.circular(6),
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Text(
                                 'AKTIF',
                                 style: TextStyle(
-                                  fontSize: 8,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: AppColors.textOnPrimary,
                                 ),
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 2),
-                        const Text(
-                          'Bergabung 4 bulan lalu • Menuju Mahir',
-                          style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                        Text(
+                          _lamaBergabung,
+                          style: const TextStyle(
+                              fontSize: 10, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
-                    const Column(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '65%',
-                          style: TextStyle(
+                          'Level $_level',
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,
                             color: AppColors.secondary,
                           ),
                         ),
-                        Text(
-                          '2 bulan lagi',
-                          style: TextStyle(fontSize: 9, color: AppColors.textSecondary),
+                        const Text(
+                          'dari 3 tingkat',
+                          style: TextStyle(
+                              fontSize: 9, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -1694,11 +1882,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 const SizedBox(height: 12),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(6),
-                  child: const LinearProgressIndicator(
-                    value: 0.65,
+                  child: LinearProgressIndicator(
+                    value: _level / 3,
                     minHeight: 7,
                     color: AppColors.primary,
-                    backgroundColor: AppColors.purpleSoft,
+                    backgroundColor: AppColors.surface,
                   ),
                 ),
               ],
@@ -1706,57 +1894,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Timeline Langkah Role
+          // Timeline Tingkat Kemahiran (dari kolom `profiles.level`)
           _buildRoleTimelineStep(
             icon: Icons.check_rounded,
             iconBgColor: AppColors.success,
-            title: 'Pemula',
-            subtitle: 'Baru bergabung di Sign-L',
-            badgeText: 'Tercapai ✓',
+            title: 'Pemula (Level 1)',
+            subtitle: 'Alfabet, angka & frasa dasar BISINDO',
+            badgeText: _level >= 1 ? 'Tercapai' : 'Belum Terbuka',
             badgeBgColor: AppColors.successSoft,
             badgeTextColor: AppColors.success,
-            isDone: true,
+            isDone: _level >= 1,
             hasLine: true,
-            lineColor: AppColors.success,
+            lineColor: _level >= 2 ? AppColors.success : AppColors.border,
           ),
           _buildRoleTimelineStep(
             icon: Icons.explore_rounded,
-            iconBgColor: AppColors.secondary,
-            title: 'Penjelajah',
-            activePill: true,
-            subtitle: 'Aktif 1 - 6 Bulan & menjelajahi kamus\nStatus Sarah Chen: Progres 65% menuju Mahir',
-            badgeText: '1 - 6 Bulan',
-            badgeBgColor: AppColors.purpleSoft,
-            badgeTextColor: AppColors.secondary,
+            iconBgColor:
+                _level >= 2 ? AppColors.secondary : AppColors.fieldFill,
+            iconColor: _level >= 2 ? Colors.white : AppColors.textMuted,
+            title: 'Menengah (Level 2)',
+            activePill: _level == 2,
+            subtitle: 'BISINDO & pemahaman ekspresif',
+            badgeText: _level >= 2 ? 'Tercapai' : 'Belum Terbuka',
+            badgeIcon: _level >= 2 ? null : Icons.lock_outline_rounded,
+            badgeBgColor:
+                _level >= 2 ? AppColors.purpleSoft : AppColors.fieldFill,
+            badgeTextColor:
+                _level >= 2 ? AppColors.secondary : AppColors.textSecondary,
             actionLink: 'Ketuk detail',
             onActionTap: _showRoleDetailDialog,
-            isDone: true,
+            isDone: _level >= 2,
             hasLine: true,
-            lineColor: Colors.grey.shade300,
+            lineColor: _level >= 3 ? AppColors.success : AppColors.border,
           ),
           _buildRoleTimelineStep(
             icon: Icons.lightbulb_outline_rounded,
-            iconBgColor: Colors.grey.shade300,
-            iconColor: Colors.grey.shade600,
-            title: 'Mahir',
-            subtitle: 'Aktif 1 - 2 Tahun & kontributor latihan',
-            badgeText: '🔒 Belum Terbuka',
-            badgeBgColor: AppColors.surfaceMuted,
-            badgeTextColor: AppColors.textSecondary,
-            isDone: false,
-            hasLine: true,
-            lineColor: Colors.grey.shade300,
-          ),
-          _buildRoleTimelineStep(
-            icon: Icons.emoji_events_outlined,
-            iconBgColor: Colors.grey.shade300,
-            iconColor: Colors.grey.shade600,
-            title: 'Master Signer',
-            subtitle: 'Aktif 3+ Tahun & mentor duta aksesibilitas',
-            badgeText: '🔒 Belum Terbuka',
-            badgeBgColor: AppColors.surfaceMuted,
-            badgeTextColor: AppColors.textSecondary,
-            isDone: false,
+            iconBgColor:
+                _level >= 3 ? AppColors.secondary : AppColors.fieldFill,
+            iconColor: _level >= 3 ? Colors.white : AppColors.textMuted,
+            title: 'Mahir (Level 3)',
+            activePill: _level == 3,
+            subtitle: 'Percakapan kompleks & cerita isyarat',
+            badgeText: _level >= 3 ? 'Tercapai' : 'Belum Terbuka',
+            badgeIcon: _level >= 3 ? null : Icons.lock_outline_rounded,
+            badgeBgColor:
+                _level >= 3 ? AppColors.purpleSoft : AppColors.fieldFill,
+            badgeTextColor:
+                _level >= 3 ? AppColors.secondary : AppColors.textSecondary,
+            isDone: _level >= 3,
             hasLine: false,
           ),
         ],
@@ -1772,6 +1957,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     bool activePill = false,
     required String subtitle,
     required String badgeText,
+    IconData? badgeIcon,
     required Color badgeBgColor,
     required Color badgeTextColor,
     String? actionLink,
@@ -1800,7 +1986,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: lineColor ?? Colors.grey.shade300,
+                    color: lineColor ?? AppColors.border,
                     margin: const EdgeInsets.symmetric(vertical: 4),
                   ),
                 ),
@@ -1830,17 +2016,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           if (activePill) ...[
                             const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppColors.secondary,
-                                borderRadius: BorderRadius.circular(6),
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Text(
                                 'AKTIF',
                                 style: TextStyle(
-                                  fontSize: 8,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: AppColors.textOnPrimary,
                                 ),
                               ),
                             ),
@@ -1848,18 +2035,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ],
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: badgeBgColor,
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(
-                          badgeText,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: badgeTextColor,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (badgeIcon != null) ...[
+                              Icon(badgeIcon, size: 12, color: badgeTextColor),
+                              const SizedBox(width: 4),
+                            ],
+                            Text(
+                              badgeText,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: badgeTextColor,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -1874,16 +2071,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
                   if (actionLink != null) ...[
-                    const SizedBox(height: 4),
                     InkWell(
                       onTap: onActionTap,
-                      child: Text(
-                        actionLink,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.secondary,
-                          decoration: TextDecoration.underline,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        constraints: const BoxConstraints(minHeight: 48),
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          actionLink,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.secondary,
+                            decoration: TextDecoration.underline,
+                          ),
                         ),
                       ),
                     ),
@@ -1901,18 +2102,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildContainerCard({required Widget child}) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadii.xl),
         border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: AppShadows.card,
       ),
       child: child,
     );
@@ -1926,20 +2121,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: iconColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            color: iconColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(AppRadii.sm),
           ),
           child: Icon(icon, color: iconColor, size: 18),
         ),
         const SizedBox(width: 10),
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
+          style: AppTextStyles.titleSmall.copyWith(
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],
@@ -1949,10 +2142,44 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildFieldLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
+      style: AppTextStyles.labelMedium.copyWith(
+        fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
+      ),
+    );
+  }
+
+  Widget _buildReadOnlyField({
+    required String value,
+    required IconData prefixIcon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      decoration: BoxDecoration(
+        color: AppColors.fieldFill,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Icon(prefixIcon, size: 20, color: AppColors.textSecondary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          const Icon(
+            Icons.lock_outline_rounded,
+            size: 16,
+            color: AppColors.textMuted,
+          ),
+        ],
       ),
     );
   }
@@ -1965,37 +2192,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     int? maxLength,
     bool showCounter = false,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      maxLength: maxLength,
+      buildCounter: showCounter
+          ? null
+          : (context,
+                  {required currentLength, required isFocused, maxLength}) =>
+              null,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
       ),
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        maxLength: maxLength,
-        buildCounter: showCounter
-            ? null
-            : (context, {required currentLength, required isFocused, maxLength}) => null,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
-        ),
-        decoration: InputDecoration(
-          filled: false,
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          prefixIcon: Icon(prefixIcon, size: 18, color: AppColors.textSecondary),
-          suffixIcon: suffixIcon,
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
-          ),
-        ),
+      decoration: InputDecoration(
+        prefixIcon: Icon(prefixIcon, size: 20, color: AppColors.textSecondary),
+        suffixIcon: suffixIcon,
       ),
     );
   }
