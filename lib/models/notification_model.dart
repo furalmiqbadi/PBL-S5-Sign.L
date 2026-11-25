@@ -4,10 +4,17 @@
 library;
 
 /// Kategori notifikasi (dipakai untuk filter dan pemilihan ikon di View).
-enum NotificationCategory { komunitas, belajar, pencapaian }
+enum NotificationCategory { komunitas, belajar, pencapaian, chat }
 
 /// Halaman tujuan saat notifikasi dibuka.
-enum NotificationTarget { community, learning, achievement }
+enum NotificationTarget { community, learning, achievement, chat }
+
+NotificationTarget? _notificationTargetFromName(String? value) {
+  for (final target in NotificationTarget.values) {
+    if (target.name == value) return target;
+  }
+  return null;
+}
 
 extension NotificationCategoryX on NotificationCategory {
   /// Label Indonesia untuk ditampilkan pada tag kategori.
@@ -19,6 +26,8 @@ extension NotificationCategoryX on NotificationCategory {
         return 'Belajar';
       case NotificationCategory.pencapaian:
         return 'Pencapaian';
+      case NotificationCategory.chat:
+        return 'Chat';
     }
   }
 
@@ -41,6 +50,8 @@ class AppNotification {
     this.isRead = false,
     this.actionLabel,
     this.avatarUrl,
+    this.destination,
+    this.targetId,
   });
 
   final String id;
@@ -55,11 +66,14 @@ class AppNotification {
 
   /// URL avatar pengirim (opsional). Jika null, ikon kategori yang dipakai.
   final String? avatarUrl;
+  final NotificationTarget? destination;
+  final String? targetId;
 
   bool get hasAction => actionLabel != null && actionLabel!.isNotEmpty;
 
   /// Tujuan navigasi yang diturunkan dari kategori notifikasi.
   NotificationTarget get target {
+    if (destination != null) return destination!;
     switch (category) {
       case NotificationCategory.komunitas:
         return NotificationTarget.community;
@@ -67,10 +81,13 @@ class AppNotification {
         return NotificationTarget.learning;
       case NotificationCategory.pencapaian:
         return NotificationTarget.achievement;
+      case NotificationCategory.chat:
+        return NotificationTarget.chat;
     }
   }
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
+    final targetName = json['target_type'] as String?;
     return AppNotification(
       id: json['id'] as String,
       category: NotificationCategoryX.fromName(
@@ -82,6 +99,8 @@ class AppNotification {
       isRead: json['isRead'] as bool? ?? false,
       actionLabel: json['actionLabel'] as String?,
       avatarUrl: json['avatarUrl'] as String?,
+      destination: _notificationTargetFromName(targetName),
+      targetId: json['target_id'] as String?,
     );
   }
 
@@ -94,6 +113,8 @@ class AppNotification {
         'isRead': isRead,
         'actionLabel': actionLabel,
         'avatarUrl': avatarUrl,
+        'target_type': destination?.name,
+        'target_id': targetId,
       };
 
   AppNotification copyWith({
@@ -105,6 +126,8 @@ class AppNotification {
     bool? isRead,
     String? actionLabel,
     String? avatarUrl,
+    NotificationTarget? destination,
+    String? targetId,
   }) {
     return AppNotification(
       id: id ?? this.id,
@@ -115,6 +138,8 @@ class AppNotification {
       isRead: isRead ?? this.isRead,
       actionLabel: actionLabel ?? this.actionLabel,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      destination: destination ?? this.destination,
+      targetId: targetId ?? this.targetId,
     );
   }
 }
