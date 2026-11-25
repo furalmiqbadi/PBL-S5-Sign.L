@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../widgets/app_background.dart';
 import '../widgets/app_screen_header.dart';
 
 class PushedPage extends StatelessWidget {
@@ -8,23 +8,27 @@ class PushedPage extends StatelessWidget {
     super.key,
     required this.title,
     required this.child,
+    this.actions = const [],
   });
 
   final String title;
   final Widget child;
+  final List<Widget> actions;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SafeArea(
-            bottom: false,
-            child: AppScreenHeader(title: title),
-          ),
-          Expanded(child: child),
-        ],
+      backgroundColor: Colors.transparent,
+      body: AppBackground(
+        child: Column(
+          children: [
+            SafeArea(
+              bottom: false,
+              child: AppScreenHeader(title: title, actions: actions),
+            ),
+            Expanded(child: child),
+          ],
+        ),
       ),
     );
   }

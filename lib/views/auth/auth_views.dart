@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
+import '../../services/auth_service.dart';
+import '../../services/saved_accounts_service.dart';
 import '../admin/admin_panel_page.dart';
 import '../main_shell.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/app_ui.dart';
 import '../widgets/auth_widgets.dart';
+import 'register_profile_page.dart';
 
 /// Membuka beranda utama aplikasi (MainShell) dan menghapus riwayat halaman auth.
 void openHome(BuildContext context) {
@@ -17,8 +21,175 @@ void openHome(BuildContext context) {
   );
 }
 
+/// Membuka panel admin atau beranda sesuai role akun yang sedang masuk.
+Future<void> openSesuaiRole(BuildContext context) async {
+  final isAdmin = await AuthService().fetchRole() == 'admin';
+  if (!context.mounted) return;
+  Navigator.pushAndRemoveUntil(
+    context,
+    MaterialPageRoute(
+      builder: (_) => isAdmin ? const AdminPanelPage() : const MainShell(),
+    ),
+    (_) => false,
+  );
+}
+
+/// Meminta konfirmasi lalu keluar dari akun dan kembali ke [LoginPage].
+///
+/// Dipakai tombol keluar di tab Profil, halaman Pengaturan, dan panel admin
+/// supaya perilakunya sama di semua tempat.
+Future<void> konfirmasiKeluar(
+  BuildContext context, {
+  String title = 'Keluar dari Akun?',
+  String message = 'Kamu perlu masuk lagi untuk melanjutkan belajar.',
+  String confirmLabel = 'Keluar',
+}) async {
+  final ok = await showAppDialog(
+    context,
+    icon: Icons.logout_rounded,
+    title: title,
+    message: message,
+    cancelLabel: 'Batal',
+    confirmLabel: confirmLabel,
+    isDestructive: true,
+  );
+  if (ok != true || !context.mounted) return;
+
+  await context.read<AuthController>().logout();
+  if (!context.mounted) return;
+  Navigator.pushAndRemoveUntil(
+    context,
+    MaterialPageRoute(builder: (_) => const AccountChooserPage()),
+    (_) => false,
+  );
+}
+
+class AccountChooserPage extends StatefulWidget {
+  const AccountChooserPage({super.key});
+
+  @override
+  State<AccountChooserPage> createState() => _AccountChooserPageState();
+}
+
+class _AccountChooserPageState extends State<AccountChooserPage> {
+  late Future<List<SavedAccount>> _accounts;
+
+  @override
+  void initState() {
+    super.initState();
+    _accounts = context.read<AuthController>().savedAccounts();
+  }
+
+  Future<void> _switch(SavedAccount account) async {
+    final controller = context.read<AuthController>();
+    final ok = await controller.switchAccount(account);
+    if (!mounted) return;
+    if (!ok) {
+      final message = controller.errorMessage ??
+          'Sesi akun tidak tersedia. Silakan masuk lagi.';
+      await controller.removeSavedAccount(account.email);
+      if (!mounted) return;
+      showAppSnackBar(context, message, type: AppSnackType.error);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => LoginPage(initialEmail: account.email),
+        ),
+      );
+      return;
+    }
+    if (controller.isAdmin) {
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminPanelPage()),
+          (_) => false);
+    } else {
+      openHome(context);
+    }
+  }
+
+  Future<void> _remove(SavedAccount account) async {
+    await context.read<AuthController>().removeSavedAccount(account.email);
+    if (mounted) {
+      setState(
+          () => _accounts = context.read<AuthController>().savedAccounts());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AuthScaffold(
+      child: FutureBuilder<List<SavedAccount>>(
+        future: _accounts,
+        builder: (context, snapshot) {
+          final accounts = snapshot.data ?? const <SavedAccount>[];
+          return Column(
+            children: [
+              const AuthHeader(
+                title: 'Masuk ke Sign.L',
+                subtitle: 'Pilih akun untuk melanjutkan belajar.',
+              ),
+              const SizedBox(height: 24),
+              if (snapshot.connectionState == ConnectionState.waiting)
+                const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(),
+                )
+              else if (accounts.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Text('Belum ada akun tersimpan.'),
+                )
+              else
+                ...accounts.map((account) => Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 6),
+                        leading: CircleAvatar(
+                          backgroundColor:
+                              AppColors.primary.withValues(alpha: .12),
+                          child: Text(
+                            account.name.isEmpty
+                                ? '?'
+                                : account.name[0].toUpperCase(),
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        title: Text(account.name,
+                            style: AppTextStyles.labelMedium),
+                        subtitle: Text(account.email),
+                        onTap: () => _switch(account),
+                        trailing: PopupMenuButton<String>(
+                          onSelected: (_) => _remove(account),
+                          itemBuilder: (_) => const [
+                            PopupMenuItem(
+                                value: 'remove', child: Text('Hapus akun')),
+                          ],
+                        ),
+                      ),
+                    )),
+              const SizedBox(height: 12),
+              PrimaryButton(
+                text: 'Masuk dengan akun lain',
+                onTap: () => Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (_) => const LoginPage())),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.initialEmail});
+
+  final String? initialEmail;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -27,6 +198,12 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final email = TextEditingController();
   final password = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    email.text = widget.initialEmail ?? '';
+  }
 
   @override
   void dispose() {
@@ -41,8 +218,10 @@ class _LoginPageState extends State<LoginPage> {
     final passText = password.text.trim();
 
     if (emailText.isEmpty || passText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email dan kata sandi wajib diisi.')),
+      showAppSnackBar(
+        context,
+        'Email dan kata sandi wajib diisi.',
+        type: AppSnackType.warning,
       );
       return;
     }
@@ -63,9 +242,7 @@ class _LoginPageState extends State<LoginPage> {
         openHome(context);
       }
     } else if (c.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(c.errorMessage!)),
-      );
+      showAppSnackBar(context, c.errorMessage!, type: AppSnackType.error);
     }
   }
 
@@ -76,7 +253,8 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           const AuthHeader(
             title: 'Selamat datang kembali',
-            subtitle: 'Masuk untuk melanjutkan perjalanan belajar bahasa isyaratmu.',
+            subtitle:
+                'Masuk untuk melanjutkan perjalanan belajar bahasa isyaratmu.',
           ),
           const SizedBox(height: 27),
           AuthField(
@@ -95,7 +273,9 @@ class _LoginPageState extends State<LoginPage> {
               suffix: IconButton(
                 onPressed: c.togglePasswordVisibility,
                 icon: Icon(
-                  c.showPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  c.showPassword
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
                   size: 20,
                   color: muted,
                 ),
@@ -111,12 +291,13 @@ class _LoginPageState extends State<LoginPage> {
               ),
               child: Text(
                 'Lupa kata sandi?',
-                style: AppTextStyles.labelXSmall.copyWith(color: pink, fontWeight: FontWeight.w800),
+                style: AppTextStyles.labelXSmall
+                    .copyWith(color: pink, fontWeight: FontWeight.w800),
               ),
             ),
           ),
           Consumer<AuthController>(
-            builder: (_, c, __) => GradientButton(
+            builder: (_, c, __) => PrimaryButton(
               text: c.isLoading ? 'Memproses...' : 'Masuk',
               onTap: c.isLoading ? null : submit,
             ),
@@ -144,7 +325,6 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final name = TextEditingController();
   final username = TextEditingController();
   final email = TextEditingController();
   final password = TextEditingController();
@@ -154,46 +334,30 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
-    for (final c in [name, username, email, password, confirmation]) {
+    for (final c in [username, email, password, confirmation]) {
       c.dispose();
     }
     super.dispose();
   }
 
-  void _message(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  void _message(String text, {AppSnackType type = AppSnackType.warning}) {
+    showAppSnackBar(context, text, type: type);
   }
 
   Future<void> submit() async {
     final c = context.read<AuthController>();
-    final nameText = name.text.trim();
     final userText = username.text.trim().toLowerCase();
     final emailText = email.text.trim();
     final passText = password.text.trim();
     final confirmText = confirmation.text.trim();
 
-    if (nameText.length < 3) {
-      _message('Nama lengkap minimal 3 karakter.');
-      return;
-    }
-    if (userText.isEmpty) {
-      _message('Username wajib diisi.');
-      return;
-    }
     if (!RegExp(r'^[a-z0-9._]{3,20}$').hasMatch(userText)) {
-      _message('Username 3-20 karakter, hanya huruf, angka, titik, atau garis bawah.');
-      return;
-    }
-    if (emailText.isEmpty) {
-      _message('Email wajib diisi.');
+      _message(
+          'Username 3-20 karakter, hanya huruf, angka, titik, atau garis bawah.');
       return;
     }
     if (!RegExp(r'^[\w.+-]+@[\w-]+\.[\w.-]+$').hasMatch(emailText)) {
       _message('Format email tidak valid.');
-      return;
-    }
-    if (passText.isEmpty) {
-      _message('Kata sandi wajib diisi.');
       return;
     }
     if (passText.length < 8) {
@@ -212,36 +376,38 @@ class _RegisterPageState extends State<RegisterPage> {
     final ok = await c.register(
       email: emailText,
       password: passText,
-      name: nameText,
       username: userText,
     );
     if (!mounted) return;
 
     if (!ok) {
-      if (c.errorMessage != null) _message(c.errorMessage!);
+      if (c.errorMessage != null) {
+        _message(c.errorMessage!, type: AppSnackType.error);
+      }
       return;
     }
 
     if (c.isLoggedIn) {
-      openHome(context);
+      // Nama & foto profil dilengkapi di halaman berikutnya.
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => RegisterProfilePage(username: userText),
+        ),
+        (_) => false,
+      );
       return;
     }
 
     // Supabase meminta konfirmasi email: jangan buka beranda tanpa session.
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Cek Email'),
-        content: const Text(
+    await showAppDialog(
+      context,
+      icon: Icons.mark_email_read_outlined,
+      title: 'Cek Email Kamu',
+      message:
           'Pendaftaran berhasil. Klik tautan verifikasi di email kamu, lalu masuk.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Mengerti'),
-          ),
-        ],
-      ),
+      showCancel: false,
+      confirmLabel: 'Mengerti',
     );
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
@@ -272,15 +438,10 @@ class _RegisterPageState extends State<RegisterPage> {
         children: [
           const AuthHeader(
             title: 'Mulai perjalanan isyaratmu',
-            subtitle: 'Bergabung bersama ribuan pembelajar bahasa isyarat di seluruh Indonesia!',
+            subtitle:
+                'Cukup username, email, dan kata sandi. Nama serta foto profil diatur di langkah berikutnya.',
           ),
           const SizedBox(height: 22),
-          AuthField(
-            label: 'Nama Lengkap',
-            hint: 'Masukkan nama lengkap',
-            icon: Icons.person_outline_rounded,
-            controller: name,
-          ),
           AuthField(
             label: 'Username',
             hint: 'Masukkan username',
@@ -302,7 +463,9 @@ class _RegisterPageState extends State<RegisterPage> {
             suffix: IconButton(
               onPressed: () => setState(() => show = !show),
               icon: Icon(
-                show ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                show
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
                 size: 20,
                 color: muted,
               ),
@@ -317,35 +480,48 @@ class _RegisterPageState extends State<RegisterPage> {
             suffix: IconButton(
               onPressed: () => setState(() => show = !show),
               icon: Icon(
-                show ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                show
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
                 size: 20,
                 color: muted,
               ),
             ),
           ),
-          InkWell(
-            onTap: () => setState(() => accepted = !accepted),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  accepted ? Icons.check_box : Icons.check_box_outline_blank,
-                  color: pink,
-                  size: 16,
+          Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => setState(() => accepted = !accepted),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(
+                      accepted
+                          ? Icons.check_box_rounded
+                          : Icons.check_box_outline_blank_rounded,
+                      color: pink,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Saya menyetujui Syarat & Ketentuan serta Kebijakan Privasi Sign.L.',
+                        style: AppTextStyles.bodySmall.copyWith(color: muted),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Saya menyetujui Syarat & Ketentuan serta Kebijakan Privasi Sign.L.',
-                    style: AppTextStyles.labelXSmall.copyWith(color: muted),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           const SizedBox(height: 16),
           Consumer<AuthController>(
-            builder: (_, c, __) => GradientButton(
+            builder: (_, c, __) => PrimaryButton(
               text: c.isLoading ? 'Memproses...' : 'Buat akun',
               onTap: c.isLoading ? null : submit,
             ),
@@ -395,14 +571,18 @@ class _ForgotPageState extends State<ForgotPage> {
     final emailText = email.text.trim();
 
     if (emailText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email wajib diisi.')),
+      showAppSnackBar(
+        context,
+        'Email wajib diisi.',
+        type: AppSnackType.warning,
       );
       return;
     }
     if (!RegExp(r'^[\w.+-]+@[\w-]+\.[\w.-]+$').hasMatch(emailText)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Format email tidak valid.')),
+      showAppSnackBar(
+        context,
+        'Format email tidak valid.',
+        type: AppSnackType.warning,
       );
       return;
     }
@@ -412,29 +592,21 @@ class _ForgotPageState extends State<ForgotPage> {
 
     if (!ok) {
       if (c.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(c.errorMessage!)),
-        );
+        showAppSnackBar(context, c.errorMessage!, type: AppSnackType.error);
       }
       return;
     }
 
     // Jangan langsung membuka ResetPage. Reset hanya boleh setelah
     // pengguna mengklik tautan recovery yang dikirim ke email.
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Cek Email'),
-        content: const Text(
+    await showAppDialog(
+      context,
+      icon: Icons.mark_email_read_outlined,
+      title: 'Cek Email Kamu',
+      message:
           'Tautan reset sudah dikirim. Buka email kamu dan klik tautan tersebut untuk membuat kata sandi baru.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Mengerti'),
-          ),
-        ],
-      ),
+      showCancel: false,
+      confirmLabel: 'Mengerti',
     );
   }
 
@@ -447,7 +619,8 @@ class _ForgotPageState extends State<ForgotPage> {
         children: [
           const AuthHeader(
             title: 'Lupa Kata Sandi?',
-            subtitle: 'Tenang, masukkan email terdaftar kamu dan kami siapkan tautan untuk membuat kata sandi baru.',
+            subtitle:
+                'Tenang, masukkan email terdaftar kamu dan kami siapkan tautan untuk membuat kata sandi baru.',
           ),
           const SizedBox(height: 28),
           AuthField(
@@ -457,7 +630,7 @@ class _ForgotPageState extends State<ForgotPage> {
             controller: email,
           ),
           Consumer<AuthController>(
-            builder: (_, c, __) => GradientButton(
+            builder: (_, c, __) => PrimaryButton(
               text: c.isLoading ? 'Mengirim...' : 'Kirim tautan reset',
               onTap: c.isLoading ? null : submit,
             ),
@@ -472,12 +645,14 @@ class _ForgotPageState extends State<ForgotPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('💡', style: AppTextStyles.bodyLarge.copyWith(fontSize: 17)),
+                const Icon(Icons.lightbulb_outline_rounded,
+                    color: AppColors.primary, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Tips Praktis\nCek folder Spam atau Promosi jika tautan belum masuk dalam 2 menit.',
-                    style: AppTextStyles.labelXSmall.copyWith(color: AppColors.textPrimary, height: 1.5),
+                    style: AppTextStyles.labelXSmall
+                        .copyWith(color: AppColors.textPrimary, height: 1.5),
                   ),
                 ),
               ],
@@ -532,60 +707,59 @@ class _ResetPageState extends State<ResetPage> {
     final confirmText = confirmation.text.trim();
 
     if (passText.isEmpty || confirmText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kata sandi baru dan konfirmasi wajib diisi.')),
+      showAppSnackBar(
+        context,
+        'Kata sandi baru dan konfirmasi wajib diisi.',
+        type: AppSnackType.warning,
       );
       return;
     }
     if (passText.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kata sandi baru minimal 8 karakter.')),
+      showAppSnackBar(
+        context,
+        'Kata sandi baru minimal 8 karakter.',
+        type: AppSnackType.warning,
       );
       return;
     }
     if (passText != confirmText) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Konfirmasi kata sandi tidak cocok.')),
+      showAppSnackBar(
+        context,
+        'Konfirmasi kata sandi tidak cocok.',
+        type: AppSnackType.warning,
       );
       return;
     }
 
-    final ok = await c.resetPassword(password: passText, confirmation: confirmText);
+    final ok =
+        await c.resetPassword(password: passText, confirmation: confirmText);
     if (!mounted) return;
 
     if (ok) {
-      showDialog(
-        context: context,
+      final goHome = await showAppDialog(
+        context,
+        icon: Icons.check_circle_rounded,
+        iconColor: AppColors.success,
+        iconBackground: AppColors.successSoft,
+        title: 'Kata Sandi Diperbarui',
+        message:
+            'Kata sandi kamu sudah berhasil diperbarui. Silakan masuk atau lanjutkan ke beranda.',
+        cancelLabel: 'Halaman Masuk',
+        confirmLabel: 'Ke Beranda',
         barrierDismissible: false,
-        builder: (_) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Berhasil!', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: const Text('Kata sandi kamu sudah berhasil diperbarui. Silakan masuk atau lanjutkan ke beranda.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-                (_) => false,
-              ),
-              child: const Text('Ke Halaman Masuk'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: pink,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: () => openHome(context),
-              child: const Text('Ke Beranda'),
-            ),
-          ],
-        ),
       );
+      if (!mounted) return;
+      if (goHome == true) {
+        openHome(context);
+      } else {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+          (_) => false,
+        );
+      }
     } else if (c.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(c.errorMessage!)),
-      );
+      showAppSnackBar(context, c.errorMessage!, type: AppSnackType.error);
     }
   }
 
@@ -610,7 +784,9 @@ class _ResetPageState extends State<ResetPage> {
             suffix: IconButton(
               onPressed: () => setState(() => show = !show),
               icon: Icon(
-                show ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                show
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
                 size: 16,
               ),
             ),
@@ -625,12 +801,13 @@ class _ResetPageState extends State<ResetPage> {
           Container(
             padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8E8F5),
+              color: AppColors.infoSoft,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
-                const Icon(Icons.shield_outlined, color: pink, size: 19),
+                const Icon(Icons.shield_outlined,
+                    color: AppColors.info, size: 19),
                 const SizedBox(width: 9),
                 Expanded(
                   child: Text(
@@ -643,8 +820,8 @@ class _ResetPageState extends State<ResetPage> {
           ),
           const SizedBox(height: 20),
           Consumer<AuthController>(
-            builder: (_, c, __) => GradientButton(
-              text: c.isLoading ? 'Menyimpan...' : 'Simpan Kata Sandi  ✓',
+            builder: (_, c, __) => PrimaryButton(
+              text: c.isLoading ? 'Menyimpan...' : 'Simpan Kata Sandi',
               onTap: c.isLoading ? null : submit,
             ),
           ),

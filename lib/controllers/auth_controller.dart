@@ -1,17 +1,22 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import '../services/auth_service.dart';
+import '../services/profil_service.dart';
+import '../services/saved_accounts_service.dart';
 
 /// Thin controller: menyimpan status tampilan autentikasi dan
 /// menjembatani View dengan AuthService (Supabase).
 class AuthController extends ChangeNotifier {
   final AuthService _authService;
+  final SavedAccountsService _savedAccountsService = SavedAccountsService();
   bool _isLoading = false;
   bool _showPassword = false;
   String? _errorMessage;
   bool _isLoggedIn = false;
   bool _isAdmin = false;
-  String _currentEmail = 'budi@gmail.com';
-  String _currentName = 'Budi Pratama';
+  String _currentEmail = '';
+  String _currentName = '';
 
   AuthController({AuthService? authService})
       : _authService = authService ?? AuthService() {
@@ -66,8 +71,33 @@ class AuthController extends ChangeNotifier {
             : _currentEmail;
       }
       _isAdmin = await _authService.fetchRole() == 'admin';
+      final session = _authService.currentSession;
+      if (session != null) {
+        await _savedAccountsService.save(
+          account: SavedAccount(email: _currentEmail, name: _currentName),
+          session: jsonEncode(session.toJson()),
+        );
+      }
     });
   }
+
+  Future<List<SavedAccount>> savedAccounts() => _savedAccountsService.list();
+
+  Future<bool> switchAccount(SavedAccount account) async {
+    final session = await _savedAccountsService.sessionFor(account.email);
+    if (session == null) {
+      _errorMessage = 'Sesi akun tidak tersedia. Silakan masuk lagi.';
+      notifyListeners();
+      return false;
+    }
+    return _run(() async {
+      await _authService.setSession(session);
+      await _syncUserFromSession();
+    });
+  }
+
+  Future<void> removeSavedAccount(String email) =>
+      _savedAccountsService.remove(email);
 
   Future<bool> register({
     required String email,
@@ -106,14 +136,19 @@ class AuthController extends ChangeNotifier {
     return await _run(() => _authService.sendResetLink(email));
   }
 
-  Future<bool> resetPassword({required String password, required String confirmation}) async {
-    return await _run(() => _authService.resetPassword(password: password, confirmation: confirmation));
+  Future<bool> resetPassword(
+      {required String password, required String confirmation}) async {
+    return await _run(() => _authService.resetPassword(
+        password: password, confirmation: confirmation));
   }
 
   Future<void> logout() async {
     await _run(() => _authService.logout());
     _isLoggedIn = false;
     _isAdmin = false;
+    _currentEmail = '';
+    _currentName = '';
+    ProfilService.hapusCache();
     notifyListeners();
   }
 

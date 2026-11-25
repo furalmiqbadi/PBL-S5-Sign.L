@@ -9,20 +9,27 @@ class AppColors {
   AppColors._();
 
   // --- Warna inti brand ---
-  static const Color primary = Color(0xFF0062EE); // Biru logo; kontras putih 5.3:1
-  static const Color secondary = Color(0xFF0BB59E); // Toska (diamond, aksen kedua)
+  static const Color primary =
+      Color(0xFF0062EE); // Biru logo; kontras putih 5.3:1
+  static const Color secondary =
+      Color(0xFF0BB59E); // Toska (diamond, aksen kedua)
   static const Color tertiary = Color(0xFFF59E0B); // Kuning-amber (streak)
   static const Color neutral = Color(0xFF334155); // Slate (ikon nonaktif)
 
   // --- Permukaan & latar ---
-  static const Color background = Color(0xFFFFFFFF); // Putih (Soft UI)
+  static const Color background =
+      Color(0xFFF6F8FC); // Latar kanvas M3 sejuk agar kartu putih menonjol
   static const Color surface = Color(0xFFFFFFFF);
-  static const Color fieldFill = Color(0xFFF3F6FB); // Isi kolom input di atas latar putih
+  static const Color surfaceTonal = Color(0xFFEEF3FA);
+  static const Color fieldFill =
+      Color(0xFFF3F6FB); // Isi kolom input di atas latar putih
   static const Color surfaceMuted = Color(0xFFF1F4F9);
   static const Color border = Color(0xFFE5EAF2);
+  static const Color dangerSoft = Color(0xFFFEE2E2);
 
   // --- Aksen lembut ---
-  static const Color pinkSoft = Color(0xFFE6F0FF); // Biru muda (bubble / chip aktif)
+  static const Color pinkSoft =
+      Color(0xFFE6F0FF); // Biru muda (bubble / chip aktif)
   static const Color pinkSofter = Color(0xFFF3F8FF); // Biru sangat muda (kartu)
   static const Color purpleSoft = Color(0xFFDDF6F1); // Toska muda
   static const Color orangeSoft = Color(0xFFFFF1D6); // Kuning muda

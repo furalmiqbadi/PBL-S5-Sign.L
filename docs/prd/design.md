@@ -1,6 +1,6 @@
 # Design: Arah "Soft UI" Sign.L
 
-Status: **DRAFT, menunggu persetujuan**. Belum menggantikan gaya Duolingo di kode utama.
+Status: **Diterapkan**. Arah Soft UI sudah menjadi tema utama aplikasi; dokumen ini jadi acuan token dan aturan visual.
 
 ## 1. Arah gaya
 - **Nada**: bersih, tenang, hangat. Latar putih, kedalaman dari bayangan lembut, bukan garis tebal.
@@ -16,16 +16,18 @@ Status: **DRAFT, menunggu persetujuan**. Belum menggantikan gaya Duolingo di kod
 | `pinkSoft` / `pinkSofter` | `#E6F0FF` / `#F3F8FF` | latar ikon, chip aktif, lintasan progres |
 | `secondary` / `purpleSoft` | `#0BB59E` / `#DDF6F1` | toska; tint kategori, tidak untuk teks kecil |
 | `tertiary` / `orangeSoft` | `#F59E0B` / `#FFF1D6` | kuning (streak, bintang); **bukan** teks di atas putih (kontras rendah) |
-| `brandGradient` | biru `#0062EE` ke toska `#0BB59E` | hanya tombol tengah navbar |
+| `brandGradient` | biru `#0062EE` ke toska `#0BB59E` | hanya tombol tengah navbar dan kotak logo merek |
 | `bg` / `surface` | `#FFFFFF` | latar layar dan kartu; kartu dipisahkan dengan bayangan |
 | `fieldFill` | `#F3F6FB` | isi kolom input, chip nonaktif, kartu terkunci |
 | `textPrimary` / `textSecondary` | `#0F172A` / `#5B6676` | kontras teks >= 4.5:1 |
-| Radius | 16 (input, tombol) / 24 (kartu) / 28 (navbar) | skala 4/8 |
-| Spasi | 4, 8, 12, 16, 24, 32 | tidak ada angka lepas |
-| Bayangan | blur 20, offset (0,4), hitam 5% | satu level untuk semua kartu |
-| Font | satu keluarga (Plus Jakarta Sans), bobot 400/600/700 | judul 22-28, isi 14-16 |
+| Radius | `AppRadii` 12 / 16 / 20 / 24 / 28 / 999 | input & tombol 16, kartu 24, navbar 28, badge pil 999 |
+| Spasi | 4, 8, 12, 16, 20, 24, 32 | tidak ada angka lepas |
+| Bayangan | `AppShadows` card / soft / floating | tiga level: kartu, kontrol, elemen melayang |
+| Font | satu keluarga (Plus Jakarta Sans), bobot 400/600/700 | judul tab 22, judul halaman 20, judul kartu 14, isi 14-16 |
+| Header | tinggi konten 48, tombol 48x48, latar transparan | gradasi latar halaman menyambung tanpa garis potong |
+| Latar | `AppBackground`: gradasi `#FBFDFF → #F6F8FC → #EEF3FB` + dua aura lembut | semua tab dan halaman yang di-*push* |
 
-Lokasi kode: `lib/views/theme/modern_theme.dart` (sementara). Bila disetujui, nilai dipindah ke `app_colors.dart` dan `app_text_styles.dart` agar tidak ada dua sumber tema.
+Lokasi kode: warna dan tipografi di `lib/views/theme/app_colors.dart` & `app_text_styles.dart`; tema global di `app_theme.dart`; radius, bayangan dan komponen dasar di `lib/views/widgets/app_ui.dart`; latar kanvas di `app_background.dart`.
 
 ## 3. Bottom navbar tetap dipakai
 Referensi memakai menu hamburger, tetapi untuk aplikasi belajar bottom navbar lebih mudah dijangkau jempol. Penyesuaiannya:
@@ -40,35 +42,40 @@ Referensi memakai menu hamburger, tetapi untuk aplikasi belajar bottom navbar le
 ## 4. Komponen kunci
 | Komponen | Ciri |
 |---|---|
-| Kartu progres utama | satu kartu `primary` per layar sebagai fokus, bar progres putih (teks putih di atas gradasi oranye tidak lolos kontras) |
-| Kartu materi | putih, ikon dalam kotak `primarySoft`, judul + keterangan jumlah |
+| Header tab | `SectionHeader`: judul 22 px di kiri, aksi di kanan, tinggi 48, latar transparan, tombol aksi 48x48 putih berbingkai |
+| Header halaman (push) | `AppScreenHeader`: judul 20 px + tombol kembali berbingkai, tinggi dan padding sama dengan header tab |
+| Kartu progres utama | satu kartu per layar: permukaan putih berbingkai `primary` tipis dengan bayangan biru lembut, atau blok `primary` solid untuk ringkasan; tanpa gradasi |
+| Kartu materi | putih, ikon dalam kotak `pinkSoft`, judul + keterangan jumlah |
 | Chip filter | pil; aktif `primary`, nonaktif putih |
-| Input | isi putih, tanpa garis tepi, label jelas |
-| Tombol utama | `primary`, tinggi 56, radius 16, kata kerja spesifik ("Masuk", "Mulai belajar") |
+| Input | isi `fieldFill`, garis tepi `border`, fokus `primary` |
+| Tombol utama | `primary` solid, tinggi 48-56, radius 16, kata kerja spesifik ("Masuk", "Mulai belajar") |
 
 Setiap komponen wajib punya state: default, ditekan, nonaktif, memuat, kosong, error.
 
 ## 5. Larangan (dari `design-rules`)
 - Tidak memakai emoji sebagai ikon. Satu set ikon saja (Material Rounded).
-- Gradasi brand hanya di satu tempat (tombol tengah navbar), tidak di setiap kartu. Tidak ada glassmorphism berlebihan.
+- Gradasi brand (`brandGradient`) hanya untuk tombol tengah navbar dan kotak logo merek. Kartu fokus, FAB, tombol kirim, banner, dan snackbar memakai `primary` solid atau permukaan putih beraksen `primary`. Tidak ada glassmorphism berlebihan.
+- Header dan AppBar tidak memakai latar solid; biarkan `AppBackground` terlihat agar tidak ada garis potong dengan konten.
+- Tidak ada warna, radius, atau ukuran font lepas di widget; ambil dari token (`AppColors`, `AppRadii`, `AppTextStyles`).
 - Teks sentence case, tanpa lorem ipsum.
 
 ## 6. Rencana bertahap
 1. **Preview** (selesai): `preview/*.html` dan `lib/views/**/*_modern_preview.dart`.
-2. Tinjau dan setujui arah (dokumen ini).
-3. Terapkan tema + navbar melayang.
-4. Terapkan ke Login, lalu Beranda, lalu Materi.
-5. Halaman lain (Kuis, Komunitas, Profil) menyusul.
+2. Tinjau dan setujui arah (selesai).
+3. Terapkan tema + navbar melayang (selesai).
+4. Terapkan ke Login, lalu Beranda, lalu Materi (selesai).
+5. Halaman lain (Kuis, Komunitas, Profil) menyusul (selesai).
 
 ## 7. Kriteria penerimaan
-- [ ] Login, Beranda, Materi memakai token yang sama, tanpa warna atau radius lepas.
-- [ ] Bottom navbar melayang, lima tab tetap berfungsi, konten tidak tertutup.
-- [ ] Fitur dan alur tidak berubah (login Supabase, progres, navigasi).
-- [ ] `flutter analyze` bersih, tampil benar di layar kecil dan besar.
-- [ ] Kontras teks >= 4.5:1, target sentuh >= 48 dp.
+- [x] Login, Beranda, Materi memakai token yang sama, tanpa warna atau radius lepas.
+- [x] Bottom navbar melayang, lima tab tetap berfungsi, konten tidak tertutup.
+- [x] Fitur dan alur tidak berubah (login Supabase, progres, navigasi).
+- [x] Semua header (tab dan halaman push) memakai tinggi 48 dan tombol 48x48 yang sama.
+- [ ] `flutter analyze` bersih, tampil benar di layar kecil dan besar. (Diagnostics editor bersih; CLI dan uji layar belum dijalankan ulang.)
+- [x] Kontras teks >= 4.5:1, target sentuh >= 48 dp.
 
 ## 8. Asumsi dan pertanyaan terbuka
-- Gradasi brand hanya di tombol tengah navbar. Apakah boleh dipakai juga di kartu progres utama? Saat ini tidak.
+- Gradasi brand hanya di tombol tengah navbar dan kotak logo merek; kartu progres utama memakai `primary` solid atau putih beraksen (diputuskan 2026-11-18).
 - ID paket Android masih `com.example.pbl_signl`; harus diganti sebelum upload ke Play Store.
 - Apakah maskot dan animasi Lottie lama tetap dipakai?
 - Backend sudah Supabase (`lib/services/supabase_config.dart`); skema tabel dibahas di `docs-backend`, bukan di dokumen ini.
@@ -81,3 +88,4 @@ Setiap komponen wajib punya state: default, ditekan, nonaktif, memuat, kosong, e
 | 2026-11-05 | Latar jadi putih; diterapkan ke tema, Login/Daftar/Lupa sandi, Beranda, Materi, navbar melayang |
 | 2026-11-05 | Palet mengikuti logo (biru/toska/kuning); logo, wordmark, nama dan ikon aplikasi diganti |
 | 2026-11-05 | Soft UI diterapkan ke Kuis, Komunitas, Profil, Pengaturan, Chat, Notifikasi, detail dan isi materi |
+| 2026-11-18 | Header diseragamkan (`SectionHeader` 22 px + aksi 48x48, `AppScreenHeader` 20 px); gradasi brand dihapus dari kartu/FAB/tombol/banner; emoji ikon dibersihkan; halaman push memakai `AppBackground` |

@@ -54,14 +54,18 @@ class LatihanProgressBar extends StatelessWidget {
             height: 8,
             child: Row(
               children: [
-                Flexible(
-                  flex: gestur.latihanKe,
-                  child: Container(color: AppColors.primary),
-                ),
-                Flexible(
-                  flex: gestur.totalLatihan - gestur.latihanKe,
-                  child: Container(color: AppColors.pinkSoft),
-                ),
+                if (gestur.latihanKe > 0)
+                  Flexible(
+                    flex: gestur.latihanKe,
+                    child: Container(color: AppColors.primary),
+                  ),
+                if (gestur.totalLatihan - gestur.latihanKe > 0)
+                  Flexible(
+                    flex: gestur.totalLatihan - gestur.latihanKe,
+                    child: Container(color: AppColors.pinkSoft),
+                  ),
+                if (gestur.totalLatihan <= 0)
+                  Expanded(child: Container(color: AppColors.pinkSoft)),
               ],
             ),
           ),

@@ -1,15 +1,11 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'admin_panel_page.dart';
 
-/// Login khusus admin.
-///
-/// MOCK: pengecekan akun di bawah hanya untuk demo dan belum aman.
-/// Nanti ganti [_login] dengan panggilan API, dan pastikan role admin
-/// ditentukan oleh server, bukan oleh aplikasi
+/// Login khusus admin melalui Supabase Auth dan role pada tabel profiles.
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
 
@@ -18,11 +14,8 @@ class AdminLoginPage extends StatefulWidget {
 }
 
 class _AdminLoginPageState extends State<AdminLoginPage> {
-  // ===== MOCK (ganti dengan backend) =====
-  static const String _mockEmail = 'admin@signl.id';
-  static const String _mockPassword = 'admin123';
-
   final _formKey = GlobalKey<FormState>();
+  final _authService = AuthService();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscure = true;
@@ -39,20 +32,29 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 600)); // simulasi jaringan
-    if (!mounted) return;
-
-    final ok = _emailController.text.trim().toLowerCase() == _mockEmail &&
-        _passwordController.text == _mockPassword;
-
-    if (!ok) {
+    try {
+      await _authService.login(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+      final role = await _authService.fetchRole(force: true);
+      if (!mounted) return;
+      if (role != 'admin') {
+        await _authService.logout();
+        throw Exception('Akun ini tidak memiliki akses admin.');
+      }
+    } catch (error) {
+      if (!mounted) return;
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email atau kata sandi admin salah.')),
+        SnackBar(
+            content: Text(error.toString().replaceFirst('Exception: ', ''))),
       );
       return;
     }
 
+    if (!mounted) return;
+    setState(() => _loading = false);
     // Hapus semua layar di bawahnya supaya back tidak kembali ke login.
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const AdminPanelPage()),
@@ -181,16 +183,13 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                               ),
                             ),
                     ),
-                    // Petunjuk akun demo, hanya tampil saat debug.
-                    if (kDebugMode) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        'Demo: $_mockEmail / $_mockPassword',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.labelSmall
-                            .copyWith(color: AppColors.textMuted),
-                      ),
-                    ],
+                    const SizedBox(height: 12),
+                    Text(
+                      'Gunakan akun admin yang sudah diberi role admin di Supabase.',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.labelSmall
+                          .copyWith(color: AppColors.textMuted),
+                    ),
                   ],
                 ),
               ),

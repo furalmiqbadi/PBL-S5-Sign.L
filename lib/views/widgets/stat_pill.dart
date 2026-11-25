@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/app_text_styles.dart';
+import 'app_ui.dart';
 
 /// Pill statistik kecil: ikon + angka, dengan latar tipis berwarna aksen.
 ///
@@ -35,18 +36,22 @@ class StatPill extends StatelessWidget {
     required this.accent,
     this.semanticLabel,
     this.iconSize = 14,
-  }) : assert(svgAsset != null || icon != null, 'Isi salah satu: svgAsset atau icon.');
+  }) : assert(svgAsset != null || icon != null,
+            'Isi salah satu: svgAsset atau icon.');
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       label: semanticLabel ?? value,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 32),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        constraints: const BoxConstraints(minHeight: 36),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: accent.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(AppRadii.pill),
+          // Garis tepi tipis agar bahasa visualnya sama dengan tombol header
+          // berbingkai di tab lain.
+          border: Border.all(color: accent.withValues(alpha: 0.22)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

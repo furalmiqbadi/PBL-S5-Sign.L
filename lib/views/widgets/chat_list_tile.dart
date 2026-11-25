@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/chat_model.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import 'app_ui.dart';
 import 'time_labels.dart';
 import 'user_avatar.dart';
 
@@ -30,14 +31,9 @@ class ChatListTile extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(AppRadii.xl),
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppShadows.card,
       ),
       child: Material(
         color: Colors.transparent,

@@ -18,7 +18,7 @@ Menyimpan antarmuka halaman Edit Profil — form untuk mengubah data profil peng
     - Username
     - Bio (teks pendek)
     - Email (read-only / tampilkan saja)
-  - **Tombol Simpan**: `GradientButton` yang memanggil Controller untuk menyimpan perubahan.
+  - **Tombol Simpan**: `PrimaryButton` yang memanggil Controller untuk menyimpan perubahan.
   - **Validasi Inline**: Pesan error di bawah field jika input tidak valid (mis. username sudah terpakai, nama terlalu pendek).
 - `change_password_screen.dart`:
   - Form terpisah untuk mengubah kata sandi (password lama, password baru, konfirmasi).

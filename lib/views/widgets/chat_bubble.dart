@@ -25,11 +25,33 @@ class ChatBubble extends StatelessWidget {
         crossAxisAlignment:
             isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
+          if (!isMe && message.isAdmin) ...[
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 3),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.verified_rounded,
+                    size: 13,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Admin',
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: isMe ? AppColors.primary : AppColors.fieldFill,
                 borderRadius: BorderRadius.only(
@@ -42,9 +64,7 @@ class ChatBubble extends StatelessWidget {
               child: Text(
                 message.text,
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: isMe
-                      ? AppColors.textOnPrimary
-                      : AppColors.textPrimary,
+                  color: isMe ? AppColors.textOnPrimary : AppColors.textPrimary,
                   height: 1.4,
                 ),
               ),
@@ -60,9 +80,8 @@ class ChatBubble extends StatelessWidget {
                 Icon(
                   message.isRead ? Icons.done_all_rounded : Icons.done_rounded,
                   size: 15,
-                  color: message.isRead
-                      ? AppColors.primary
-                      : AppColors.textMuted,
+                  color:
+                      message.isRead ? AppColors.primary : AppColors.textMuted,
                 ),
               ],
             ],

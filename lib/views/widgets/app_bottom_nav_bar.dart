@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../models/nama_tampil.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
-
-/// URL foto profil dummy yang dipakai bila pengguna belum memasang foto.
-///
-/// Ganti dengan URL foto/aset milik aplikasi Anda. Bila perangkat sedang
-/// offline, [AppBottomNavBar] otomatis memakai ikon orang sebagai cadangan.
-const String kDummyAvatarUrl = 'https://i.pravatar.cc/200?img=47';
+import 'liquid_glass.dart';
+import 'user_avatar.dart';
 
 /// Satu tujuan navigasi pada [AppBottomNavBar].
 ///
@@ -18,7 +15,8 @@ const String kDummyAvatarUrl = 'https://i.pravatar.cc/200?img=47';
 /// * **Item ikon SVG** — isi [svgAsset] dengan path aset SVG. Warnanya otomatis
 ///   mengikuti warna aktif/nonaktif navbar (di-tint).
 /// * **Item foto profil** — kosongkan [icon] & [svgAsset]; isi [imageUrl]
-///   dengan foto pengguna. Bila [imageUrl] null, dipakai [kDummyAvatarUrl].
+///   dengan foto pengguna. Bila [imageUrl] null, ditampilkan inisial nama
+///   dari [name].
 ///   Item foto profil tidak menampilkan label.
 @immutable
 class AppNavItem {
@@ -45,12 +43,16 @@ class AppNavItem {
   /// (yaitu saat [icon] dan [svgAsset] kosong).
   final String? imageUrl;
 
+  /// Nama pengguna; dipakai sebagai inisial saat [imageUrl] kosong/gagal.
+  final String name;
+
   const AppNavItem({
     this.icon,
     this.activeIcon,
     this.svgAsset,
     this.label,
     this.imageUrl,
+    this.name = labelNamaNetral,
   });
 
   /// True bila item ini dirender sebagai foto profil, bukan ikon.
@@ -135,8 +137,8 @@ class AppBottomNavBar extends StatelessWidget {
   /// (mis. `GoogleFonts.nunito(fontWeight: FontWeight.w800)`).
   final TextStyle? labelStyle;
 
-  /// Foto profil yang dipakai bila [AppNavItem.imageUrl] null.
-  final String dummyAvatarUrl;
+  /// Kekuatan blur permukaan kaca navbar.
+  final double glassBlur;
 
   const AppBottomNavBar({
     super.key,
@@ -148,7 +150,7 @@ class AppBottomNavBar extends StatelessWidget {
     this.centerLabel = 'Aksi',
     this.palette = const NavBarPalette(),
     this.labelStyle,
-    this.dummyAvatarUrl = kDummyAvatarUrl,
+    this.glassBlur = 22,
   }) : assert(items.length == 4, 'AppBottomNavBar memerlukan tepat 4 item');
 
   /// Indeks visual tombol tengah.
@@ -162,6 +164,24 @@ class AppBottomNavBar extends StatelessWidget {
   static const double _sideMargin = 16;
   static const double _floatGap = 12;
 
+  /// Tinggi area yang ditempati navbar (termasuk tombol tengah yang menonjol)
+  /// plus ruang aman bawah. Pakai sebagai padding bawah daftar/scroll saat
+  /// `Scaffold.extendBody` aktif agar konten tidak tertutup navbar.
+  /// Memakai `viewPadding` (bukan `padding`) karena di dalam body Scaffold
+  /// dengan `extendBody`, `padding.bottom` sudah diganti tinggi navbar
+  /// sehingga nilainya akan terhitung dua kali.
+  static double reservedSpace(BuildContext context) =>
+      _overhang +
+      _barHeight +
+      _floatGap +
+      MediaQuery.viewPaddingOf(context).bottom;
+
+  /// Jarak tepi bawah layar ke tepi atas permukaan bar kaca.
+  ///
+  /// Sejak `reservedSpace` memakai `viewPadding`, nilai ini identik dengan
+  /// tinggi navbar dikurangi overhang tombol tengah.
+  static double barTopOffset(BuildContext context) =>
+      _floatGap + _barHeight + MediaQuery.viewPaddingOf(context).bottom;
   @override
   Widget build(BuildContext context) {
     // Ruang aman bawah (notch/gesture bar) agar bar tidak tertutup.
@@ -172,24 +192,17 @@ class AppBottomNavBar extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Permukaan bar: pil putih melayang dengan bayangan lembut.
+          // Permukaan bar: kaca cair melayang (blur + kilau tepi).
           Positioned(
             left: _sideMargin,
             right: _sideMargin,
             bottom: bottomInset + _floatGap,
-            child: Container(
-              height: _barHeight,
-              decoration: BoxDecoration(
-                color: palette.barColor,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x1F000000),
-                    blurRadius: 28,
-                    offset: Offset(0, 8),
-                  ),
-                ],
-              ),
+            child: LiquidGlass(
+              borderRadius: 28,
+              blurSigma: glassBlur,
+              tint: palette.barColor,
+              tintOpacity: 0.55,
+              child: const SizedBox(height: _barHeight, width: double.infinity),
             ),
           ),
 
@@ -242,7 +255,6 @@ class AppBottomNavBar extends StatelessWidget {
         activeColor: palette.activeColor,
         inactiveColor: palette.inactiveColor,
         labelStyle: labelStyle,
-        dummyAvatarUrl: dummyAvatarUrl,
         onTap: () => onSelect(destIndex),
       ),
     );
@@ -255,7 +267,6 @@ class _NavItemButton extends StatefulWidget {
   final Color activeColor;
   final Color inactiveColor;
   final TextStyle? labelStyle;
-  final String dummyAvatarUrl;
   final VoidCallback onTap;
 
   const _NavItemButton({
@@ -263,7 +274,6 @@ class _NavItemButton extends StatefulWidget {
     required this.isSelected,
     required this.activeColor,
     required this.inactiveColor,
-    required this.dummyAvatarUrl,
     required this.onTap,
     this.labelStyle,
   });
@@ -281,8 +291,7 @@ class _NavItemButtonState extends State<_NavItemButton> {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        widget.isSelected ? widget.activeColor : widget.inactiveColor;
+    final color = widget.isSelected ? widget.activeColor : widget.inactiveColor;
 
     return Semantics(
       button: true,
@@ -298,9 +307,7 @@ class _NavItemButtonState extends State<_NavItemButton> {
           scale: _pressed ? 0.88 : 1.0,
           duration: const Duration(milliseconds: 120),
           curve: Curves.easeOut,
-          child: widget.item.isAvatar
-              ? _buildAvatar()
-              : _buildIconItem(color),
+          child: widget.item.isAvatar ? _buildAvatar() : _buildIconItem(color),
         ),
       ),
     );
@@ -308,7 +315,7 @@ class _NavItemButtonState extends State<_NavItemButton> {
 
   /// Item foto profil: avatar bulat, tanpa label.
   Widget _buildAvatar() {
-    final url = widget.item.imageUrl ?? widget.dummyAvatarUrl;
+    final url = widget.item.imageUrl?.trim();
     return Center(
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -316,26 +323,14 @@ class _NavItemButtonState extends State<_NavItemButton> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: widget.isSelected
-                ? widget.activeColor
-                : Colors.transparent,
+            color: widget.isSelected ? widget.activeColor : Colors.transparent,
             width: 2,
           ),
         ),
-        child: ClipOval(
-          child: Image.network(
-            url,
-            width: 30,
-            height: 30,
-            fit: BoxFit.cover,
-            // Cadangan bila foto gagal dimuat (mis. offline).
-            errorBuilder: (_, __, ___) => Container(
-              width: 30,
-              height: 30,
-              color: widget.inactiveColor.withValues(alpha: 0.15),
-              child: Icon(Icons.person, size: 20, color: widget.inactiveColor),
-            ),
-          ),
+        child: UserAvatar(
+          imageUrl: (url == null || url.isEmpty) ? null : url,
+          name: widget.item.name,
+          size: 30,
         ),
       ),
     );
@@ -466,9 +461,8 @@ class _CenterButtonState extends State<_CenterButton> {
               shape: BoxShape.circle,
               // Cincin penanda saat tab tengah aktif.
               border: Border.all(
-                color: widget.isSelected
-                    ? widget.activeColor
-                    : Colors.transparent,
+                color:
+                    widget.isSelected ? widget.activeColor : Colors.transparent,
                 width: 2,
               ),
             ),

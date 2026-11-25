@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../models/chat_model.dart';
 import '../services/chat_service.dart';
 
 /// Filter daftar percakapan pada layar Chat.
-enum ChatFilter { semua, belumDibaca, grup }
+enum ChatFilter { semua, belumDibaca }
 
 /// Thin Controller untuk fitur Chat.
 ///
@@ -34,6 +36,11 @@ class ChatController extends ChangeNotifier {
   String? roomErrorMessage;
 
   final Set<String> _mutedRoomIds = {};
+  Timer? _syncTimer;
+
+  /// True setelah daftar percakapan berhasil dimuat, agar membuka layar Chat
+  /// berulang kali tidak memicu permintaan jaringan baru.
+  bool _hasLoaded = false;
 
   /// Daftar percakapan setelah difilter (kategori + kata kunci pencarian).
   List<ChatRoom> get rooms {
@@ -44,9 +51,6 @@ class ChatController extends ChangeNotifier {
         break;
       case ChatFilter.belumDibaca:
         result = result.where((room) => room.hasUnread);
-        break;
-      case ChatFilter.grup:
-        result = result.where((room) => room.isGroup);
         break;
     }
 
@@ -71,15 +75,23 @@ class ChatController extends ChangeNotifier {
 
   bool isMuted(String roomId) => _mutedRoomIds.contains(roomId);
 
-  Future<void> loadRooms() async {
-    isLoading = true;
-    errorMessage = null;
-    notifyListeners();
+  /// Memuat daftar percakapan. Bila data sudah pernah dimuat, daftar lama
+  /// tetap tampil dan data disegarkan diam-diam (tanpa spinner penuh).
+  Future<void> loadRooms({bool force = false}) async {
+    final diam = _hasLoaded && !force;
+    if (!diam) {
+      isLoading = _rooms.isEmpty;
+      errorMessage = null;
+      notifyListeners();
+    }
 
     try {
       _rooms = await _service.getChatRooms();
+      _hasLoaded = true;
+      _startBackgroundSync();
+      errorMessage = null;
     } catch (e) {
-      errorMessage = 'Gagal memuat percakapan. Silakan coba lagi.';
+      if (!diam) errorMessage = 'Gagal memuat percakapan. Silakan coba lagi.';
     } finally {
       isLoading = false;
       notifyListeners();
@@ -138,7 +150,7 @@ class ChatController extends ChangeNotifier {
   /// Memulai percakapan dengan sebuah kontak, membuat ruang baru bila perlu.
   Future<ChatRoom> startChat(ChatContact contact) async {
     for (final room in _rooms) {
-      if (room.name.toLowerCase() == contact.name.toLowerCase()) {
+      if (room.peerId == contact.id) {
         await openRoom(room);
         return room;
       }
@@ -192,6 +204,29 @@ class ChatController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _startBackgroundSync() {
+    _syncTimer ??= Timer.periodic(
+      const Duration(seconds: 12),
+      (_) async {
+        await loadRooms(force: true);
+        final room = activeRoom;
+        if (room == null || isSending) return;
+        try {
+          activeMessages = await _service.getMessages(room.id);
+          notifyListeners();
+        } catch (_) {
+          // Daftar chat tetap bisa diperbarui meski detail gagal disegarkan.
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _syncTimer?.cancel();
+    super.dispose();
+  }
+
   void _markRoomAsRead(String roomId) {
     _rooms = _rooms
         .map(
@@ -207,7 +242,6 @@ class ChatController extends ChangeNotifier {
         lastMessage: text,
         lastMessageTime: DateTime.now(),
         unreadCount: 0,
-        lastSenderName: 'Aku',
       );
     }).toList();
 

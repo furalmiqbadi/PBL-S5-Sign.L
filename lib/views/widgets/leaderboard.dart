@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../models/profil_model.dart';
+import '../../services/auth_service.dart';
+import '../../services/profil_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/app_ui.dart';
+import '../widgets/user_avatar.dart';
 
 /// Membuka papan peringkat (layar penuh).
 Future<void> openLeaderboard(BuildContext context) {
@@ -15,47 +20,9 @@ Future<void> openLeaderboard(BuildContext context) {
 Future<void> showLeaderboardSheet(BuildContext context) =>
     openLeaderboard(context);
 
-enum _Period { week, month, all }
-
-const Map<_Period, String> _periodLabels = {
-  _Period.week: 'Pekan Ini',
-  _Period.month: 'Bulan Ini',
-  _Period.all: 'Sepanjang Waktu',
-};
-
-class _Entry {
-  final String name;
-  final Map<_Period, int> xp;
-  final bool isMe;
-
-  const _Entry(this.name, this.xp, {this.isMe = false});
-}
-
-/// Data dummy. Ganti dengan data backend nanti.
-const List<_Entry> _entries = [
-  _Entry('Budi Santoso',
-      {_Period.week: 1420, _Period.month: 4820, _Period.all: 17250}),
-  _Entry('Dina S.',
-      {_Period.week: 1280, _Period.month: 4510, _Period.all: 18400}),
-  _Entry('Sarah Chen',
-      {_Period.week: 1150, _Period.month: 4120, _Period.all: 12800}),
-  _Entry('Kamu',
-      {_Period.week: 980, _Period.month: 3650, _Period.all: 9800},
-      isMe: true),
-  _Entry('Ahmad Fauzi',
-      {_Period.week: 870, _Period.month: 3380, _Period.all: 11900}),
-  _Entry('Larasati',
-      {_Period.week: 760, _Period.month: 2960, _Period.all: 14100}),
-  _Entry('Rian Pratama',
-      {_Period.week: 690, _Period.month: 2540, _Period.all: 8700}),
-  _Entry('Maya Putri',
-      {_Period.week: 540, _Period.month: 2210, _Period.all: 6900}),
-  _Entry('Tania Octavia',
-      {_Period.week: 430, _Period.month: 1750, _Period.all: 4100}),
-  _Entry('Hendra Wijaya',
-      {_Period.week: 360, _Period.month: 1420, _Period.all: 5200}),
-];
-
+/// Papan peringkat pengguna, diurutkan dari poin terbanyak.
+///
+/// Data dibaca dari tabel `profiles` (kolom `points` dan `xp`).
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
 
@@ -64,33 +31,48 @@ class LeaderboardScreen extends StatefulWidget {
 }
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
-  _Period _period = _Period.week;
+  final ProfilService _service = ProfilService();
+  final String? _myId = AuthService().currentUser?.id;
 
-  List<_Entry> get _sorted {
-    final list = [..._entries];
-    list.sort((a, b) => (b.xp[_period] ?? 0).compareTo(a.xp[_period] ?? 0));
-    return list;
+  List<ProfilPengguna> _pengguna = const [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _muat();
   }
 
-  int _xpOf(_Entry e) => e.xp[_period] ?? 0;
-
-  /// 1280 -> "1.280"
-  String _formatXp(int xp) {
-    final s = xp.toString();
-    final buffer = StringBuffer();
-    for (int i = 0; i < s.length; i++) {
-      if (i > 0 && (s.length - i) % 3 == 0) buffer.write('.');
-      buffer.write(s[i]);
+  Future<void> _muat({bool force = false}) async {
+    // Spinner hanya saat belum ada data; data cache langsung ditampilkan.
+    if (_pengguna.isEmpty) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
     }
-    return buffer.toString();
+    try {
+      final data = await _service.fetchLeaderboard(force: force);
+      if (!mounted) return;
+      setState(() {
+        _pengguna = data;
+        _loading = false;
+        _error = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+        _loading = false;
+      });
+    }
   }
+
+  int _xpOf(ProfilPengguna p) => p.points > 0 ? p.points : p.xp;
 
   @override
   Widget build(BuildContext context) {
-    final sorted = _sorted;
-    final top3 = sorted.take(3).toList();
-    final rest = sorted.skip(3).toList();
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -107,91 +89,149 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           style: AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.bold),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: 24),
+      body: RefreshIndicator(
+        onRefresh: () => _muat(force: true),
+        child: _buildBody(),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return ListView(
+        padding: const EdgeInsets.all(20),
         children: [
-          const SizedBox(height: 8),
-          _buildPeriodChips(),
-          const SizedBox(height: 28),
-          _buildPodium(top3),
-          const SizedBox(height: 28),
-          _buildRankCard(rest),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              'Peringkat diperbarui setiap hari pada pukul 00.00.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textMuted),
+          AppCard(
+            child: Column(
+              children: [
+                const Icon(Icons.cloud_off_rounded,
+                    color: AppColors.textMuted, size: 32),
+                const SizedBox(height: 12),
+                Text('Gagal memuat papan peringkat',
+                    style: AppTextStyles.titleMedium),
+                const SizedBox(height: 6),
+                Text(
+                  _error!,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodySmall,
+                ),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: () => _muat(force: true),
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Muat ulang'),
+                ),
+              ],
             ),
           ),
         ],
-      ),
+      );
+    }
+    if (_pengguna.isEmpty) {
+      return ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          AppCard(
+            child: Column(
+              children: [
+                const Icon(Icons.emoji_events_outlined,
+                    color: AppColors.textMuted, size: 32),
+                const SizedBox(height: 12),
+                Text('Belum ada peringkat', style: AppTextStyles.titleMedium),
+                const SizedBox(height: 6),
+                Text(
+                  'Papan peringkat akan terisi setelah pengguna mengumpulkan poin.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    final top3 = _pengguna.take(3).toList();
+    final rest = _pengguna.skip(3).toList();
+
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 24),
+      children: [
+        const SizedBox(height: 8),
+        _buildPeriodChips(),
+        const SizedBox(height: 28),
+        _buildPodium(top3),
+        if (rest.isNotEmpty) ...[
+          const SizedBox(height: 28),
+          _buildRankCard(rest),
+        ],
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            'Peringkat dihitung dari total poin setiap pengguna.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textMuted),
+          ),
+        ),
+      ],
     );
   }
 
   // ---------------- FILTER PERIODE ----------------
 
   Widget _buildPeriodChips() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: _Period.values.map((p) {
-          final selected = p == _period;
-          return Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: GestureDetector(
-              onTap: () => setState(() => _period = p),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                decoration: BoxDecoration(
-                  color: selected ? AppColors.primary : AppColors.surface,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: selected ? AppColors.primary : AppColors.border,
-                  ),
-                ),
-                child: Text(
-                  _periodLabels[p]!,
-                  style: AppTextStyles.labelLarge.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: selected
-                        ? AppColors.textOnPrimary
-                        : AppColors.textPrimary,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Text(
+          'Sepanjang Waktu',
+          style: AppTextStyles.labelLarge.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textOnPrimary,
+          ),
+        ),
       ),
     );
   }
 
   // ---------------- PODIUM TOP 3 ----------------
 
-  Widget _buildPodium(List<_Entry> top3) {
-    if (top3.length < 3) return const SizedBox.shrink();
+  Widget _buildPodium(List<ProfilPengguna> top3) {
+    if (top3.isEmpty) return const SizedBox.shrink();
+    Widget? second = top3.length > 1 ? _podiumItem(top3[1], 2) : null;
+    Widget? third = top3.length > 2 ? _podiumItem(top3[2], 3) : null;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Expanded(child: _podiumItem(top3[1], 2)),
+          Expanded(
+            child: second ?? const SizedBox.shrink(),
+          ),
           const SizedBox(width: 8),
           Expanded(child: _podiumItem(top3[0], 1)),
           const SizedBox(width: 8),
-          Expanded(child: _podiumItem(top3[2], 3)),
+          Expanded(
+            child: third ?? const SizedBox.shrink(),
+          ),
         ],
       ),
     );
   }
 
-  Widget _podiumItem(_Entry e, int rank) {
+  Widget _podiumItem(ProfilPengguna p, int rank) {
     final first = rank == 1;
+    final me = p.id == _myId;
     final blockHeight = first ? 130.0 : (rank == 2 ? 98.0 : 82.0);
     final radius = first ? 36.0 : 30.0;
     final ringColor = first ? AppColors.tertiary : AppColors.textMuted;
@@ -204,23 +244,22 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             shape: BoxShape.circle,
             border: Border.all(color: ringColor, width: 3),
           ),
-          child: CircleAvatar(
-            radius: radius,
-            backgroundColor: e.isMe ? AppColors.primary : AppColors.purpleSoft,
-            child: Icon(
-              Icons.person,
-              size: radius * 0.85,
-              color: e.isMe ? AppColors.textOnPrimary : AppColors.secondary,
-            ),
+          child: UserAvatar(
+            imageUrl: p.avatarUrl.isEmpty ? null : p.avatarUrl,
+            name: p.nama,
+            size: radius * 2,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          e.name,
+          me ? 'Kamu' : p.nama,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
-          style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.bold),
+          style: AppTextStyles.labelLarge.copyWith(
+            fontWeight: FontWeight.bold,
+            color: me ? AppColors.primary : AppColors.textPrimary,
+          ),
         ),
         const SizedBox(height: 2),
         Row(
@@ -229,7 +268,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             const Icon(Icons.bolt, size: 16, color: AppColors.secondary),
             Flexible(
               child: Text(
-                '${_formatXp(_xpOf(e))} XP',
+                '${ProfilPengguna.formatAngka(_xpOf(p))} XP',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.labelMedium.copyWith(
@@ -247,12 +286,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             gradient: first
-                ? LinearGradient(
+                ? const LinearGradient(
                     colors: [AppColors.tertiary, AppColors.primary],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   )
-                : LinearGradient(
+                : const LinearGradient(
                     colors: [AppColors.pinkSoft, AppColors.purpleSoft],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
@@ -274,7 +313,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   // ---------------- DAFTAR PERINGKAT 4 DST --------------
 
-  Widget _buildRankCard(List<_Entry> rest) {
+  Widget _buildRankCard(List<ProfilPengguna> rest) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
@@ -303,10 +342,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     );
   }
 
-  Widget _buildRow(_Entry e, int rank) {
-    final me = e.isMe;
+  Widget _buildRow(ProfilPengguna p, int rank) {
+    final me = p.id == _myId;
     return Container(
-      color: me ? AppColors.pinkSoft.withValues(alpha: 0.3) : Colors.transparent,
+      color:
+          me ? AppColors.pinkSoft.withValues(alpha: 0.3) : Colors.transparent,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
@@ -321,14 +361,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: me ? AppColors.primary : AppColors.purpleSoft,
-            child: Icon(
-              Icons.person,
-              size: 20,
-              color: me ? AppColors.textOnPrimary : AppColors.secondary,
-            ),
+          UserAvatar(
+            imageUrl: p.avatarUrl.isEmpty ? null : p.avatarUrl,
+            name: p.nama,
+            size: 40,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -336,7 +372,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               children: [
                 Flexible(
                   child: Text(
-                    e.name,
+                    me ? 'Kamu' : p.nama,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.labelLarge.copyWith(
@@ -374,7 +410,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             color: me ? AppColors.primary : AppColors.secondary,
           ),
           Text(
-            '${_formatXp(_xpOf(e))} XP',
+            '${ProfilPengguna.formatAngka(_xpOf(p))} XP',
             style: AppTextStyles.labelMedium.copyWith(
               fontWeight: FontWeight.bold,
               color: me ? AppColors.primary : AppColors.secondary,

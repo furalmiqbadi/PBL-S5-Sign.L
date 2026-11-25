@@ -18,10 +18,15 @@ class AuthRecoveryListener extends StatefulWidget {
   /// `true` bila [ResetPage] sudah ditampilkan sebagai halaman awal.
   final bool initiallyOpened;
 
+  /// Pesan bila tautan recovery ditolak (`?error=...`), ditampilkan sekali
+  /// sebagai snackbar agar pengguna tahu harus minta tautan baru.
+  final String? errorMessage;
+
   const AuthRecoveryListener({
     super.key,
     required this.child,
     this.initiallyOpened = false,
+    this.errorMessage,
   });
 
   @override
@@ -35,6 +40,15 @@ class _AuthRecoveryListenerState extends State<AuthRecoveryListener> {
   @override
   void initState() {
     super.initState();
+    final message = widget.errorMessage;
+    if (message != null && message.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      });
+    }
     _subscription = AuthService().authStateChanges?.listen((state) {
       if (state.event == AuthChangeEvent.passwordRecovery) {
         _openResetPage();

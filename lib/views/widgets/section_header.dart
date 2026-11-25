@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import 'app_ui.dart';
 
 /// Kerangka bersama untuk header bagian (section) di dalam aplikasi.
 ///
 /// Memberi chrome yang konsisten di semua header: judul besar di kiri,
-/// deretan aksi di kanan. Latar header sengaja disamakan dengan latar halaman
-/// ([AppColors.background]) agar menyatu dengan konten di bawahnya. Dipakai
-/// oleh header Materi, Komunitas, dan Profil agar tinggi serta gayanya
-/// seragam.
+/// deretan aksi di kanan. Latar header transparan agar gradasi halaman
+/// ([AppBackground]) menyambung ke konten di bawahnya tanpa garis potong.
+/// Dipakai oleh header Beranda, Materi, Komunitas, Profil, dan halaman yang
+/// di-*push* agar tinggi serta gayanya seragam.
 class SectionHeader extends StatelessWidget {
   /// Tinggi tetap area konten header.
   ///
@@ -20,17 +20,19 @@ class SectionHeader extends StatelessWidget {
   /// konten pendek seperti [StatPill].
   static const double contentHeight = 48;
 
-  /// Font display untuk semua judul header.
+  /// Font display untuk semua judul header tab.
   ///
-  /// Quicksand (rounded geometric) dipilih karena tarikan garisnya lebih tipis
-  /// dan lapang daripada Fredoka, sehingga judul tab terasa ringan namun tetap
-  /// tegas dan mudah dipindai — berbeda dari font script pada wordmark merek.
+  /// Memakai Plus Jakarta Sans (font aplikasi sesuai `docs/prd/design.md`)
+  /// agar judul tab seragam dengan tipografi halaman lainnya. Ukurannya 22px:
+  /// satu tingkat di atas judul halaman yang di-*push* (20px) supaya hierarki
+  /// navigasi tetap terbaca.
   static TextStyle displayStyle(BuildContext context, {Color? color}) {
     final theme = Theme.of(context);
-    return GoogleFonts.quicksand(
+    return AppTextStyles.headlineSmall.copyWith(
       fontSize: 22,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.4,
+      height: 1.15,
       color: color ?? theme.colorScheme.onSurface,
     );
   }
@@ -48,22 +50,25 @@ class SectionHeader extends StatelessWidget {
   /// Aksi di sisi kanan (ikon, tombol, dsb). Ditata dari kiri ke kanan.
   final List<Widget> actions;
 
+  /// Padding luar header. Bisa dikosongkan bila induk sudah memberi padding
+  /// horizontal (mis. halaman Beranda yang memakai ListView berpaddding).
+  final EdgeInsetsGeometry padding;
+
   const SectionHeader({
     super.key,
     required this.title,
     this.leading,
     this.titleStyle,
     this.actions = const [],
+    this.padding = const EdgeInsets.fromLTRB(20, 12, 20, 12),
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      // Padding vertikal lega supaya header terasa lapang dan seimbang
-      // dengan tinggi tombol aksi (48px).
-      padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
-      // Latar sama dengan latar halaman agar header menyatu dengan konten.
-      color: AppColors.background,
+    return Padding(
+      padding: padding,
+      // Latar transparan: gradasi latar halaman ([AppBackground]) menyambung
+      // mulus dengan konten di bawahnya, tanpa garis potong.
       child: SizedBox(
         height: contentHeight,
         child: Row(
@@ -83,7 +88,19 @@ class SectionHeader extends StatelessWidget {
             ),
             if (actions.isNotEmpty) ...[
               const SizedBox(width: 8),
-              Row(mainAxisSize: MainAxisSize.min, children: actions),
+              // Aksi dibatasi maksimal ~62% lebar layar lalu diperkecil
+              // seragam bila tidak muat, sehingga header tidak pernah
+              // meluap di ponsel sempit (mis. 4 pill statistik Materi).
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.sizeOf(context).width * 0.62,
+                ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Row(mainAxisSize: MainAxisSize.min, children: actions),
+                ),
+              ),
             ],
           ],
         ),
@@ -97,9 +114,10 @@ class SectionHeader extends StatelessWidget {
 /// Ikon bisa berasal dari Material ([icon]) atau aset SVG ([svgAsset]).
 /// Bila [svgAsset] diisi, SVG di-tint mengikuti warna ikon header.
 ///
-/// Tanpa latar, agar semua header seragam. Saat disorot (web/desktop) atau
-/// ditekan, ikon berubah ke warna aksen tema dan mengecil sedikit — pola
-/// umpan balik yang sama dengan item [AppBottomNavBar].
+/// Gaya seragam dengan tombol header Beranda: kotak membulat 48x48 berwarna
+/// putih, bergaris tepi, dan berbayang lembut. Saat disorot (web/desktop)
+/// atau ditekan, tombol memakai latar aksen lembut dan ikon berubah ke warna
+/// aksen tema — pola umpan balik yang sama di semua tab.
 class HeaderIconButton extends StatefulWidget {
   /// Ikon Material. Kosongkan bila memakai [svgAsset].
   final IconData? icon;
@@ -144,6 +162,7 @@ class _HeaderIconButtonState extends State<HeaderIconButton> {
     final theme = Theme.of(context);
     final baseColor = theme.colorScheme.onSurface;
     final accentColor = theme.colorScheme.primary;
+    final radius = BorderRadius.circular(AppRadii.md);
 
     // Ikon dirender ulang dengan warna animasi saat state berubah.
     Widget iconFor(Color color) => widget.svgAsset != null
@@ -155,20 +174,31 @@ class _HeaderIconButtonState extends State<HeaderIconButton> {
           )
         : Icon(widget.icon, size: widget.iconSize, color: color);
 
-    Widget button = Material(
-      color: _active ? AppColors.pinkSoft : Colors.transparent,
-      shape: const CircleBorder(),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: widget.onTap,
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapUp: (_) => setState(() => _pressed = false),
-        onTapCancel: () => setState(() => _pressed = false),
-        onHover: (value) => setState(() => _hovered = value),
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 48,
-          height: 48,
+    Widget button = AnimatedContainer(
+      duration: const Duration(milliseconds: 160),
+      curve: Curves.easeOut,
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: _active ? AppColors.pinkSoft : AppColors.surface,
+        borderRadius: radius,
+        border: Border.all(
+          color:
+              _active ? accentColor.withValues(alpha: 0.32) : AppColors.border,
+        ),
+        boxShadow: _active ? AppShadows.card : AppShadows.soft,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: radius,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: radius,
+          onTapDown: (_) => setState(() => _pressed = true),
+          onTapUp: (_) => setState(() => _pressed = false),
+          onTapCancel: () => setState(() => _pressed = false),
+          onHover: (value) => setState(() => _hovered = value),
           child: Center(
             child: TweenAnimationBuilder<Color?>(
               tween: ColorTween(end: _active ? accentColor : baseColor),
@@ -187,15 +217,16 @@ class _HeaderIconButtonState extends State<HeaderIconButton> {
         children: [
           button,
           Positioned(
-            top: 2,
-            right: 2,
+            top: -4,
+            right: -4,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               constraints: const BoxConstraints(minWidth: 18),
               decoration: BoxDecoration(
                 color: accentColor,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: theme.colorScheme.surface, width: 1.5),
+                borderRadius: BorderRadius.circular(AppRadii.pill),
+                border:
+                    Border.all(color: theme.colorScheme.surface, width: 1.5),
               ),
               child: Text(
                 widget.badge!,
@@ -215,7 +246,7 @@ class _HeaderIconButtonState extends State<HeaderIconButton> {
       button: true,
       label: widget.semanticLabel,
       child: AnimatedScale(
-        scale: _active ? 0.90 : 1.0,
+        scale: _active ? 0.94 : 1.0,
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOut,
         child: button,

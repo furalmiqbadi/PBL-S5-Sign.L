@@ -1,268 +1,485 @@
+import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../models/chat_model.dart';
+import '../models/nama_tampil.dart';
 
-/// Service Layer untuk fitur Chat.
+/// Service Chat nyata: percakapan di tabel `conversations` dan pesan di
+/// `chat_messages`, dengan profil lawan bicara dari `profiles`.
 ///
-/// Saat ini memakai data dummy yang disimpan di memori agar percakapan yang
-/// dikirim pengguna tetap ada selama aplikasi berjalan. Implementasi dapat
-/// diganti dengan query Cloud Firestore tanpa mengubah Controller maupun View.
+/// Ruang laporan bersifat hanya-baca bagi pelapor (`is_read_only = true`),
+/// sehingga kolom input dikunci dan hanya admin yang bisa membalas.
 class ChatService {
-  List<ChatRoom>? _roomsCache;
-  final Map<String, List<ChatMessage>> _messagesCache = {};
+  final SupabaseClient? _customClient;
 
-  /// Mengambil daftar ruang percakapan pengguna.
+  ChatService({SupabaseClient? client}) : _customClient = client;
+
+  SupabaseClient? get _safeClient {
+    if (_customClient != null) return _customClient;
+    try {
+      return Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  SupabaseClient _requireClient() {
+    final client = _safeClient;
+    if (client == null) {
+      throw Exception(
+        'Supabase belum terhubung. Periksa koneksi internet lalu coba lagi.',
+      );
+    }
+    return client;
+  }
+
+  String? get _myId => _safeClient?.auth.currentUser?.id;
+
+  /// Mengambil daftar ruang percakapan pengguna (termasuk ruang laporan).
   Future<List<ChatRoom>> getChatRooms() async {
-    await Future<void>.delayed(const Duration(milliseconds: 350));
-    _roomsCache ??= _seedRooms();
-    return List<ChatRoom>.from(_roomsCache!);
+    final client = _requireClient();
+    final me = _myId;
+    if (me == null) return const [];
+    try {
+      // Nama admin tidak bergantung pada daftar percakapan, jadi dijalankan
+      // paralel agar daftar chat tampil lebih cepat.
+      final adminFuture = _namaAdmin(client);
+      final rows = await client
+          .from('conversations')
+          .select()
+          .or('user_id.eq.$me,admin_id.eq.$me,peer_id.eq.$me')
+          .order('last_message_at', ascending: false);
+
+      final profil = await _fetchProfil(client, _peerIds(rows, me));
+      final adminNama = await adminFuture;
+
+      return rows.map((row) {
+        final userId = row['user_id']?.toString();
+        final adminId = row['admin_id']?.toString();
+        final peerKolom = row['peer_id']?.toString();
+        final akuPelapor = userId == me && peerKolom == null;
+        final peerId = [userId, adminId, peerKolom].firstWhere(
+          (id) => id != null && id != me,
+          orElse: () => null,
+        );
+        final peer = peerId == null ? null : profil[peerId];
+        final namaPeer = namaTampilDari(
+          peer,
+          fallback: akuPelapor ? 'Admin Sign.L' : labelNamaNetral,
+        );
+        return ChatRoom(
+          id: row['id'].toString(),
+          name: _adminDari(peer) ? (adminNama ?? namaPeer) : namaPeer,
+          avatarUrl: peer?['avatar_url'] as String?,
+          lastMessage: (row['last_message'] as String?) ?? '',
+          lastMessageTime:
+              DateTime.tryParse((row['last_message_at'] as String?) ?? '')
+                      ?.toLocal() ??
+                  DateTime.now(),
+          unreadCount: (row['unread_count'] as num?)?.toInt() ?? 0,
+          isOnline: false,
+          isReadOnly: (row['is_read_only'] as bool?) ?? false,
+          peerId: peerId,
+        );
+      }).toList();
+    } on PostgrestException catch (e) {
+      debugPrint('[Chat] Gagal memuat percakapan: ${e.message}');
+      throw Exception(
+        'Fitur chat belum siap. Jalankan supabase/patch_signl_backend.sql '
+        'di SQL Editor Supabase.',
+      );
+    } catch (e) {
+      debugPrint('[Chat] Gagal memuat percakapan: $e');
+      throw Exception(
+        'Tidak dapat memuat percakapan. Periksa koneksi internet lalu coba lagi.',
+      );
+    }
   }
 
-  /// Mengambil daftar kontak untuk memulai percakapan baru.
+  /// Daftar kontak untuk memulai percakapan baru. Admin melihat semua pengguna;
+  /// pengguna biasa melihat teman yang sudah berteman ditambah admin (kanal
+  /// bantuan).
   Future<List<ChatContact>> getContacts() async {
-    await Future<void>.delayed(const Duration(milliseconds: 200));
-    return const [
-      ChatContact(
-        id: 'dina',
-        name: 'Dina Saftri',
-        avatarUrl: 'https://i.pravatar.cc/150?img=47',
-        isOnline: true,
-      ),
-      ChatContact(
-        id: 'rian',
-        name: 'Rian Pratama',
-        avatarUrl: 'https://i.pravatar.cc/150?img=12',
-        isOnline: true,
-      ),
-      ChatContact(
-        id: 'budi',
-        name: 'Budi Santoso',
-        avatarUrl: 'https://i.pravatar.cc/150?img=33',
-      ),
-      ChatContact(
-        id: 'siti',
-        name: 'Siti Rahma',
-        avatarUrl: 'https://i.pravatar.cc/150?img=45',
-      ),
-      ChatContact(
-        id: 'ayu',
-        name: 'Ayu Lestari',
-        avatarUrl: 'https://i.pravatar.cc/150?img=44',
-        isOnline: true,
-      ),
-      ChatContact(
-        id: 'fajar',
-        name: 'Fajar Nugroho',
-        avatarUrl: 'https://i.pravatar.cc/150?img=15',
-      ),
-    ];
+    final client = _requireClient();
+    final me = _myId;
+    if (me == null) return const [];
+    try {
+      final admin = await _isAdmin(client, me);
+      if (admin) {
+        final rows = await client
+            .from('profiles')
+            .select('id, full_name, username, role, avatar_url')
+            .neq('id', me)
+            .order('full_name')
+            .limit(50);
+        return rows.map(_kontakDari).toList();
+      }
+
+      final temanIds = await _temanIds(client, me);
+      final rows = <Map<String, dynamic>>[];
+      if (temanIds.isNotEmpty) {
+        final teman = await client
+            .from('profiles')
+            .select('id, full_name, username, role, avatar_url')
+            .inFilter('id', temanIds);
+        rows.addAll(teman);
+      }
+      final adminRows = await client
+          .from('profiles')
+          .select('id, full_name, username, role, avatar_url')
+          .eq('role', 'admin')
+          .neq('id', me)
+          .limit(10);
+      final adaAdmin = rows.any((row) => (row['role'] as String?) == 'admin');
+      if (!adaAdmin) rows.addAll(adminRows);
+
+      final kontak = rows.map(_kontakDari).toList()
+        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      return kontak;
+    } on PostgrestException catch (e) {
+      debugPrint('[Chat] Gagal memuat kontak: ${e.message}');
+      return const [];
+    }
   }
 
-  /// Mengambil riwayat pesan pada sebuah ruang percakapan.
+  /// Riwayat pesan satu ruang percakapan.
   Future<List<ChatMessage>> getMessages(String roomId) async {
-    await Future<void>.delayed(const Duration(milliseconds: 250));
-    return List<ChatMessage>.from(
-      _messagesCache.putIfAbsent(roomId, () => _seedMessages(roomId)),
-    );
+    final client = _requireClient();
+    final me = _myId;
+    try {
+      final rows = await client
+          .from('chat_messages')
+          .select('id, conversation_id, sender_id, isi, dari_admin, created_at')
+          .eq('conversation_id', roomId)
+          .order('created_at');
+      return rows.map((row) {
+        final senderId = row['sender_id']?.toString();
+        final adalahAku = senderId == me;
+        return ChatMessage(
+          id: row['id'].toString(),
+          roomId: roomId,
+          senderId: senderId ?? '',
+          text: (row['isi'] as String?) ?? '',
+          time: DateTime.tryParse((row['created_at'] as String?) ?? '')
+                  ?.toLocal() ??
+              DateTime.now(),
+          isMe: adalahAku,
+          isRead: adalahAku,
+          isAdmin: (row['dari_admin'] as bool?) ?? false,
+        );
+      }).toList();
+    } on PostgrestException catch (e) {
+      debugPrint('[Chat] Gagal memuat pesan: ${e.message}');
+      throw Exception('Gagal memuat pesan. Coba lagi.');
+    }
   }
 
-  /// Mengirim pesan baru ke sebuah ruang percakapan.
+  /// Mengirim pesan baru. Ditolak bila ruang hanya-baca dan pengirim bukan
+  /// admin.
   Future<ChatMessage> sendMessage({
     required String roomId,
     required String text,
   }) async {
-    await Future<void>.delayed(const Duration(milliseconds: 150));
-    final message = ChatMessage(
-      id: 'local-${DateTime.now().microsecondsSinceEpoch}',
-      roomId: roomId,
-      senderId: 'me',
-      text: text,
-      time: DateTime.now(),
-      isMe: true,
-    );
-    _messagesCache
-        .putIfAbsent(roomId, () => _seedMessages(roomId))
-        .add(message);
-    _updateRoomPreview(roomId, text);
-    return message;
+    final client = _requireClient();
+    final me = _myId;
+    if (me == null) {
+      throw Exception('Kamu harus masuk dulu untuk mengirim pesan.');
+    }
+    final isi = text.trim();
+    if (isi.isEmpty) throw Exception('Pesan tidak boleh kosong.');
+
+    final jenisPesan = await _infoPercakapan(client, roomId);
+    if (jenisPesan.readOnly && !jenisPesan.admin) {
+      throw Exception(
+        'Percakapan ini hanya-baca. Kamu tidak bisa membalas balasan admin.',
+      );
+    }
+
+    try {
+      final row = await client
+          .from('chat_messages')
+          .insert({
+            'conversation_id': roomId,
+            'sender_id': me,
+            'isi': isi,
+            'dari_admin': jenisPesan.admin,
+          })
+          .select('id, created_at')
+          .single();
+
+      // Update preview & unread dijalankan paralel setelah pesan tersimpan.
+      await Future.wait([
+        client.from('conversations').update({
+          'last_message': isi,
+          'last_message_at': DateTime.now().toUtc().toIso8601String(),
+        }).eq('id', roomId),
+        _tambahUnread(client, roomId),
+      ]);
+
+      return ChatMessage(
+        id: row['id'].toString(),
+        roomId: roomId,
+        senderId: me,
+        text: isi,
+        time: DateTime.tryParse((row['created_at'] as String?) ?? '')
+                ?.toLocal() ??
+            DateTime.now(),
+        isMe: true,
+        isRead: true,
+        isAdmin: jenisPesan.admin,
+      );
+    } on PostgrestException catch (e) {
+      debugPrint('[Chat] Gagal mengirim pesan: ${e.message}');
+      throw Exception('Pesan gagal terkirim. Coba lagi.');
+    }
   }
 
   /// Menandai seluruh pesan pada ruang sebagai telah dibaca.
   Future<void> markRoomRead(String roomId) async {
-    _roomsCache = _roomsCache
-        ?.map(
-          (room) => room.id == roomId ? room.copyWith(unreadCount: 0) : room,
-        )
-        .toList();
+    final client = _safeClient;
+    if (client == null) return;
+    try {
+      await client
+          .from('conversations')
+          .update({'unread_count': 0}).eq('id', roomId);
+    } on PostgrestException catch (e) {
+      debugPrint('[Chat] Gagal menandai dibaca: ${e.message}');
+    }
   }
 
-  /// Mengosongkan riwayat pesan pada sebuah ruang.
+  /// Menghapus pesan yang dikirim pengguna sendiri pada ruang ini.
   Future<void> clearMessages(String roomId) async {
-    _messagesCache[roomId] = [];
+    final client = _requireClient();
+    final me = _myId;
+    if (me == null) return;
+    try {
+      await client
+          .from('chat_messages')
+          .delete()
+          .eq('conversation_id', roomId)
+          .eq('sender_id', me);
+      await client.from('conversations').update({
+        'last_message': '',
+      }).eq('id', roomId);
+    } on PostgrestException catch (e) {
+      debugPrint('[Chat] Gagal membersihkan riwayat: ${e.message}');
+      throw Exception('Gagal membersihkan riwayat. Coba lagi.');
+    }
   }
 
-  /// Membuat ruang percakapan baru untuk sebuah kontak.
+  /// Membuat (atau memakai ulang) ruang percakapan dengan sebuah kontak.
+  ///
+  /// Tiga bentuk ruang: pengguna -> admin (kanal bantuan, `admin_id` terisi),
+  /// admin -> pengguna (balasan laporan), dan pengguna <-> pengguna
+  /// (`peer_id` terisi, `admin_id` kosong).
   Future<ChatRoom> createRoom(ChatContact contact) async {
-    _roomsCache ??= _seedRooms();
-    final room = ChatRoom(
-      id: contact.id,
-      name: contact.name,
-      avatarUrl: contact.avatarUrl,
-      lastMessage: '',
-      lastMessageTime: DateTime.now(),
-      isOnline: contact.isOnline,
-    );
-    _roomsCache!.insert(0, room);
-    _messagesCache[room.id] = [];
-    return room;
-  }
-
-  void _updateRoomPreview(String roomId, String text) {
-    final rooms = _roomsCache;
-    if (rooms == null) return;
-    final updated = rooms.map((room) {
-      if (room.id != roomId) return room;
-      return room.copyWith(
-        lastMessage: text,
-        lastMessageTime: DateTime.now(),
-        unreadCount: 0,
-        lastSenderName: 'Aku',
-      );
-    }).toList();
-    updated.sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
-    _roomsCache = updated;
-  }
-
-  List<ChatRoom> _seedRooms() {
-    final now = DateTime.now();
-    DateTime at(int hour, int minute) =>
-        DateTime(now.year, now.month, now.day, hour, minute);
-    final yesterday = now.subtract(const Duration(days: 1));
-    final threeDaysAgo = now.subtract(const Duration(days: 3));
-
-    return [
-      ChatRoom(
-        id: 'dina',
-        name: 'Dina Saftri',
-        avatarUrl: 'https://i.pravatar.cc/150?img=47',
-        lastMessage: 'Sama-sama! Sampai nanti di sesi latihan 😊',
-        lastMessageTime: at(10, 42),
-        unreadCount: 1,
-        isOnline: true,
-      ),
-      ChatRoom(
-        id: 'klub_bisindo',
-        name: 'Klub BISINDO Jakarta',
-        isGroup: true,
-        memberCount: 24,
-        lastSenderName: 'Siti',
-        lastMessage: 'Minggu ini latihan di Tabel, ya!',
-        lastMessageTime: at(10, 30),
-        unreadCount: 2,
-      ),
-      ChatRoom(
-        id: 'rian',
-        name: 'Rian Pratama',
-        avatarUrl: 'https://i.pravatar.cc/150?img=12',
-        lastMessage: "Sudah cocok ya? Coba 'terima kasih'?",
-        lastMessageTime: at(9, 15),
-        unreadCount: 1,
-      ),
-      ChatRoom(
-        id: 'budi',
-        name: 'Budi Santoso',
-        avatarUrl: 'https://i.pravatar.cc/150?img=33',
-        lastMessage: 'Kamu. Selamat untuk sertifikatnya! 🎉',
-        lastMessageTime: yesterday,
-      ),
-      ChatRoom(
-        id: 'teman_bab1',
-        name: 'Teman Belajar Bab 1',
-        isGroup: true,
-        memberCount: 12,
-        lastSenderName: 'Ayu',
-        lastMessage: 'Yuk, ulang huruf J sampai R.',
-        lastMessageTime: yesterday,
-      ),
-      ChatRoom(
-        id: 'siti',
-        name: 'Siti Rahma',
-        avatarUrl: 'https://i.pravatar.cc/150?img=45',
-        lastMessage: 'Aku kirim lokasi sesi belajarnya, ya.',
-        lastMessageTime: threeDaysAgo,
-      ),
-    ];
-  }
-
-  List<ChatMessage> _seedMessages(String roomId) {
-    final now = DateTime.now();
-    DateTime at(int hour, int minute) =>
-        DateTime(now.year, now.month, now.day, hour, minute);
-
-    if (roomId == 'dina') {
-      return [
-        ChatMessage(
-          id: 'm1',
-          roomId: roomId,
-          senderId: 'me',
-          text: "Hai Dina! Aku masih bingung bentuk huruf 'D' di BISINDO. "
-              'Boleh bantu cek? 😊',
-          time: at(10, 32),
-          isMe: true,
-          isRead: true,
-        ),
-        ChatMessage(
-          id: 'm2',
-          roomId: roomId,
-          senderId: 'dina',
-          text: 'Hai Sarah, tentu! Kirim video gerakannya, ya. '
-              'Kita belajar bareng 💪',
-          time: at(10, 34),
-        ),
-        ChatMessage(
-          id: 'm3',
-          roomId: roomId,
-          senderId: 'me',
-          text: 'Bingung gerakannya, sudah pas?',
-          time: at(10, 36),
-          isMe: true,
-          isRead: true,
-        ),
-        ChatMessage(
-          id: 'm4',
-          roomId: roomId,
-          senderId: 'dina',
-          text: 'Sudah hampir pas! Coba tegakkan telunjuk dan rapatkan jari '
-              'lainnya. Jangan lupa rilekskan tangan, ya.',
-          time: at(10, 39),
-        ),
-        ChatMessage(
-          id: 'm5',
-          roomId: roomId,
-          senderId: 'me',
-          text: 'Oh, paham! Terima kasih, Dina. Nanti aku coba lagi di sesi '
-              'latihan.',
-          time: at(10, 41),
-          isMe: true,
-          isRead: true,
-        ),
-        ChatMessage(
-          id: 'm6',
-          roomId: roomId,
-          senderId: 'dina',
-          text: 'Sama-sama! Sampai nanti di sesi latihan 😊',
-          time: at(10, 42),
-          isNew: true,
-        ),
-      ];
+    final client = _requireClient();
+    final me = _myId;
+    if (me == null) {
+      throw Exception('Kamu harus masuk dulu untuk memulai chat.');
     }
 
-    return [
-      ChatMessage(
-        id: '$roomId-1',
-        roomId: roomId,
-        senderId: 'other',
-        text: 'Hai! Selamat datang di ruang percakapan. 👋',
-        time: at(9, 0),
-      ),
-    ];
+    final akuAdmin = await _isAdmin(client, me);
+    final diaAdmin = contact.isAdmin;
+    var pencarian = client.from('conversations').select();
+    final Map<String, dynamic> isiBaru;
+
+    if (akuAdmin != diaAdmin) {
+      final userId = akuAdmin ? contact.id : me;
+      final adminId = akuAdmin ? me : contact.id;
+      pencarian = pencarian.eq('user_id', userId).eq('admin_id', adminId);
+      isiBaru = {
+        'user_id': userId,
+        'admin_id': adminId,
+        'judul': 'Percakapan baru',
+      };
+    } else {
+      // Arah ruang bisa dibuat oleh salah satu pihak, jadi cari dua arah.
+      pencarian = pencarian.or(
+        'and(user_id.eq.$me,peer_id.eq.${contact.id}),'
+        'and(user_id.eq.${contact.id},peer_id.eq.$me)',
+      );
+      isiBaru = {
+        'user_id': me,
+        'peer_id': contact.id,
+        'judul': 'Percakapan baru',
+      };
+    }
+
+    try {
+      final existing = await pencarian.limit(1);
+      if (existing.isNotEmpty) {
+        final row = existing.first;
+        return ChatRoom(
+          id: row['id'].toString(),
+          name: contact.name,
+          avatarUrl: contact.avatarUrl,
+          lastMessage: (row['last_message'] as String?) ?? '',
+          lastMessageTime:
+              DateTime.tryParse((row['last_message_at'] as String?) ?? '')
+                      ?.toLocal() ??
+                  DateTime.now(),
+          unreadCount: (row['unread_count'] as num?)?.toInt() ?? 0,
+          isReadOnly: (row['is_read_only'] as bool?) ?? false,
+          peerId: contact.id,
+        );
+      }
+
+      final row =
+          await client.from('conversations').insert(isiBaru).select().single();
+      return ChatRoom(
+        id: row['id'].toString(),
+        name: contact.name,
+        avatarUrl: contact.avatarUrl,
+        lastMessage: '',
+        lastMessageTime: DateTime.now(),
+        peerId: contact.id,
+      );
+    } on PostgrestException catch (e) {
+      debugPrint('[Chat] Gagal membuat percakapan: ${e.message}');
+      throw Exception('Gagal memulai percakapan. Coba lagi.');
+    }
   }
+
+  // ===== Helper =====
+
+  Future<Map<String, Map<String, dynamic>>> _fetchProfil(
+    SupabaseClient client,
+    List<String> ids,
+  ) async {
+    if (ids.isEmpty) return const {};
+    try {
+      final rows = await client
+          .from('profiles')
+          .select('id, full_name, username, avatar_url, role')
+          .inFilter('id', ids);
+      return {
+        for (final row in rows) '${row['id']}': Map<String, dynamic>.from(row),
+      };
+    } on PostgrestException catch (e) {
+      debugPrint('[Chat] Gagal membaca profil: ${e.message}');
+      return const {};
+    }
+  }
+
+  List<String> _peerIds(List<dynamic> rows, String me) {
+    final ids = <String>{};
+    for (final row in rows) {
+      for (final key in ['user_id', 'admin_id', 'peer_id']) {
+        final id = row[key]?.toString();
+        if (id != null && id != me) ids.add(id);
+      }
+    }
+    return ids.toList();
+  }
+
+  ChatContact _kontakDari(Map<String, dynamic> row) => ChatContact(
+        id: row['id'].toString(),
+        name: namaTampilDari(row),
+        username: usernameTampilDari(row),
+        avatarUrl: row['avatar_url'] as String?,
+        role: (row['role'] as String?) ?? 'pembelajar',
+      );
+
+  /// Id teman yang pertemanannya sudah `accepted`. Bila tabel `friendships`
+  /// belum ada (patch SQL belum dijalankan), hasilnya kosong.
+  Future<List<String>> _temanIds(SupabaseClient client, String me) async {
+    try {
+      final rows = await client
+          .from('friendships')
+          .select('requester_id, addressee_id')
+          .eq('status', 'accepted')
+          .or('requester_id.eq.$me,addressee_id.eq.$me');
+      final ids = <String>{};
+      for (final row in rows) {
+        for (final key in ['requester_id', 'addressee_id']) {
+          final id = row[key]?.toString();
+          if (id != null && id != me) ids.add(id);
+        }
+      }
+      return ids.toList();
+    } catch (e) {
+      debugPrint('[Chat] friendships belum siap: $e');
+      return const [];
+    }
+  }
+
+  bool _adminDari(Map<String, dynamic>? profil) =>
+      (profil?['role'] as String?) == 'admin';
+
+  Future<String?> _namaAdmin(SupabaseClient client) async {
+    try {
+      final rows = await client
+          .from('profiles')
+          .select('full_name, username')
+          .eq('role', 'admin')
+          .limit(1);
+      if (rows.isEmpty) return null;
+      final nama = (rows.first['full_name'] as String?)?.trim();
+      if (nama != null && nama.isNotEmpty) return 'Admin · $nama';
+      return 'Admin Sign.L';
+    } catch (e) {
+      debugPrint('[Chat] Gagal membaca nama admin: $e');
+      return null;
+    }
+  }
+
+  Future<bool> _isAdmin(SupabaseClient client, String userId) async {
+    try {
+      final row = await client
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
+      return (row?['role'] as String?) == 'admin';
+    } catch (e) {
+      debugPrint('[Chat] Gagal memeriksa role: $e');
+      return false;
+    }
+  }
+
+  Future<_InfoPercakapan> _infoPercakapan(
+    SupabaseClient client,
+    String roomId,
+  ) async {
+    try {
+      final row = await client
+          .from('conversations')
+          .select('is_read_only, user_id, admin_id')
+          .eq('id', roomId)
+          .maybeSingle();
+      final me = _myId;
+      final adminId = row?['admin_id']?.toString();
+      final admin = adminId == me || await _isAdmin(client, me ?? '');
+      return _InfoPercakapan(
+        readOnly: (row?['is_read_only'] as bool?) ?? false,
+        admin: admin,
+      );
+    } on PostgrestException catch (e) {
+      debugPrint('[Chat] Gagal membaca info percakapan: ${e.message}');
+      return const _InfoPercakapan(readOnly: false, admin: false);
+    }
+  }
+
+  Future<void> _tambahUnread(SupabaseClient client, String roomId) async {
+    try {
+      await client.rpc('bump_unread', params: {'p_conv': roomId});
+    } catch (e) {
+      debugPrint('[Chat] bump_unread gagal, memakai nilai 1: $e');
+      try {
+        await client
+            .from('conversations')
+            .update({'unread_count': 1}).eq('id', roomId);
+      } catch (_) {
+        // Abaikan: preview pesan tetap tersimpan.
+      }
+    }
+  }
+}
+
+class _InfoPercakapan {
+  final bool readOnly;
+  final bool admin;
+
+  const _InfoPercakapan({required this.readOnly, required this.admin});
 }

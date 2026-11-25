@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import 'app_ui.dart';
 
 class IsiMateriBottomBar extends StatelessWidget {
   final VoidCallback onPrevious;
@@ -21,97 +22,87 @@ class IsiMateriBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border(top: BorderSide(color: AppColors.border)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.xl)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Color(0x0D0F172A),
             blurRadius: 20,
-            offset: const Offset(0, -4),
+            offset: Offset(0, -4),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Opacity(
-              opacity: isFirst ? 0.4 : 1,
-              child: _outlineButton(
-                label: 'Sebelumnya',
-                fg: AppColors.textSecondary,
-                bg: AppColors.fieldFill,
-                onTap: isFirst ? () {} : onPrevious,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _outlineButton(
-              label: 'Coba Foto',
-              fg: AppColors.primary,
-              bg: AppColors.pinkSoft,
-              onTap: onCamera,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: GestureDetector(
-              onTap: onNext,
-              behavior: HitTestBehavior.opaque,
-              child: Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.28),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    isLast ? 'Selesai' : 'Lanjut',
-                    style: AppTextStyles.labelMedium.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.30,
-                    ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+          child: Row(
+            children: [
+              Expanded(
+                child: Opacity(
+                  opacity: isFirst ? 0.45 : 1,
+                  child: _tonalButton(
+                    label: 'Sebelumnya',
+                    fg: AppColors.textSecondary,
+                    bg: AppColors.surfaceMuted,
+                    onTap: isFirst ? null : onPrevious,
                   ),
                 ),
               ),
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _tonalButton(
+                  label: 'Coba Foto',
+                  fg: AppColors.primary,
+                  bg: AppColors.pinkSoft,
+                  onTap: onCamera,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: onNext,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  child: Text(isLast ? 'Selesai' : 'Lanjut'),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _outlineButton({
+  Widget _tonalButton({
     required String label,
     required Color fg,
     required Color bg,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Center(
+    final radius = BorderRadius.circular(AppRadii.md);
+    return Material(
+      color: bg,
+      borderRadius: radius,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: radius,
+        child: Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          alignment: Alignment.center,
           child: Text(
             label,
-            style: AppTextStyles.labelMedium.copyWith(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.labelLarge.copyWith(
               color: fg,
-              fontWeight: FontWeight.w700,
+              fontSize: 13,
             ),
           ),
         ),

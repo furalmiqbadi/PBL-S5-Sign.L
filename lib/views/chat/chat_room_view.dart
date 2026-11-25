@@ -5,6 +5,7 @@ import '../../controllers/chat_controller.dart';
 import '../../models/chat_model.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/app_ui.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/user_avatar.dart';
 
@@ -67,9 +68,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   void _showSnack(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    showAppSnackBar(context, message);
   }
 
   @override
@@ -83,8 +82,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             top: false,
             child: Column(
               children: [
+                if (widget.room.isReadOnly) _buildReadOnlyBanner(),
                 Expanded(child: _buildMessages(controller)),
-                _buildInputBar(controller),
+                if (widget.room.isReadOnly)
+                  _buildReadOnlyFooter()
+                else
+                  _buildInputBar(controller),
               ],
             ),
           ),
@@ -136,17 +139,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     style: AppTextStyles.titleMedium,
                   ),
                   Text(
-                    widget.room.isGroup
-                        ? '${widget.room.memberCount ?? 0} anggota'
-                        : (widget.room.isOnline
-                            ? 'Aktif sekarang'
-                            : 'Terakhir dilihat baru-baru ini'),
+                    widget.room.isReadOnly
+                        ? 'Balasan resmi admin'
+                        : widget.room.isGroup
+                            ? '${widget.room.memberCount ?? 0} anggota'
+                            : (widget.room.isOnline
+                                ? 'Aktif sekarang'
+                                : 'Terakhir dilihat baru-baru ini'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: widget.room.isOnline
-                          ? AppColors.success
-                          : AppColors.textMuted,
+                      color: widget.room.isReadOnly
+                          ? AppColors.info
+                          : widget.room.isOnline
+                              ? AppColors.success
+                              : AppColors.textMuted,
                     ),
                   ),
                 ],
@@ -216,34 +223,33 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final room = widget.room;
     final muted = controller.isMuted(room.id);
 
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+    showAppBottomSheet<void>(
+      context,
+      title: room.name,
+      subtitle: 'Opsi percakapan',
+      contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       builder: (sheetContext) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.person_outline_rounded),
-                title: const Text('Lihat profil'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showRoomInfo(controller);
-                },
-              ),
-              ListTile(
-                leading: Icon(
-                  muted
-                      ? Icons.notifications_active_outlined
-                      : Icons.notifications_off_outlined,
-                ),
-                title: Text(
-                  muted ? 'Bunyikan notifikasi' : 'Bisukan notifikasi',
-                ),
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppSheetOptionTile(
+              icon: Icons.person_outline_rounded,
+              iconColor: AppColors.primary,
+              iconBackground: AppColors.pinkSoft,
+              title: 'Lihat profil',
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _showRoomInfo(controller);
+              },
+            ),
+            if (!room.isReadOnly) ...[
+              AppSheetOptionTile(
+                icon: muted
+                    ? Icons.notifications_active_outlined
+                    : Icons.notifications_off_outlined,
+                iconColor: AppColors.secondary,
+                iconBackground: AppColors.purpleSoft,
+                title: muted ? 'Bunyikan notifikasi' : 'Bisukan notifikasi',
                 onTap: () {
                   controller.toggleMute(room.id);
                   Navigator.pop(sheetContext);
@@ -254,31 +260,29 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   );
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.delete_outline_rounded),
-                title: const Text('Bersihkan riwayat'),
+              AppSheetOptionTile(
+                icon: Icons.delete_outline_rounded,
+                iconColor: AppColors.textSecondary,
+                iconBackground: AppColors.surfaceMuted,
+                title: 'Bersihkan riwayat',
                 onTap: () {
                   Navigator.pop(sheetContext);
                   _confirmClearHistory(controller);
                 },
               ),
-              ListTile(
-                leading: const Icon(
-                  Icons.block_rounded,
-                  color: AppColors.danger,
-                ),
-                title: const Text(
-                  'Blokir & laporkan',
-                  style: TextStyle(color: AppColors.danger),
-                ),
+              AppSheetOptionTile(
+                icon: Icons.block_rounded,
+                iconColor: AppColors.danger,
+                iconBackground: AppColors.dangerSoft,
+                title: 'Blokir & laporkan',
+                titleColor: AppColors.danger,
                 onTap: () {
                   Navigator.pop(sheetContext);
                   _confirmBlock();
                 },
               ),
-              const SizedBox(height: 8),
             ],
-          ),
+          ],
         );
       },
     );
@@ -286,107 +290,85 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   void _showRoomInfo(ChatController controller) {
     final room = widget.room;
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+    showAppBottomSheet<void>(
+      context,
+      contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
       builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                UserAvatar(
-                  imageUrl: room.avatarUrl,
-                  name: room.name,
-                  isGroup: room.isGroup,
-                  size: 76,
-                ),
-                const SizedBox(height: 12),
-                Text(room.name, style: AppTextStyles.titleLarge),
-                const SizedBox(height: 4),
-                Text(
-                  room.isGroup
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            UserAvatar(
+              imageUrl: room.avatarUrl,
+              name: room.name,
+              isGroup: room.isGroup,
+              size: 76,
+            ),
+            const SizedBox(height: 12),
+            Text(room.name, style: AppTextStyles.titleLarge),
+            const SizedBox(height: 4),
+            Text(
+              room.isReadOnly
+                  ? 'Ruang laporan • hanya-baca'
+                  : room.isGroup
                       ? '${room.memberCount ?? 0} anggota grup'
                       : (room.isOnline
                           ? 'Aktif sekarang'
                           : 'Terakhir dilihat baru-baru ini'),
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                if (room.isGroup && room.lastSenderName != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'Pesan terakhir dari ${room.lastSenderName}',
-                    style: AppTextStyles.labelSmall,
-                  ),
-                ],
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      side: const BorderSide(color: AppColors.border),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(sheetContext);
-                      controller.toggleMute(room.id);
-                      _showSnack(
-                        controller.isMuted(room.id)
-                            ? 'Notifikasi percakapan dibisukan.'
-                            : 'Notifikasi percakapan dibunyikan.',
-                      );
-                    },
-                    icon: Icon(
-                      controller.isMuted(room.id)
-                          ? Icons.notifications_off_outlined
-                          : Icons.notifications_active_outlined,
-                    ),
-                    label: Text(
-                      controller.isMuted(room.id)
-                          ? 'Bunyikan notifikasi'
-                          : 'Bisukan notifikasi',
-                    ),
-                  ),
-                ),
-              ],
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
-          ),
+            if (room.isGroup && room.lastSenderName != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Pesan terakhir dari ${room.lastSenderName}',
+                style: AppTextStyles.labelSmall,
+              ),
+            ],
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.textPrimary,
+                  side: const BorderSide(color: AppColors.border),
+                ),
+                onPressed: () {
+                  Navigator.pop(sheetContext);
+                  controller.toggleMute(room.id);
+                  _showSnack(
+                    controller.isMuted(room.id)
+                        ? 'Notifikasi percakapan dibisukan.'
+                        : 'Notifikasi percakapan dibunyikan.',
+                  );
+                },
+                icon: Icon(
+                  controller.isMuted(room.id)
+                      ? Icons.notifications_off_outlined
+                      : Icons.notifications_active_outlined,
+                ),
+                label: Text(
+                  controller.isMuted(room.id)
+                      ? 'Bunyikan notifikasi'
+                      : 'Bisukan notifikasi',
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
   Future<void> _confirmClearHistory(ChatController controller) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text('Bersihkan riwayat?'),
-        content: const Text(
-          'Semua pesan pada percakapan ini akan dihapus dari perangkat.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Hapus'),
-          ),
-        ],
-      ),
+    final confirmed = await showAppDialog(
+      context,
+      icon: Icons.delete_sweep_rounded,
+      title: 'Bersihkan riwayat?',
+      message: 'Semua pesan pada percakapan ini akan dihapus dari perangkat.',
+      cancelLabel: 'Batal',
+      confirmLabel: 'Hapus',
+      isDestructive: true,
     );
     if (confirmed != true || !mounted) return;
 
@@ -395,31 +377,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   Future<void> _confirmBlock() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Blokir ${widget.room.name}?'),
-        content: const Text(
-          'Kamu tidak akan menerima pesan dari kontak ini lagi. '
-          'Laporan juga akan dikirim ke moderator.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text(
-              'Blokir',
-              style: TextStyle(color: AppColors.danger),
-            ),
-          ),
-        ],
-      ),
+    final confirmed = await showAppDialog(
+      context,
+      icon: Icons.block_rounded,
+      title: 'Blokir ${widget.room.name}?',
+      message:
+          'Kamu tidak akan menerima pesan dari kontak ini lagi. Laporan juga akan dikirim ke moderator.',
+      cancelLabel: 'Batal',
+      confirmLabel: 'Blokir',
+      isDestructive: true,
     );
     if (confirmed != true || !mounted) return;
 
@@ -506,6 +472,69 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     borderSide: BorderSide.none,
   );
 
+  Widget _buildReadOnlyBanner() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.infoSoft,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.lock_outline_rounded,
+              size: 18, color: AppColors.info),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Ruang laporan hanya-baca. Balasan admin tercatat di sini, '
+              'tapi kamu tidak bisa mengirim pesan.',
+              style: AppTextStyles.labelSmall.copyWith(
+                color: AppColors.info,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReadOnlyFooter() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            const Icon(Icons.verified_user_outlined,
+                size: 18, color: AppColors.textSecondary),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Balasan resmi dari admin akan muncul di sini.',
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildInputBar(ChatController controller) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
@@ -543,29 +572,41 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            GestureDetector(
-              onTap:
-                  controller.isSending ? null : () => _handleSend(controller),
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(16),
+            SizedBox(
+              width: 48,
+              height: 48,
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(AppRadii.md),
+                clipBehavior: Clip.antiAlias,
+                child: Ink(
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                  ),
+                  child: InkWell(
+                    onTap: controller.isSending
+                        ? null
+                        : () => _handleSend(controller),
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                    child: Center(
+                      child: controller.isSending
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.send_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                    ),
+                  ),
                 ),
-                child: controller.isSending
-                    ? const Padding(
-                        padding: EdgeInsets.all(14),
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.send_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
               ),
             ),
           ],

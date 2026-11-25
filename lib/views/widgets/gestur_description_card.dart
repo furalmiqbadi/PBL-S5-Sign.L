@@ -39,7 +39,8 @@ class GesturDescriptionCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.pinkSoft,
                   borderRadius: BorderRadius.circular(9999),

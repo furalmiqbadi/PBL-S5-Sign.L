@@ -6,27 +6,33 @@ import '../../services/share_service.dart';
 import '../main_shell.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import 'app_ui.dart';
+import 'user_avatar.dart';
 
 /// Menampilkan pilihan berbagi: kirim lewat pesan atau buat postingan
 /// di komunitas.
 Future<void> showShareSheet(
   BuildContext context, {
   required String text,
+  String? mediaUrl,
 }) {
   return showModalBottomSheet<void>(
     context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
     backgroundColor: AppColors.surface,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
-    builder: (_) => _ShareSheet(text: text),
+    builder: (_) => _ShareSheet(text: text, mediaUrl: mediaUrl),
   );
 }
 
 class _ShareSheet extends StatefulWidget {
   final String text;
+  final String? mediaUrl;
 
-  const _ShareSheet({required this.text});
+  const _ShareSheet({required this.text, this.mediaUrl});
 
   @override
   State<_ShareSheet> createState() => _ShareSheetState();
@@ -36,7 +42,7 @@ class _ShareSheetState extends State<_ShareSheet> {
   bool _choosingContact = false;
 
   void _shareToCommunity() {
-    ShareService.queueCommunityPost(widget.text);
+    ShareService.queueCommunityPost(widget.text, mediaUrl: widget.mediaUrl);
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const MainShell(initialIndex: 3)),
       (_) => false,
@@ -51,20 +57,24 @@ class _ShareSheetState extends State<_ShareSheet> {
 
   Future<void> _sendToContact(ChatController controller, String name) async {
     final contact = controller.contacts.firstWhere((c) => c.name == name);
-    final messenger = ScaffoldMessenger.of(context);
+    final rootContext = context;
     Navigator.pop(context);
     await controller.startChat(contact);
     await controller.sendMessage(widget.text);
-    messenger.showSnackBar(
-      SnackBar(content: Text('Terkirim ke ${contact.name}')),
+    if (!rootContext.mounted) return;
+    showAppSnackBar(
+      rootContext,
+      'Terkirim ke ${contact.name}',
+      type: AppSnackType.success,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
         child: _choosingContact ? _buildContactList() : _buildOptions(),
       ),
     );
@@ -87,27 +97,21 @@ class _ShareSheetState extends State<_ShareSheet> {
         ),
         const SizedBox(height: 16),
         Text('Bagikan ke', style: AppTextStyles.titleLarge),
-        const SizedBox(height: 12),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const CircleAvatar(
-            backgroundColor: AppColors.purpleSoft,
-            child: Icon(Icons.groups_rounded, color: AppColors.secondary),
-          ),
-          title: const Text('Komunitas',
-              style: TextStyle(fontWeight: FontWeight.w700)),
-          subtitle: const Text('Jadikan postingan baru di Komunitas'),
+        const SizedBox(height: 10),
+        AppSheetOptionTile(
+          icon: Icons.groups_rounded,
+          iconColor: AppColors.secondary,
+          iconBackground: AppColors.purpleSoft,
+          title: 'Komunitas',
+          subtitle: 'Jadikan postingan baru di Komunitas',
           onTap: _shareToCommunity,
         ),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const CircleAvatar(
-            backgroundColor: AppColors.pinkSoft,
-            child: Icon(Icons.chat_rounded, color: AppColors.primary),
-          ),
-          title: const Text('Pesan',
-              style: TextStyle(fontWeight: FontWeight.w700)),
-          subtitle: const Text('Kirim ke teman lewat chat'),
+        AppSheetOptionTile(
+          icon: Icons.chat_rounded,
+          iconColor: AppColors.primary,
+          iconBackground: AppColors.pinkSoft,
+          title: 'Pesan',
+          subtitle: 'Kirim ke teman lewat chat',
           onTap: _openContactPicker,
         ),
       ],
@@ -117,20 +121,33 @@ class _ShareSheetState extends State<_ShareSheet> {
   Widget _buildContactList() {
     final controller = context.watch<ChatController>();
     return SizedBox(
-      height: 320,
+      height: 340,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
-              IconButton(
+              AppIconButton(
+                icon: Icons.arrow_back_rounded,
+                tooltip: 'Kembali',
                 onPressed: () => setState(() => _choosingContact = false),
-                icon: const Icon(Icons.arrow_back_rounded),
               ),
+              const SizedBox(width: 6),
               Text('Kirim ke', style: AppTextStyles.titleLarge),
             ],
           ),
-          const SizedBox(height: 4),
+          const Divider(height: 12),
           Expanded(
             child: controller.isLoadingContacts
                 ? const Center(child: CircularProgressIndicator())
@@ -139,17 +156,13 @@ class _ShareSheetState extends State<_ShareSheet> {
                     itemBuilder: (context, index) {
                       final contact = controller.contacts[index];
                       return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppColors.pinkSoft,
-                          backgroundImage: contact.avatarUrl != null
-                              ? NetworkImage(contact.avatarUrl!)
-                              : null,
-                          child: contact.avatarUrl == null
-                              ? const Icon(Icons.person,
-                                  color: AppColors.primary)
-                              : null,
+                        leading: UserAvatar(
+                          imageUrl: contact.avatarUrl,
+                          name: contact.name,
+                          size: 40,
                         ),
-                        title: Text(contact.name),
+                        title:
+                            Text(contact.name, style: AppTextStyles.titleSmall),
                         onTap: () => _sendToContact(controller, contact.name),
                       );
                     },

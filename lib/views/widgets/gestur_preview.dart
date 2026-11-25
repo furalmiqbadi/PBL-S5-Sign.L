@@ -12,7 +12,8 @@ class GesturPreview extends StatelessWidget {
       height: 224,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: AppColors.surface, // latar putih supaya ruang kosong menyatu dengan foto
+        color: AppColors
+            .surface, // latar putih supaya ruang kosong menyatu dengan foto
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -26,7 +27,8 @@ class GesturPreview extends StatelessWidget {
         assetPath,
         fit: BoxFit.contain, // tampilkan seluruh gambar, tidak dipotong
         errorBuilder: (_, __, ___) => const Center(
-          child: Icon(Icons.image_not_supported_rounded, size: 48, color: AppColors.textMuted),
+          child: Icon(Icons.image_not_supported_rounded,
+              size: 48, color: AppColors.textMuted),
         ),
       ),
     );

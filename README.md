@@ -1,17 +1,41 @@
-# pbl_signl
+# Sign.L
 
-A new Flutter project.
+Aplikasi pembelajaran BISINDO interaktif berbasis Flutter, Supabase Auth, Postgres, Storage, Realtime, TensorFlow Lite, dan MediaPipe.
 
-## Getting Started
+## Menjalankan aplikasi
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run --dart-define=SUPABASE_URL=<url> --dart-define=SUPABASE_ANON_KEY=<publishable-key>
+```
 
-A few resources to get you started if this is your first Flutter project:
+Jangan commit `.env`, token, password, atau signing key. Konfigurasi Supabase dibaca melalui `--dart-define`.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Autentikasi dan save login
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Sesi aktif Supabase disimpan menggunakan `flutter_secure_storage` (Android Keystore/iOS Keychain), bukan `SharedPreferences`.
+- Setelah login berhasil, akun dan sesi terenkripsi disimpan sebagai akun tersimpan di perangkat.
+- Password tidak pernah disimpan.
+- Token yang kedaluwarsa diperbarui melalui refresh token Supabase. Sesi yang dicabut server akan dikeluarkan.
+- Data akun tersimpan dipisahkan berdasarkan email yang dinormalisasi dan dapat dihapus melalui alur pengelolaan akun yang menggunakan `SavedAccountsService`.
+- Logout mengakhiri sesi aktif; hapus akun tersimpan untuk menghapus token akun tersebut dari perangkat.
+
+## Validasi sebelum rilis
+
+```bash
+dart format .
+flutter analyze
+flutter test
+flutter build apk --release
+```
+
+Android QA menggunakan emulator dan artefak disimpan di `testandroid/`.
+
+## Status validasi terakhir
+
+- `flutter analyze`: lulus.
+- `flutter test`: lulus, 16 test.
+- `flutter build apk --debug`: lulus.
+- Instalasi dan launch pada emulator `emulator-5554`: lulus.
+- Crash log emulator: disimpan di `testandroid/release-readiness-crash.log`.
+- Catatan: build menampilkan warning kompatibilitas plugin Kotlin dan SDK XML; warning ini perlu dibereskan sebelum rilis produksi.

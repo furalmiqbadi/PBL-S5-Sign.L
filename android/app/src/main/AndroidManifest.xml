@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Login, materi, chat, dan sinkronisasi membutuhkan jaringan. Izin ini
+         wajib ada di manifest utama agar build release ikut membawanya;
+         manifest debug/profile hanya berlaku untuk flutter run. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Latihan isyarat memakai kamera depan. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
     <application
         android:label="Sign.L"
         android:name="${applicationName}"
@@ -23,6 +30,14 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Tautan reset kata sandi dari email: signl://reset?code=...
+                 Wajib ada agar tautan membuka aplikasi, bukan browser. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="signl" android:host="reset"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

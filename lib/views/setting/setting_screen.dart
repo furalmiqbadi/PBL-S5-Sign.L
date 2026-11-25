@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../controllers/auth_controller.dart';
 import '../../controllers/settings_controller.dart';
 import '../../models/app_settings.dart';
+import '../../models/nama_tampil.dart';
+import '../../models/profil_model.dart';
+import '../../services/profil_service.dart';
 import '../auth/auth_views.dart';
 import '../edit/edit_profile_screen.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../widgets/app_ui.dart';
+import '../widgets/user_avatar.dart';
 
 // ============================================================================
 // 1. KONSTANTA
@@ -21,7 +26,7 @@ const String _appVersion = 'Versi 1.0.0 (Build 1)';
 
 /// Halaman Pengaturan Akun. Di-push dari ikon gear di [ProfilHeader], bukan
 /// tab di MainShell. View hanya memanggil [SettingsController] dan
-/// [AuthController]; tidak ada akses storage/service langsung.
+/// fungsi `konfirmasiKeluar`; tidak ada akses storage/service langsung.
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
 
@@ -30,14 +35,28 @@ class SettingScreen extends StatefulWidget {
 }
 
 class _SettingScreenState extends State<SettingScreen> {
+  final ProfilService _profilService = ProfilService();
+  ProfilPengguna? _profil;
+
+  @override
+  void initState() {
+    super.initState();
+    _muatProfil();
+  }
+
+  Future<void> _muatProfil() async {
+    final profil = await _profilService.profilSaya();
+    if (!mounted) return;
+    setState(() => _profil = profil);
+  }
+
   void _toast(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ));
+    showAppSnackBar(
+      context,
+      message,
+      type: AppSnackType.info,
+      duration: const Duration(seconds: 2),
+    );
   }
 
   // --------------------------------------------------------------------------
@@ -79,7 +98,9 @@ class _SettingScreenState extends State<SettingScreen> {
     );
     if (v == null) return;
     await c.setLanguage(v);
-    if (v == 'en') _toast('Terjemahan English belum tersedia, pilihan disimpan.');
+    if (v == 'en') {
+      _toast('Terjemahan English belum tersedia, pilihan disimpan.');
+    }
   }
 
   Future<void> _pickReminderTime(SettingsController c) async {
@@ -101,95 +122,34 @@ class _SettingScreenState extends State<SettingScreen> {
     required T selected,
     required List<_Option<T>> options,
   }) {
-    return showModalBottomSheet<T>(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              for (final o in options)
-                ListTile(
-                  title: Text(
-                    o.title,
-                    style: TextStyle(
-                      fontWeight:
-                          o.value == selected ? FontWeight.w800 : FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  subtitle: o.subtitle == null ? null : Text(o.subtitle!),
-                  trailing: o.value == selected
-                      ? const Icon(Icons.check_circle_rounded,
-                          color: AppColors.primary)
-                      : null,
-                  onTap: () => Navigator.pop(ctx, o.value),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _confirmLogout() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text('Keluar dari Akun?',
-            style: TextStyle(fontWeight: FontWeight.w800)),
-        content: const Text('Kamu perlu masuk lagi untuk melanjutkan belajar.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal',
-                style: TextStyle(color: AppColors.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Keluar',
-                style: TextStyle(
-                    color: AppColors.primary, fontWeight: FontWeight.w800)),
-          ),
+    return showAppBottomSheet<T>(
+      context,
+      title: title,
+      contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      builder: (ctx) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final o in options)
+            AppSheetOptionTile(
+              icon: o.value == selected
+                  ? Icons.radio_button_checked_rounded
+                  : Icons.radio_button_unchecked_rounded,
+              iconColor:
+                  o.value == selected ? AppColors.primary : AppColors.textMuted,
+              iconBackground: o.value == selected
+                  ? AppColors.pinkSoft
+                  : AppColors.surfaceMuted,
+              title: o.title,
+              subtitle: o.subtitle,
+              isSelected: o.value == selected,
+              onTap: () => Navigator.pop(ctx, o.value),
+            ),
         ],
       ),
     );
-    if (ok != true || !mounted) return;
-
-    await context.read<AuthController>().logout();
-    if (!mounted) return;
-    // Hapus seluruh stack agar tombol back tidak kembali ke halaman ber-login.
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-      (_) => false,
-    );
   }
+
+  Future<void> _confirmLogout() => konfirmasiKeluar(context);
 
   void _openEditProfile() => Navigator.push(
         context,
@@ -386,20 +346,14 @@ class _SettingScreenState extends State<SettingScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
-        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.maybePop(context),
           tooltip: 'Kembali',
         ),
-        title: const Text(
-          'Pengaturan Akun',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-        ),
+        title: const Text('Pengaturan Akun'),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert_rounded),
@@ -411,7 +365,8 @@ class _SettingScreenState extends State<SettingScreen> {
               }
             },
             itemBuilder: (_) => const [
-              PopupMenuItem(value: 'reset', child: Text('Atur ulang pengaturan')),
+              PopupMenuItem(
+                  value: 'reset', child: Text('Atur ulang pengaturan')),
             ],
           ),
         ],
@@ -420,7 +375,7 @@ class _SettingScreenState extends State<SettingScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
-            _ProfileCard(onManage: _openEditProfile),
+            _ProfileCard(onManage: _openEditProfile, profil: _profil),
             const SizedBox(height: 8),
             for (final section in sections) ...[
               _SectionLabel(title: section.title, trailing: section.trailing),
@@ -472,10 +427,15 @@ class _Section {
 
 class _ProfileCard extends StatelessWidget {
   final VoidCallback onManage;
-  const _ProfileCard({required this.onManage});
+  final ProfilPengguna? profil;
+  const _ProfileCard({required this.onManage, this.profil});
 
   @override
   Widget build(BuildContext context) {
+    final nama =
+        profil?.nama.isNotEmpty == true ? profil!.nama : labelNamaNetral;
+    final sub =
+        'Level ${profil?.level ?? 1} · ${profil?.roleLabel ?? 'Pembelajar'}';
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(),
@@ -492,43 +452,35 @@ class _ProfileCard extends StatelessWidget {
               padding: const EdgeInsets.all(2),
               decoration: const BoxDecoration(
                   shape: BoxShape.circle, color: AppColors.surface),
-              child: ClipOval(
-                child: Image.network(
-                  'https://i.pravatar.cc/150?img=47',
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.cover,
-                  // Cadangan bila offline.
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 48,
-                    height: 48,
-                    color: AppColors.border,
-                    child: const Icon(Icons.person, color: AppColors.textSecondary),
-                  ),
-                ),
+              child: UserAvatar(
+                imageUrl: (profil?.avatarUrl.isEmpty ?? true)
+                    ? null
+                    : profil!.avatarUrl,
+                name: nama,
+                size: 48,
               ),
             ),
           ),
           const SizedBox(width: 12),
           // Nama + level (Expanded agar tombol di kanan tidak overflow)
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Sarah Chen',
+                  nama,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textPrimary,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Level 8 Signer',
+                  sub,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 11, color: AppColors.textSecondary),
                 ),
               ],
@@ -575,26 +527,24 @@ class _SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
+      padding: const EdgeInsets.fromLTRB(4, 18, 4, 8),
       child: Row(
         children: [
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.4,
-                color: AppColors.textPrimary,
+              style: AppTextStyles.labelMedium.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.45,
+                color: AppColors.textSecondary,
               ),
             ),
           ),
           if (trailing != null)
             Text(
               trailing!,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
+              style: AppTextStyles.labelSmall.copyWith(
+                fontWeight: FontWeight.w700,
                 color: AppColors.primary,
               ),
             ),
@@ -606,13 +556,9 @@ class _SectionLabel extends StatelessWidget {
 
 BoxDecoration _cardDecoration() => BoxDecoration(
       color: AppColors.surface,
-      borderRadius: BorderRadius.circular(24),
-      boxShadow: [
-        BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 4)),
-      ],
+      borderRadius: BorderRadius.circular(AppRadii.xl),
+      border: Border.all(color: AppColors.border),
+      boxShadow: AppShadows.card,
     );
 
 class _SettingsCard extends StatelessWidget {
@@ -624,19 +570,22 @@ class _SettingsCard extends StatelessWidget {
     return Container(
       decoration: _cardDecoration(),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          for (var i = 0; i < rows.length; i++) ...[
-            if (i > 0)
-              const Divider(
-                  height: 1,
-                  thickness: 1,
-                  indent: 66,
-                  endIndent: 16,
-                  color: AppColors.border),
-            rows[i].child,
+      child: Material(
+        color: Colors.transparent,
+        child: Column(
+          children: [
+            for (var i = 0; i < rows.length; i++) ...[
+              if (i > 0)
+                const Divider(
+                    height: 1,
+                    thickness: 1,
+                    indent: 66,
+                    endIndent: 16,
+                    color: AppColors.border),
+              rows[i].child,
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -672,9 +621,7 @@ class _TileText extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
+            style: AppTextStyles.titleSmall.copyWith(
               color: AppColors.textPrimary,
             ),
           ),
@@ -682,8 +629,10 @@ class _TileText extends StatelessWidget {
           subtitleWidget ??
               Text(
                 subtitle ?? '',
-                style: const TextStyle(
-                    fontSize: 11, color: AppColors.textSecondary, height: 1.3),
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.35,
+                ),
               ),
         ],
       );
@@ -796,16 +745,14 @@ class _LogoutButton extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: onTap,
       icon: const Icon(Icons.logout_rounded, size: 18),
-      label: const Text(
-        'Keluar dari Akun',
-        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
-      ),
+      label: const Text('Keluar dari Akun'),
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        backgroundColor: AppColors.pinkSoft,
+        foregroundColor: AppColors.danger,
+        backgroundColor: AppColors.dangerSoft,
         minimumSize: const Size(double.infinity, 48),
-        side: BorderSide.none,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        side: BorderSide(color: AppColors.danger.withValues(alpha: 0.22)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadii.md)),
       ),
     );
   }

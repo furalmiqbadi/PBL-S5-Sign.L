@@ -12,6 +12,7 @@ import 'package:sign_l/main.dart';
 import 'package:sign_l/views/auth/auth_views.dart';
 import 'package:sign_l/views/main_shell.dart';
 import 'package:sign_l/views/widgets/app_bottom_nav_bar.dart';
+import 'package:sign_l/views/widgets/user_avatar.dart';
 
 void main() {
   setUpAll(() {
@@ -126,11 +127,12 @@ void main() {
       (WidgetTester tester) async {
     await bukaMainShell(tester);
 
-    // Tab Profil di navbar memakai avatar, bukan ikon berlabel.
+    // Tab Profil di navbar memakai avatar (inisial tanpa foto), bukan ikon
+    // berlabel.
     expect(
       find.descendant(
         of: find.byType(AppBottomNavBar),
-        matching: find.byType(Image),
+        matching: find.byType(UserAvatar),
       ),
       findsOneWidget,
     );
@@ -158,15 +160,22 @@ class _MockHttpClient implements HttpClient {
   String? userAgent;
 
   @override
-  void addCredentials(Uri url, String realm, HttpClientCredentials credentials) {}
+  void addCredentials(
+      Uri url, String realm, HttpClientCredentials credentials) {}
   @override
-  void addProxyCredentials(String host, int port, String realm, HttpClientCredentials credentials) {}
+  void addProxyCredentials(
+      String host, int port, String realm, HttpClientCredentials credentials) {}
   @override
-  set authenticate(Future<bool> Function(Uri url, String scheme, String? realm)? f) {}
+  set authenticate(
+      Future<bool> Function(Uri url, String scheme, String? realm)? f) {}
   @override
-  set authenticateProxy(Future<bool> Function(String host, int port, String scheme, String? realm)? f) {}
+  set authenticateProxy(
+      Future<bool> Function(
+              String host, int port, String scheme, String? realm)?
+          f) {}
   @override
-  set badCertificateCallback(bool Function(X509Certificate cert, String host, int port)? callback) {}
+  set badCertificateCallback(
+      bool Function(X509Certificate cert, String host, int port)? callback) {}
   @override
   void close({bool force = false}) {}
   @override
@@ -175,7 +184,8 @@ class _MockHttpClient implements HttpClient {
   @override
   Future<HttpClientRequest> getUrl(Uri url) async => _MockHttpClientRequest();
   @override
-  Future<HttpClientRequest> openUrl(String method, Uri url) async => _MockHttpClientRequest();
+  Future<HttpClientRequest> openUrl(String method, Uri url) async =>
+      _MockHttpClientRequest();
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -202,7 +212,8 @@ class _MockHttpHeaders implements HttpHeaders {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _MockHttpClientResponse extends Stream<List<int>> implements HttpClientResponse {
+class _MockHttpClientResponse extends Stream<List<int>>
+    implements HttpClientResponse {
   @override
   int get statusCode => HttpStatus.ok;
   @override
@@ -233,10 +244,71 @@ class _MockHttpClientResponse extends Stream<List<int>> implements HttpClientRes
 }
 
 final Uint8List _kTransparentImage = Uint8List.fromList(<int>[
-  0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49,
-  0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x06,
-  0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44,
-  0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00, 0x05, 0x00, 0x01, 0x0D,
-  0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42,
-  0x60, 0x82,
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x48,
+  0x44,
+  0x52,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x08,
+  0x06,
+  0x00,
+  0x00,
+  0x00,
+  0x1F,
+  0x15,
+  0xC4,
+  0x89,
+  0x00,
+  0x00,
+  0x00,
+  0x0A,
+  0x49,
+  0x44,
+  0x41,
+  0x54,
+  0x78,
+  0x9C,
+  0x63,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x05,
+  0x00,
+  0x01,
+  0x0D,
+  0x0A,
+  0x2D,
+  0xB4,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x49,
+  0x45,
+  0x4E,
+  0x44,
+  0xAE,
+  0x42,
+  0x60,
+  0x82,
 ]);

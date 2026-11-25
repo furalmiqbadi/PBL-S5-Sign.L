@@ -4,19 +4,25 @@ import 'leaderboard.dart';
 import 'section_header.dart';
 
 /// Header halaman Komunitas: judul di kiri, lalu di kanan tombol papan
-/// peringkat (leaderboard) dan tombol pesan langsung (DM) dengan badge
-/// jumlah pesan belum dibaca.
+/// peringkat (leaderboard), tombol Teman, dan tombol pesan langsung (DM)
+/// dengan badge jumlah pesan belum dibaca.
 class KomunitasHeader extends StatelessWidget {
   /// Jumlah pesan belum dibaca. Badge disembunyikan bila 0
   final int unreadCount;
 
+  /// Jumlah permintaan teman yang belum dijawab.
+  final int permintaanTeman;
+
   final VoidCallback? onLeaderboard;
+  final VoidCallback? onTeman;
   final VoidCallback? onMessages;
 
   const KomunitasHeader({
     super.key,
-    this.unreadCount = 2,
+    this.unreadCount = 0,
+    this.permintaanTeman = 0,
     this.onLeaderboard,
+    this.onTeman,
     this.onMessages,
   });
 
@@ -29,6 +35,13 @@ class KomunitasHeader extends StatelessWidget {
           svgAsset: 'assets/images/leaderboard_fix.svg',
           semanticLabel: 'Papan peringkat',
           onTap: onLeaderboard ?? () => showLeaderboardSheet(context),
+        ),
+        const SizedBox(width: 8),
+        HeaderIconButton(
+          icon: Icons.people_alt_outlined,
+          semanticLabel: 'Teman',
+          badge: permintaanTeman > 0 ? '$permintaanTeman' : null,
+          onTap: onTeman,
         ),
         const SizedBox(width: 8),
         HeaderIconButton(

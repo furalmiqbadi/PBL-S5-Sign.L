@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import '../setting/setting_screen.dart';
 import 'section_header.dart';
 
-/// Header halaman Profil: judul di kiri, lalu di kanan tombol pesan langsung
-/// (DM) dan tombol pengaturan. Keduanya ikon polos tanpa latar.
-/// Header halaman Profil: judul di kiri, lalu di kanan tombol pengaturan.
-
+/// Header halaman Profil: judul di kiri, tombol Teman dan pengaturan di kanan.
 class ProfilHeader extends StatelessWidget {
-  final VoidCallback? onMessages;
   final VoidCallback? onSettings;
+  final VoidCallback? onTeman;
+
+  /// Jumlah permintaan teman yang belum dijawab; badge disembunyikan bila 0.
+  final int permintaanTeman;
 
   const ProfilHeader({
     super.key,
-    this.onMessages,
     this.onSettings,
+    this.onTeman,
+    this.permintaanTeman = 0,
   });
 
   @override
@@ -21,29 +22,23 @@ class ProfilHeader extends StatelessWidget {
     return SectionHeader(
       title: 'Profil',
       actions: [
-        /* 
-        [Kode Asli Tim-mu] Tombol DM (Pesan Langsung) 
-        Aku hide/comment karena di desain barumu tidak ada logo DM, hanya Gear Setting.
-        Jika nanti mau dipakai lagi, tinggal di-uncomment.
-        
         HeaderIconButton(
-          svgAsset: 'assets/images/dm_fix.svg',
-          semanticLabel: 'Pesan langsung',
-          onTap: onMessages,
+          icon: Icons.people_alt_outlined,
+          semanticLabel: 'Teman',
+          badge: permintaanTeman > 0 ? '$permintaanTeman' : null,
+          onTap: onTeman,
         ),
-        const SizedBox(width: 4),
-        */
-        
-        // [Tugasmu] Tombol Pengaturan (Settings) yang sudah dilink ke SettingScreen
+        const SizedBox(width: 8),
         HeaderIconButton(
           svgAsset: 'assets/images/setting_fix.svg',
           semanticLabel: 'Pengaturan',
-          onTap: onSettings ?? () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SettingScreen()),
-            );
-          },
+          onTap: onSettings ??
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingScreen()),
+                );
+              },
         ),
       ],
     );

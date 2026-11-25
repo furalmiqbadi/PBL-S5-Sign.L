@@ -35,6 +35,10 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Ukuran decode disesuaikan dengan ukuran tampil agar hemat memori:
+    // foto profil berukuran besar tidak perlu didecode dalam resolusi penuh.
+    final cacheSize = (size * MediaQuery.devicePixelRatioOf(context)).round();
+
     return SizedBox(
       width: size,
       height: size,
@@ -57,18 +61,20 @@ class UserAvatar extends StatelessWidget {
                 width: size,
                 height: size,
                 child: isGroup
-                  ? _groupPlaceholder()
-                  : (imageUrl != null && imageUrl!.isNotEmpty
-                      ? Image.network(
-                          imageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _initialPlaceholder(),
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-                            return _initialPlaceholder();
-                          },
-                        )
-                      : _initialPlaceholder()),
+                    ? _groupPlaceholder()
+                    : (imageUrl != null && imageUrl!.isNotEmpty
+                        ? Image.network(
+                            imageUrl!,
+                            fit: BoxFit.cover,
+                            cacheWidth: cacheSize,
+                            gaplessPlayback: true,
+                            errorBuilder: (_, __, ___) => _initialPlaceholder(),
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return _initialPlaceholder();
+                            },
+                          )
+                        : _initialPlaceholder()),
               ),
             ),
           ),

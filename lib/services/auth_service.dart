@@ -23,11 +23,40 @@ class AuthService {
     if (m.contains('user not found')) {
       return 'Akun tidak ditemukan.';
     }
+    if (m.contains('auth session missing') ||
+        m.contains('session not found') ||
+        m.contains('refresh_token_not_found') ||
+        m.contains('refresh token not found') ||
+        m.contains('invalid refresh token') ||
+        m.contains('jwt expired') ||
+        m.contains('user signed out') ||
+        m.contains('session expired')) {
+      return 'Sesi akun tidak tersedia. Silakan masuk lagi.';
+    }
     if (m.contains('too many requests') || m.contains('rate limit')) {
       return 'Terlalu banyak percobaan. Coba lagi beberapa saat lagi.';
     }
     if (m.contains('password should be at least')) {
       return 'Kata sandi terlalu pendek.';
+    }
+    if (m.contains('database error saving new user')) {
+      return 'Pendaftaran gagal karena profil akun tidak dapat dibuat. Kemungkinan username sudah dipakai — coba username lain.';
+    }
+    if (m.contains('user already registered') ||
+        m.contains('already been registered')) {
+      return 'Email ini sudah terdaftar. Coba masuk atau gunakan email lain.';
+    }
+    if (m.contains('signups not allowed') || m.contains('signup is disabled')) {
+      return 'Pendaftaran akun sedang dinonaktifkan. Coba lagi nanti.';
+    }
+    if (m.contains('unable to validate email') || m.contains('invalid email')) {
+      return 'Format email tidak valid.';
+    }
+    if (m.contains('weak password') || m.contains('password is too weak')) {
+      return 'Kata sandi terlalu lemah. Gunakan minimal 8 karakter.';
+    }
+    if (m.contains('duplicate key') || m.contains('unique constraint')) {
+      return 'Username sudah dipakai. Pilih username lain.';
     }
     if (m.contains('failed host lookup') ||
         m.contains('socketexception') ||
@@ -50,11 +79,26 @@ class AuthService {
   /// User yang sedang login saat ini di sesi Supabase.
   User? get currentUser => _safeClient?.auth.currentUser;
 
+  Session? get currentSession => _safeClient?.auth.currentSession;
+
+  Future<AuthResponse> setSession(String session) async {
+    final client = _safeClient;
+    if (client == null) throw Exception('Autentikasi belum tersedia.');
+    try {
+      return await client.auth.setSession(session);
+    } on AuthException catch (e) {
+      throw Exception(friendlyMessage(e.message));
+    } catch (e) {
+      throw Exception(friendlyMessage(e.toString()));
+    }
+  }
+
   /// Status apakah ada sesi aktif.
   bool get isAuthenticated => currentUser != null;
 
   /// Stream perubahan status autentikasi (login/logout/token refresh).
-  Stream<AuthState>? get authStateChanges => _safeClient?.auth.onAuthStateChange;
+  Stream<AuthState>? get authStateChanges =>
+      _safeClient?.auth.onAuthStateChange;
 
   /// Masuk dengan email & password. Nilai tanpa `@` dianggap username dan
   /// diubah menjadi email lewat fungsi RPC `get_email_by_username`.
@@ -89,23 +133,49 @@ class AuthService {
     if (response.session == null) {
       throw Exception('Login gagal: sesi tidak terbentuk.');
     }
+    // Role bisa berubah sejak sesi terakhir; baca ulang setelah masuk.
+    _roleCache = null;
+    _roleCacheUserId = null;
+    _roleInFlight = null;
     return response;
   }
 
+  /// Role yang sudah dibaca, dipakai ulang agar startup tidak menembak
+  /// `profiles` dua kali (AuthController & layar awal).
+  static String? _roleCache;
+  static String? _roleCacheUserId;
+  static Future<String>? _roleInFlight;
+
   /// Mengambil role akun dari tabel `profiles` (`user` atau `admin`).
   /// Bila tabel/policy belum siap, dianggap pengguna biasa.
-  Future<String> fetchRole() async {
+  Future<String> fetchRole({bool force = false}) async {
     final client = _safeClient;
     final user = client?.auth.currentUser;
     if (client == null || user == null) return 'user';
+    if (!force && _roleCache != null && _roleCacheUserId == user.id) {
+      return _roleCache!;
+    }
+    if (!force && _roleInFlight != null) return _roleInFlight!;
+
+    final future = _bacaRole(client, user.id).whenComplete(
+      () => _roleInFlight = null,
+    );
+    _roleInFlight = future;
+    return future;
+  }
+
+  Future<String> _bacaRole(SupabaseClient client, String userId) async {
     try {
       final row = await client
           .from('profiles')
           .select('role')
-          .eq('id', user.id)
+          .eq('id', userId)
           .maybeSingle();
       final role = row?['role'];
-      return role is String && role.isNotEmpty ? role : 'user';
+      final hasil = role is String && role.isNotEmpty ? role : 'user';
+      _roleCache = hasil;
+      _roleCacheUserId = userId;
+      return hasil;
     } catch (e) {
       debugPrint('[Auth] Gagal membaca role: $e');
       return 'user';
@@ -158,15 +228,21 @@ class AuthService {
       );
     }
 
-    final data = <String, dynamic>{};
     final trimmedName = name?.trim();
-    if (trimmedName != null && trimmedName.isNotEmpty) {
-      // Kirim keduanya agar kompatibel dengan trigger lama (name) dan baru (full_name).
-      data['name'] = trimmedName;
-      data['full_name'] = trimmedName;
-    }
     final trimmedUsername = username?.trim();
-    if (trimmedUsername != null && trimmedUsername.isNotEmpty) {
+    final hasUsername = trimmedUsername != null && trimmedUsername.isNotEmpty;
+
+    // Trigger `handle_new_user` biasanya menulis profiles.full_name (NOT NULL).
+    // Tanpa name/full_name pendaftaran gagal "Database error saving new user",
+    // jadi selalu isi dengan fallback username atau prefix email.
+    final namaFinal = (trimmedName != null && trimmedName.isNotEmpty)
+        ? trimmedName
+        : (hasUsername ? trimmedUsername : email.trim().split('@').first);
+    final data = <String, dynamic>{
+      'name': namaFinal,
+      'full_name': namaFinal,
+    };
+    if (hasUsername) {
       data['username'] = trimmedUsername;
     }
 
@@ -175,18 +251,28 @@ class AuthService {
       response = await client.auth.signUp(
         email: email.trim(),
         password: password,
-        data: data.isEmpty ? null : data,
+        data: data,
       );
     } on AuthException catch (e) {
-      throw Exception(e.message);
+      throw Exception(friendlyMessage(e.message));
     } catch (e) {
-      throw Exception('Gagal mendaftar: $e');
+      throw Exception(friendlyMessage(e.toString()));
     }
 
     if (response.user == null) {
       throw Exception('Pendaftaran gagal. Coba lagi.');
     }
     return response;
+  }
+
+  /// URL kembali ke aplikasi web saat ini, termasuk base path-nya
+  /// (mis. `https://furalmiqbadi.my.id/pbl/signl/`). Jangan memakai
+  /// `Uri.base.origin` karena membuang path sehingga tautan reset mendarat
+  /// di halaman utama situs, bukan di aplikasi.
+  String get webRedirectUrl {
+    final base = Uri.base;
+    final path = base.path.isEmpty ? '/' : base.path;
+    return '${base.origin}${path.endsWith('/') ? path : '$path/'}';
   }
 
   /// Kirim link reset kata sandi ke email.
@@ -201,9 +287,9 @@ class AuthService {
     try {
       await client.auth.resetPasswordForEmail(
         email.trim(),
-        // Web: kembali ke origin aplikasi. Android/iOS: kembali lewat deep
-        // link yang terdaftar di Supabase Redirect URLs.
-        redirectTo: kIsWeb ? Uri.base.origin : resetRedirect,
+        // Web: kembali ke path aplikasi (bukan origin saja). Android/iOS:
+        // kembali lewat deep link yang terdaftar di Supabase Redirect URLs.
+        redirectTo: kIsWeb ? webRedirectUrl : resetRedirect,
       );
     } on AuthException catch (e) {
       throw Exception(friendlyMessage(e.message));
@@ -239,14 +325,17 @@ class AuthService {
         UserAttributes(password: password),
       );
     } on AuthException catch (e) {
-      throw Exception(e.message);
+      throw Exception(friendlyMessage(e.message));
     } catch (e) {
-      throw Exception('Gagal memperbarui kata sandi: $e');
+      throw Exception(friendlyMessage(e.toString()));
     }
   }
 
   /// Keluar dari sesi akun saat ini.
   Future<void> logout() async {
+    _roleCache = null;
+    _roleCacheUserId = null;
+    _roleInFlight = null;
     final client = _safeClient;
     if (client == null) {
       await Future<void>.delayed(const Duration(milliseconds: 200));
@@ -256,9 +345,9 @@ class AuthService {
     try {
       await client.auth.signOut();
     } on AuthException catch (e) {
-      throw Exception(e.message);
+      throw Exception(friendlyMessage(e.message));
     } catch (e) {
-      throw Exception('Gagal keluar: $e');
+      throw Exception(friendlyMessage(e.toString()));
     }
   }
 }

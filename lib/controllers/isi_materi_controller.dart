@@ -3,11 +3,14 @@ import '../models/gestur_model.dart';
 
 class IsiMateriController extends ChangeNotifier {
   IsiMateriController({required this.daftarGestur, int startIndex = 0})
-      : _index = startIndex.clamp(0, daftarGestur.length - 1).toInt();
+      : _index = daftarGestur.isEmpty
+            ? 0
+            : startIndex.clamp(0, daftarGestur.length - 1).toInt();
 
   final List<Gestur> daftarGestur;
   int _index;
 
+  bool get isEmpty => daftarGestur.isEmpty;
   Gestur get gestur => daftarGestur[_index];
   bool get isFirst => _index == 0;
   bool get isLast => _index == daftarGestur.length - 1;

@@ -9,6 +9,7 @@ import '../komunitas/komunitas_page.dart';
 import '../profile/profile_screen.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/app_background.dart';
 import '../widgets/app_screen_header.dart';
 import '../widgets/filter_chip_row.dart';
 import '../widgets/notification_tile.dart';
@@ -87,91 +88,94 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          SafeArea(
-            bottom: false,
-            child: AppScreenHeader(
-              title: 'Notifikasi',
-              actions: [
-                HeaderIconButton(
-                  icon: _searching ? Icons.close_rounded : Icons.search_rounded,
-                  semanticLabel:
-                      _searching ? 'Tutup pencarian' : 'Cari notifikasi',
-                  onTap: _toggleSearch,
-                ),
-              ],
+      backgroundColor: Colors.transparent,
+      body: AppBackground(
+        child: Column(
+          children: [
+            SafeArea(
+              bottom: false,
+              child: AppScreenHeader(
+                title: 'Notifikasi',
+                actions: [
+                  HeaderIconButton(
+                    icon:
+                        _searching ? Icons.close_rounded : Icons.search_rounded,
+                    semanticLabel:
+                        _searching ? 'Tutup pencarian' : 'Cari notifikasi',
+                    onTap: _toggleSearch,
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: Consumer<NotificationController>(
-              builder: (context, controller, _) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_searching)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                        child: TextField(
-                          controller: _searchController,
-                          autofocus: true,
-                          onChanged: controller.search,
-                          style: AppTextStyles.bodyMedium,
-                          decoration: InputDecoration(
-                            hintText: 'Cari notifikasi...',
-                            prefixIcon: const Icon(
-                              Icons.search_rounded,
-                              color: AppColors.textMuted,
+            Expanded(
+              child: Consumer<NotificationController>(
+                builder: (context, controller, _) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_searching)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                          child: TextField(
+                            controller: _searchController,
+                            autofocus: true,
+                            onChanged: controller.search,
+                            style: AppTextStyles.bodyMedium,
+                            decoration: InputDecoration(
+                              hintText: 'Cari notifikasi...',
+                              prefixIcon: const Icon(
+                                Icons.search_rounded,
+                                color: AppColors.textMuted,
+                              ),
+                              isDense: true,
+                              filled: true,
+                              fillColor: AppColors.fieldFill,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
+                              border: _softFieldBorder,
+                              enabledBorder: _softFieldBorder,
+                              focusedBorder: _softFieldBorder,
+                              suffixIcon: controller.query.isEmpty
+                                  ? null
+                                  : IconButton(
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        controller.search('');
+                                      },
+                                      icon: const Icon(Icons.close, size: 18),
+                                    ),
                             ),
-                            isDense: true,
-                            filled: true,
-                            fillColor: AppColors.fieldFill,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                            border: _softFieldBorder,
-                            enabledBorder: _softFieldBorder,
-                            focusedBorder: _softFieldBorder,
-                            suffixIcon: controller.query.isEmpty
-                                ? null
-                                : IconButton(
-                                    onPressed: () {
-                                      _searchController.clear();
-                                      controller.search('');
-                                    },
-                                    icon: const Icon(Icons.close, size: 18),
-                                  ),
                           ),
                         ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
+                        child: _buildSummaryRow(controller),
                       ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
-                      child: _buildSummaryRow(controller),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: FilterChipRow(
-                        labels: const [
-                          'Semua',
-                          'Komunitas',
-                          'Belajar',
-                          'Pencapaian',
-                        ],
-                        selectedIndex: controller.filter.index,
-                        onSelected: (index) => controller
-                            .setFilter(NotificationFilter.values[index]),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: FilterChipRow(
+                          labels: const [
+                            'Semua',
+                            'Komunitas',
+                            'Belajar',
+                            'Pencapaian',
+                          ],
+                          selectedIndex: controller.filter.index,
+                          onSelected: (index) => controller
+                              .setFilter(NotificationFilter.values[index]),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(child: _buildList(context, controller)),
-                  ],
-                );
-              },
+                      const SizedBox(height: 8),
+                      Expanded(child: _buildList(context, controller)),
+                    ],
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       bottomNavigationBar: const SignlNavBar(selectedIndex: -1),
     );
