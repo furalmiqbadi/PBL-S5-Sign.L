@@ -245,7 +245,7 @@ class ModerasiChatPage extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.flag, size: 12, color: AppColors.danger),
+                    const Icon(Icons.flag, size: 12, color: AppColors.danger),
                     const SizedBox(width: 4),
                     Text(c['flag']!,
                         style: const TextStyle(color: AppColors.danger, fontSize: 11, fontWeight: FontWeight.bold)),
@@ -2582,7 +2582,7 @@ class _BannerPromoPageState extends State<BannerPromoPage> {
                 ),
                 Switch(
                   value: b['active'],
-                  activeColor: AppColors.primary,
+                  activeThumbColor: AppColors.primary,
                   onChanged: (v) => setState(() => b['active'] = v),
                 ),
                 actionBtn('Hapus', AppColors.danger, () => toast(context, 'Banner dihapus')),
