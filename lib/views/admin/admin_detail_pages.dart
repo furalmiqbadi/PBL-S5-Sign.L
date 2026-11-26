@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
@@ -269,112 +271,7 @@ class ModerasiChatPage extends StatelessWidget {
 }
 
 // ============================================================
-// 3. REVIEW VIDEO & FOTO KIRIMAN PENGGUNA (SUDAH DIPERBAIKI)
-// ============================================================
-
-class ReviewVideoAIPage extends StatelessWidget {
-  const ReviewVideoAIPage({super.key});
-
-  static final List<Map<String, dynamic>> submissions = [
-    {'type': 'video', 'user': 'Dina Safitri', 'desc': 'Latihan isyarat huruf D', 'time': 'Hari ini'},
-    {'type': 'foto', 'user': 'Bagas Nugroho', 'desc': 'Foto catatan belajar isyarat', 'time': 'Hari ini'},
-    {'type': 'video', 'user': 'Laras Putri', 'desc': 'Praktik isyarat "Terima Kasih"', 'time': 'Kemarin'},
-    {'type': 'foto', 'user': 'Faiz Hidayat', 'desc': 'Screenshot hasil kuis', 'time': 'Kemarin'},
-    {'type': 'video', 'user': 'Yoga Saputra', 'desc': 'Deteksi Huruf S', 'time': '2 hari lalu'},
-    {'type': 'foto', 'user': 'Nadia Kirana', 'desc': 'Dokumentasi event komunitas', 'time': '2 hari lalu'},
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return adminPage(
-      context: context,
-      title: 'Review Video & Foto',
-      subtitle: '${submissions.length} kiriman menunggu persetujuan',
-      child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 20),
-        itemCount: submissions.length,
-        itemBuilder: (context, i) {
-          final item = submissions[i];
-          final isVideo = item['type'] == 'video';
-          
-          return itemCard(
-            child: Row(
-              children: [
-                Stack(
-                  children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: AppColors.textPrimary,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        isVideo ? Icons.videocam : Icons.image,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                    // Badge tipe media
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: isVideo ? AppColors.secondary : AppColors.primary,
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(8),
-                            bottomRight: Radius.circular(10),
-                          ),
-                        ),
-                        child: Text(
-                          isVideo ? 'VIDEO' : 'FOTO',
-                          style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(item['desc'], style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 2),
-                      Text('${item['user']} • ${item['time']}',
-                          style: AppTextStyles.labelSmall.copyWith(color: AppColors.textMuted)),
-                    ],
-                  ),
-                ),
-                Column(
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => toast(context, 'Kiriman disetujui'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.success,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        minimumSize: Size.zero,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: const Text('Setujui', style: TextStyle(color: Colors.white, fontSize: 11)),
-                    ),
-                    const SizedBox(height: 6),
-                    actionBtn('Tolak', AppColors.danger, () => toast(context, 'Kiriman ditolak')),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// ============================================================
-// 4. MANAJEMEN PENGGUNA
+// 3. MANAJEMEN PENGGUNA
 // ============================================================
 
 class ManajemenPenggunaPage extends StatefulWidget {
@@ -466,7 +363,7 @@ class _ManajemenPenggunaPageState extends State<ManajemenPenggunaPage> {
 }
 
 // ============================================================
-// 5. LEADERBOARD & POIN
+// 4. LEADERBOARD & POIN
 // ============================================================
 
 class LeaderboardPoinPage extends StatelessWidget {
@@ -539,19 +436,308 @@ class LeaderboardPoinPage extends StatelessWidget {
 }
 
 // ============================================================
-// 6. MANAGEMENT MATERI
+// 5. MANAGEMENT MATERI (TERSAMBUNG KE SUPABASE)
+//    Tingkat 1: Materi (cth. Abjad BISINDO A-Z)
+//    Tombol "Isi" -> BabMateriPage
 // ============================================================
 
-class ManagementMateriPage extends StatelessWidget {
+class ManagementMateriPage extends StatefulWidget {
   const ManagementMateriPage({super.key});
 
-  static final List<Map<String, dynamic>> materi = [
-    {'title': 'Alfabet & Angka', 'level': 'Bab 1 • Pemula', 'progress': 100},
-    {'title': 'Kata Sehari-hari', 'level': 'Bab 2 • Pemula', 'progress': 100},
-    {'title': 'Percakapan Dasar', 'level': 'Bab 3 • Menengah', 'progress': 80},
-    {'title': 'Isyarat Keluarga', 'level': 'Bab 4 • Menengah', 'progress': 60},
-    {'title': 'Ekspresi & Emosi', 'level': 'Bab 5 • Lanjutan', 'progress': 40},
-  ];
+  @override
+  State<ManagementMateriPage> createState() => _ManagementMateriPageState();
+}
+
+class _ManagementMateriPageState extends State<ManagementMateriPage> {
+  final _db = Supabase.instance.client;
+  List<Map<String, dynamic>> _materi = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final data = await _db.from('materi').select().order('urutan', ascending: true);
+      if (!mounted) return;
+      setState(() {
+        _materi = List<Map<String, dynamic>>.from(data);
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Gagal memuat materi.';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _showForm({Map<String, dynamic>? existing}) async {
+    final judul = TextEditingController(text: existing?['judul'] ?? '');
+    final deskripsi = TextEditingController(text: existing?['deskripsi'] ?? '');
+    final urutan = TextEditingController(
+      text: '${existing?['urutan'] ?? _materi.length + 1}',
+    );
+    bool terbit = existing?['is_published'] ?? true;
+    String? err;
+    bool saving = false;
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModal) {
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20,
+                20,
+                MediaQuery.of(ctx).viewInsets.bottom + 20,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      existing == null ? 'Tambah Materi' : 'Edit Materi',
+                      style: AppTextStyles.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: judul,
+                      decoration: const InputDecoration(labelText: 'Judul materi'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: deskripsi,
+                      maxLines: 3,
+                      decoration: const InputDecoration(labelText: 'Deskripsi (opsional)'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: urutan,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Urutan'),
+                    ),
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Tampilkan ke pengguna'),
+                      value: terbit,
+                      onChanged: (v) => setModal(() => terbit = v),
+                    ),
+                    if (err != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(err!, style: const TextStyle(color: AppColors.danger)),
+                      ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: saving
+                            ? null
+                            : () async {
+                                final j = judul.text.trim();
+                                final u = int.tryParse(urutan.text.trim());
+                                if (j.isEmpty) {
+                                  setModal(() => err = 'Judul wajib diisi');
+                                  return;
+                                }
+                                if (u == null) {
+                                  setModal(() => err = 'Urutan harus berupa angka');
+                                  return;
+                                }
+                                setModal(() {
+                                  saving = true;
+                                  err = null;
+                                });
+                                final d = deskripsi.text.trim();
+                                final payload = {
+                                  'judul': j,
+                                  'deskripsi': d.isEmpty ? null : d,
+                                  'urutan': u,
+                                  'is_published': terbit,
+                                };
+                                try {
+                                  if (existing == null) {
+                                    await _db.from('materi').insert(payload);
+                                  } else {
+                                    final res = await _db
+                                        .from('materi')
+                                        .update(payload)
+                                        .eq('id', existing['id'])
+                                        .select();
+                                    if (res.isEmpty) throw Exception('ditolak');
+                                  }
+                                  if (ctx.mounted) Navigator.pop(ctx, true);
+                                } catch (e) {
+                                  if (!ctx.mounted) return;
+                                  setModal(() {
+                                    saving = false;
+                                    err = 'Gagal menyimpan. Cek izin admin (RLS) di Supabase.';
+                                  });
+                                }
+                              },
+                        child: Text(
+                          saving ? 'Menyimpan...' : 'Simpan',
+                          style: const TextStyle(
+                            color: AppColors.textOnPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (saved == true) {
+      if (!mounted) return;
+      toast(context, existing == null ? 'Materi ditambahkan' : 'Materi diperbarui');
+      _load();
+    }
+  }
+
+  Future<void> _hapus(Map<String, dynamic> m) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus materi?'),
+        content: Text('"${m['judul']}" akan dihapus permanen.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    try {
+      final res = await _db.from('materi').delete().eq('id', m['id']).select();
+      if (res.isEmpty) throw Exception('ditolak');
+      if (!mounted) return;
+      toast(context, '"${m['judul']}" dihapus');
+      _load();
+    } on PostgrestException catch (e) {
+      if (!mounted) return;
+      toast(
+        context,
+        e.code == '23503'
+            ? 'Tidak bisa dihapus: masih ada kuis atau isi materi yang terkait.'
+            : 'Gagal menghapus: ${e.message}',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      toast(context, 'Gagal menghapus. Cek izin admin di Supabase.');
+    }
+  }
+
+  Widget _buildBody() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_error!),
+            TextButton(onPressed: _load, child: const Text('Coba lagi')),
+          ],
+        ),
+      );
+    }
+    if (_materi.isEmpty) {
+      return const Center(child: Text('Belum ada materi. Tekan "Tambah Materi".'));
+    }
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 90),
+        itemCount: _materi.length,
+        itemBuilder: (context, i) {
+          final m = _materi[i];
+          final terbit = m['is_published'] == true;
+          return itemCard(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.pinkSoft,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.menu_book, color: AppColors.primary),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        m['judul'] ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Urutan ${m['urutan']} • ${terbit ? 'Terbit' : 'Draft'}',
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: terbit ? AppColors.success : AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                actionBtn('Isi', AppColors.secondary, () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => BabMateriPage(materi: m)),
+                  );
+                }),
+                const SizedBox(width: 6),
+                actionBtn('Edit', AppColors.primary, () => _showForm(existing: m)),
+                const SizedBox(width: 6),
+                actionBtn('Hapus', AppColors.danger, () => _hapus(m)),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -565,51 +751,301 @@ class ManagementMateriPage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
-        onPressed: () => toast(context, 'Form tambah materi (sambung backend)'),
+        onPressed: () => _showForm(),
         icon: const Icon(Icons.add, color: AppColors.textOnPrimary),
         label: const Text('Tambah Materi', style: TextStyle(color: AppColors.textOnPrimary)),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 90),
-        itemCount: materi.length,
-        itemBuilder: (context, i) {
-          final m = materi[i];
-          return itemCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+      body: _buildBody(),
+    );
+  }
+}
+
+// ============================================================
+// BAB MATERI (tabel bab_materi)
+//    Tingkat 2: Bab di dalam materi (cth. A-E, F-J, K-O ...)
+//    Tombol "Isi" -> IsiMateriPage
+// ============================================================
+
+class BabMateriPage extends StatefulWidget {
+  const BabMateriPage({super.key, required this.materi});
+
+  final Map<String, dynamic> materi;
+
+  @override
+  State<BabMateriPage> createState() => _BabMateriPageState();
+}
+
+class _BabMateriPageState extends State<BabMateriPage> {
+  final _db = Supabase.instance.client;
+  List<Map<String, dynamic>> _bab = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    if (!mounted) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final data = await _db
+          .from('bab_materi')
+          .select()
+          .eq('materi_id', widget.materi['id'])
+          .order('urutan', ascending: true);
+      if (!mounted) return;
+      setState(() {
+        _bab = List<Map<String, dynamic>>.from(data);
+        _loading = false;
+      });
+    } catch (e) {
+      debugPrint('Gagal memuat bab: $e');
+      if (!mounted) return;
+      setState(() {
+        _error = 'Gagal memuat bab. Pastikan tabel bab_materi sudah dibuat.';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _showForm({Map<String, dynamic>? existing}) async {
+    final judul = TextEditingController(text: existing?['judul'] ?? '');
+    final deskripsi = TextEditingController(text: existing?['deskripsi'] ?? '');
+    final berikutnya = _bab.isEmpty ? 1 : ((_bab.last['urutan'] as num).toInt() + 1);
+    final urutan = TextEditingController(text: '${existing?['urutan'] ?? berikutnya}');
+    String? err;
+    bool saving = false;
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModal) {
+            Future<void> simpan() async {
+              final j = judul.text.trim();
+              final u = int.tryParse(urutan.text.trim());
+              if (j.isEmpty) {
+                setModal(() => err = 'Nama bab wajib diisi');
+                return;
+              }
+              if (u == null) {
+                setModal(() => err = 'Urutan harus berupa angka');
+                return;
+              }
+              setModal(() {
+                saving = true;
+                err = null;
+              });
+              final d = deskripsi.text.trim();
+              final payload = {
+                'materi_id': widget.materi['id'],
+                'judul': j,
+                'deskripsi': d.isEmpty ? null : d,
+                'urutan': u,
+              };
+              try {
+                if (existing == null) {
+                  await _db.from('bab_materi').insert(payload);
+                } else {
+                  final res = await _db
+                      .from('bab_materi')
+                      .update(payload)
+                      .eq('id', existing['id'])
+                      .select();
+                  if (res.isEmpty) throw Exception('ditolak');
+                }
+                if (ctx.mounted) Navigator.pop(ctx, true);
+              } catch (e) {
+                debugPrint('Gagal menyimpan bab: $e');
+                if (!ctx.mounted) return;
+                setModal(() {
+                  saving = false;
+                  err = 'Gagal menyimpan. Cek tabel dan izin admin (RLS) di Supabase.';
+                });
+              }
+            }
+
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                  20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: AppColors.pinkSoft, borderRadius: BorderRadius.circular(10)),
-                      child: const Icon(Icons.menu_book, color: AppColors.primary),
+                    Text(existing == null ? 'Tambah Bab' : 'Edit Bab',
+                        style: AppTextStyles.titleLarge),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: judul,
+                      decoration: const InputDecoration(labelText: 'Nama bab, cth. A-E'),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(m['title'], style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold)),
-                          Text(m['level'], style: AppTextStyles.labelSmall.copyWith(color: AppColors.textMuted)),
-                        ],
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: deskripsi,
+                      maxLines: 2,
+                      decoration: const InputDecoration(labelText: 'Deskripsi (opsional)'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: urutan,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Urutan'),
+                    ),
+                    const SizedBox(height: 12),
+                    if (err != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(err!, style: const TextStyle(color: AppColors.danger)),
+                      ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: saving ? null : simpan,
+                        child: Text(
+                          saving ? 'Menyimpan...' : 'Simpan',
+                          style: const TextStyle(
+                            color: AppColors.textOnPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
-                    actionBtn('Edit', AppColors.primary, () => toast(context, 'Edit "${m['title']}"')),
-                    const SizedBox(width: 6),
-                    actionBtn('Hapus', AppColors.danger, () => toast(context, '"${m['title']}" dihapus')),
                   ],
                 ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: m['progress'] / 100,
-                    minHeight: 6,
-                    backgroundColor: AppColors.surfaceMuted,
-                    valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (saved == true && mounted) {
+      toast(context, existing == null ? 'Bab ditambahkan' : 'Bab diperbarui');
+      _load();
+    }
+  }
+
+  Future<void> _hapus(Map<String, dynamic> b) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus bab?'),
+        content: Text(
+            'Bab "${b['judul']}" beserta SEMUA isinya (huruf, gambar, penjelasan) akan dihapus permanen.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    try {
+      final res = await _db.from('bab_materi').delete().eq('id', b['id']).select();
+      if (res.isEmpty) throw Exception('ditolak');
+      if (!mounted) return;
+      toast(context, 'Bab "${b['judul']}" dihapus');
+      _load();
+    } catch (e) {
+      debugPrint('Gagal menghapus bab: $e');
+      if (!mounted) return;
+      toast(context, 'Gagal menghapus. Cek izin admin di Supabase.');
+    }
+  }
+
+  Widget _buildBody() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_error!, textAlign: TextAlign.center),
+              TextButton(onPressed: _load, child: const Text('Coba lagi')),
+            ],
+          ),
+        ),
+      );
+    }
+    if (_bab.isEmpty) {
+      return const Center(child: Text('Belum ada bab. Tekan "Tambah Bab".'));
+    }
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 90),
+        itemCount: _bab.length,
+        itemBuilder: (context, i) {
+          final b = _bab[i];
+          final desk = (b['deskripsi'] ?? '').toString();
+          return itemCard(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.purpleSoft,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.folder_outlined, color: AppColors.secondary),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${b['judul'] ?? ''}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        desk.isEmpty ? 'Urutan ${b['urutan']}' : 'Urutan ${b['urutan']} • $desk',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.labelSmall.copyWith(color: AppColors.textMuted),
+                      ),
+                    ],
                   ),
                 ),
+                actionBtn('Isi', AppColors.secondary, () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => IsiMateriPage(materi: widget.materi, bab: b),
+                    ),
+                  );
+                }),
+                const SizedBox(width: 6),
+                actionBtn('Edit', AppColors.primary, () => _showForm(existing: b)),
+                const SizedBox(width: 6),
+                actionBtn('Hapus', AppColors.danger, () => _hapus(b)),
               ],
             ),
           );
@@ -617,21 +1053,765 @@ class ManagementMateriPage extends StatelessWidget {
       ),
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        leading: const BackButton(color: AppColors.textPrimary),
+        title: Text(widget.materi['judul'] ?? 'Bab Materi',
+            style: AppTextStyles.headlineSmall),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primary,
+        onPressed: _loading ? null : () => _showForm(),
+        icon: const Icon(Icons.add, color: AppColors.textOnPrimary),
+        label: const Text('Tambah Bab', style: TextStyle(color: AppColors.textOnPrimary)),
+      ),
+      body: _buildBody(),
+    );
+  }
 }
 
 // ============================================================
-// 7. MANAGEMENT KUIS
+// ISI MATERI (tabel isi_materi)
+//    Tingkat 3: Huruf/gerakan di dalam sebuah bab
+//    (judul, gambar, penjelasan)
 // ============================================================
 
-class ManagementKuisPage extends StatelessWidget {
+class IsiMateriPage extends StatefulWidget {
+  const IsiMateriPage({super.key, required this.materi, required this.bab});
+
+  final Map<String, dynamic> materi;
+  final Map<String, dynamic> bab;
+
+  @override
+  State<IsiMateriPage> createState() => _IsiMateriPageState();
+}
+
+class _IsiMateriPageState extends State<IsiMateriPage> {
+  final _db = Supabase.instance.client;
+  List<Map<String, dynamic>> _isi = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    if (!mounted) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final data = await _db
+          .from('isi_materi')
+          .select()
+          .eq('bab_id', widget.bab['id'])
+          .order('urutan', ascending: true);
+      if (!mounted) return;
+      setState(() {
+        _isi = List<Map<String, dynamic>>.from(data);
+        _loading = false;
+      });
+    } catch (e) {
+      debugPrint('Gagal memuat isi materi: $e');
+      if (!mounted) return;
+      setState(() {
+        _error = 'Gagal memuat isi materi. Pastikan kolom bab_id sudah ditambahkan.';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _showForm({Map<String, dynamic>? existing}) async {
+    // Urutan baru = urutan terbesar di bab ini + 1
+    final berikutnya =
+        _isi.isEmpty ? 1 : ((_isi.last['urutan'] as num).toInt() + 1);
+    final judul = TextEditingController(text: existing?['judul'] ?? '');
+    final deskripsi = TextEditingController(text: existing?['deskripsi'] ?? '');
+    final gambar = TextEditingController(text: existing?['gambar_url'] ?? '');
+    final urutan = TextEditingController(text: '${existing?['urutan'] ?? berikutnya}');
+    String? err;
+    bool saving = false;
+    bool uploading = false;
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModal) {
+            // Pilih file, upload ke Storage, lalu isi link otomatis
+            Future<void> pilihGambar() async {
+              setModal(() {
+                uploading = true;
+                err = null;
+              });
+              try {
+                final file = await ImagePicker()
+                    .pickImage(source: ImageSource.gallery);
+                if (file == null) {
+                  if (ctx.mounted) setModal(() => uploading = false);
+                  return;
+                }
+                const tipe = {
+                  'jpg': 'image/jpeg',
+                  'jpeg': 'image/jpeg',
+                  'png': 'image/png',
+                  'gif': 'image/gif',
+                  'webp': 'image/webp',
+                };
+                final ext = file.name.split('.').last.toLowerCase();
+                final bytes = await file.readAsBytes();
+                String? pesan;
+                if (!tipe.containsKey(ext)) {
+                  pesan = 'Format harus JPG, PNG, GIF, atau WEBP';
+                } else if (bytes.length > 5 * 1024 * 1024) {
+                  pesan = 'Ukuran gambar maksimal 5 MB';
+                }
+                if (pesan != null) {
+                  if (ctx.mounted) {
+                    setModal(() {
+                      uploading = false;
+                      err = pesan;
+                    });
+                  }
+                  return;
+                }
+                final path = 'isi/${DateTime.now().microsecondsSinceEpoch}.$ext';
+                final bucket = _db.storage.from('materi');
+                await bucket.uploadBinary(
+                  path,
+                  bytes,
+                  fileOptions: FileOptions(contentType: tipe[ext]),
+                );
+                if (!ctx.mounted) return;
+                setModal(() {
+                  gambar.text = bucket.getPublicUrl(path);
+                  uploading = false;
+                });
+              } catch (e) {
+                debugPrint('Gagal upload gambar: $e');
+                if (!ctx.mounted) return;
+                setModal(() {
+                  uploading = false;
+                  err = 'Gagal upload. Cek bucket dan izin Storage di Supabase.';
+                });
+              }
+            }
+
+            Future<void> simpan() async {
+              final j = judul.text.trim();
+              final u = int.tryParse(urutan.text.trim());
+              if (j.isEmpty) {
+                setModal(() => err = 'Judul wajib diisi');
+                return;
+              }
+              if (u == null) {
+                setModal(() => err = 'Urutan harus berupa angka');
+                return;
+              }
+              setModal(() {
+                saving = true;
+                err = null;
+              });
+              final d = deskripsi.text.trim();
+              final g = gambar.text.trim();
+              final payload = {
+                'materi_id': widget.materi['id'],
+                'bab_id': widget.bab['id'],
+                'judul': j,
+                'deskripsi': d.isEmpty ? null : d,
+                'gambar_url': g.isEmpty ? null : g,
+                'urutan': u,
+              };
+              try {
+                if (existing == null) {
+                  await _db.from('isi_materi').insert(payload);
+                } else {
+                  final res = await _db
+                      .from('isi_materi')
+                      .update(payload)
+                      .eq('id', existing['id'])
+                      .select();
+                  if (res.isEmpty) throw Exception('ditolak');
+                }
+                if (ctx.mounted) Navigator.pop(ctx, true);
+              } catch (e) {
+                debugPrint('Gagal menyimpan isi materi: $e');
+                if (!ctx.mounted) return;
+                setModal(() {
+                  saving = false;
+                  err = 'Gagal menyimpan. Cek izin admin (RLS) di Supabase.';
+                });
+              }
+            }
+
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                  20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(existing == null ? 'Tambah Isi' : 'Edit Isi',
+                        style: AppTextStyles.titleLarge),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: judul,
+                      decoration: const InputDecoration(labelText: 'Judul, cth. Huruf A'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: deskripsi,
+                      maxLines: 3,
+                      decoration: const InputDecoration(labelText: 'Penjelasan gerakan (opsional)'),
+                    ),
+                    const SizedBox(height: 12),
+                    if (gambar.text.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Image.network(
+                          gambar.text,
+                          height: 120,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Text('Gambar tidak bisa ditampilkan'),
+                        ),
+                      ),
+                    Row(
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: uploading || saving ? null : pilihGambar,
+                          icon: const Icon(Icons.upload),
+                          label: Text(uploading ? 'Mengupload...' : 'Pilih Gambar'),
+                        ),
+                        if (gambar.text.isNotEmpty)
+                          TextButton(
+                            onPressed: uploading || saving
+                                ? null
+                                : () => setModal(() => gambar.clear()),
+                            child: const Text('Hapus gambar'),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: urutan,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Urutan'),
+                    ),
+                    const SizedBox(height: 12),
+                    if (err != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(err!, style: const TextStyle(color: AppColors.danger)),
+                      ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: saving || uploading ? null : simpan,
+                        child: Text(
+                          saving ? 'Menyimpan...' : 'Simpan',
+                          style: const TextStyle(
+                            color: AppColors.textOnPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (saved == true && mounted) {
+      toast(context, existing == null ? 'Isi ditambahkan' : 'Isi diperbarui');
+      _load();
+    }
+  }
+
+  Future<void> _hapus(Map<String, dynamic> item) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus isi materi?'),
+        content: Text('"${item['judul'] ?? ''}" akan dihapus permanen.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    try {
+      final res = await _db.from('isi_materi').delete().eq('id', item['id']).select();
+      if (res.isEmpty) throw Exception('ditolak');
+      if (!mounted) return;
+      toast(context, 'Isi dihapus');
+      _load();
+    } catch (e) {
+      debugPrint('Gagal menghapus isi materi: $e');
+      if (!mounted) return;
+      toast(context, 'Gagal menghapus. Cek izin admin di Supabase.');
+    }
+  }
+
+  Widget _buildBody() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_error!, textAlign: TextAlign.center),
+              TextButton(onPressed: _load, child: const Text('Coba lagi')),
+            ],
+          ),
+        ),
+      );
+    }
+    if (_isi.isEmpty) {
+      return const Center(child: Text('Belum ada isi. Tekan "Tambah Isi".'));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 90),
+      itemCount: _isi.length,
+      itemBuilder: (context, i) {
+        final item = _isi[i];
+        final url = (item['gambar_url'] ?? '').toString();
+        return itemCard(
+          child: Row(
+            children: [
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: url.isEmpty
+                    ? const Icon(Icons.image_outlined, color: AppColors.textMuted)
+                    : Image.network(
+                        url,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.broken_image, color: AppColors.textMuted),
+                      ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(item['judul'] ?? '(tanpa judul)',
+                        style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold)),
+                    Text(
+                      'Urutan ${item['urutan']} • ${item['deskripsi'] ?? ''}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.labelSmall.copyWith(color: AppColors.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+              actionBtn('Edit', AppColors.primary, () => _showForm(existing: item)),
+              const SizedBox(width: 6),
+              actionBtn('Hapus', AppColors.danger, () => _hapus(item)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        leading: const BackButton(color: AppColors.textPrimary),
+        title: Text('${widget.bab['judul'] ?? ''}',
+            style: AppTextStyles.headlineSmall),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primary,
+        onPressed: _loading || _error != null ? null : () => _showForm(),
+        icon: const Icon(Icons.add, color: AppColors.textOnPrimary),
+        label: const Text('Tambah Isi', style: TextStyle(color: AppColors.textOnPrimary)),
+      ),
+      body: _buildBody(),
+    );
+  }
+}
+
+// ============================================================
+// 6. MANAGEMENT KUIS
+// ============================================================
+
+class ManagementKuisPage extends StatefulWidget {
   const ManagementKuisPage({super.key});
 
-  static final List<Map<String, dynamic>> kuis = [
-    {'title': 'Kuis Alfabet A-M', 'questions': 13, 'avg': 87.0},
-    {'title': 'Kuis Alfabet N-Z', 'questions': 13, 'avg': 82.0},
-    {'title': 'Kuis Angka 1-50', 'questions': 20, 'avg': 91.0},
-    {'title': 'Kuis Kata Sehari-hari', 'questions': 15, 'avg': 74.0},
-  ];
+  @override
+  State<ManagementKuisPage> createState() => _ManagementKuisPageState();
+}
+
+class _ManagementKuisPageState extends State<ManagementKuisPage> {
+  final _db = Supabase.instance.client;
+  List<Map<String, dynamic>> _kuis = [];
+  List<Map<String, dynamic>> _materi = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    if (!mounted) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final data = await _db
+          .from('kuis')
+          .select('*, soal(count)')
+          .order('created_at', ascending: true);
+      final materi = await _db
+          .from('materi')
+          .select('id, judul')
+          .order('urutan', ascending: true);
+      if (!mounted) return;
+      setState(() {
+        _kuis = List<Map<String, dynamic>>.from(data);
+        _materi = List<Map<String, dynamic>>.from(materi);
+        _loading = false;
+      });
+    } catch (e) {
+      debugPrint('Gagal memuat kuis: $e');
+      if (!mounted) return;
+      setState(() {
+        _error = 'Gagal memuat kuis.';
+        _loading = false;
+      });
+    }
+  }
+
+  int _jumlahSoal(Map<String, dynamic> k) {
+    final s = k['soal'];
+    if (s is List && s.isNotEmpty && s.first is Map) {
+      return ((s.first as Map)['count'] as num?)?.toInt() ?? 0;
+    }
+    return 0;
+  }
+
+  String? _judulMateri(dynamic id) {
+    if (id == null) return null;
+    for (final m in _materi) {
+      if (m['id'] == id) return m['judul']?.toString();
+    }
+    return null;
+  }
+
+  Future<void> _showForm({Map<String, dynamic>? existing}) async {
+    final judul = TextEditingController(text: existing?['judul'] ?? '');
+    final xp = TextEditingController(text: '${existing?['xp_reward'] ?? 10}');
+    String tipe = (existing?['tipe'] ?? 'kuis').toString();
+    String? materiId = existing?['materi_id']?.toString();
+    String? err;
+    bool saving = false;
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModal) {
+            Future<void> simpan() async {
+              final j = judul.text.trim();
+              final x = int.tryParse(xp.text.trim());
+              if (j.isEmpty) {
+                setModal(() => err = 'Judul wajib diisi');
+                return;
+              }
+              if (x == null || x < 0) {
+                setModal(() => err = 'XP harus berupa angka');
+                return;
+              }
+              setModal(() {
+                saving = true;
+                err = null;
+              });
+              final payload = {
+                'judul': j,
+                'tipe': tipe,
+                'xp_reward': x,
+                'materi_id': materiId,
+              };
+              try {
+                if (existing == null) {
+                  await _db.from('kuis').insert(payload);
+                } else {
+                  final res = await _db
+                      .from('kuis')
+                      .update(payload)
+                      .eq('id', existing['id'])
+                      .select();
+                  if (res.isEmpty) throw Exception('ditolak');
+                }
+                if (ctx.mounted) Navigator.pop(ctx, true);
+              } catch (e) {
+                debugPrint('Gagal menyimpan kuis: $e');
+                if (!ctx.mounted) return;
+                setModal(() {
+                  saving = false;
+                  err = 'Gagal menyimpan. Cek izin admin (RLS) di Supabase.';
+                });
+              }
+            }
+
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                  20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(existing == null ? 'Tambah Kuis' : 'Edit Kuis',
+                        style: AppTextStyles.titleLarge),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: judul,
+                      decoration: const InputDecoration(labelText: 'Judul kuis'),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: tipe,
+                      decoration: const InputDecoration(labelText: 'Jenis'),
+                      items: const [
+                        DropdownMenuItem(value: 'kuis', child: Text('Kuis')),
+                        DropdownMenuItem(value: 'latihan', child: Text('Latihan')),
+                      ],
+                      onChanged: (v) => setModal(() => tipe = v ?? 'kuis'),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String?>(
+                      initialValue: materiId,
+                      isExpanded: true,
+                      decoration:
+                          const InputDecoration(labelText: 'Materi terkait (opsional)'),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                            value: null, child: Text('Tanpa materi')),
+                        ..._materi.map((m) => DropdownMenuItem<String?>(
+                              value: m['id'].toString(),
+                              child: Text(m['judul']?.toString() ?? '',
+                                  overflow: TextOverflow.ellipsis),
+                            )),
+                      ],
+                      onChanged: (v) => setModal(() => materiId = v),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: xp,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'XP hadiah'),
+                    ),
+                    const SizedBox(height: 12),
+                    if (err != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(err!, style: const TextStyle(color: AppColors.danger)),
+                      ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: saving ? null : simpan,
+                        child: Text(
+                          saving ? 'Menyimpan...' : 'Simpan',
+                          style: const TextStyle(
+                            color: AppColors.textOnPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (saved == true && mounted) {
+      toast(context, existing == null ? 'Kuis ditambahkan' : 'Kuis diperbarui');
+      _load();
+    }
+  }
+
+  Future<void> _hapus(Map<String, dynamic> k) async {
+    final n = _jumlahSoal(k);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus kuis?'),
+        content: Text(n > 0
+            ? '"${k['judul']}" beserta $n soal di dalamnya akan dihapus permanen.'
+            : '"${k['judul']}" akan dihapus permanen.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    try {
+      // soal tidak ikut terhapus otomatis, jadi hapus dulu
+      await _db.from('soal').delete().eq('kuis_id', k['id']);
+      final res = await _db.from('kuis').delete().eq('id', k['id']).select();
+      if (res.isEmpty) throw Exception('ditolak');
+      if (!mounted) return;
+      toast(context, '"${k['judul']}" dihapus');
+      _load();
+    } on PostgrestException catch (e) {
+      debugPrint('Gagal menghapus kuis: $e');
+      if (!mounted) return;
+      toast(
+        context,
+        e.code == '23503'
+            ? 'Tidak bisa dihapus: sudah ada hasil kuis pengguna.'
+            : 'Gagal menghapus: ${e.message}',
+      );
+      _load();
+    } catch (e) {
+      debugPrint('Gagal menghapus kuis: $e');
+      if (!mounted) return;
+      toast(context, 'Gagal menghapus. Cek izin admin di Supabase.');
+    }
+  }
+
+  Widget _buildBody() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_error!),
+            TextButton(onPressed: _load, child: const Text('Coba lagi')),
+          ],
+        ),
+      );
+    }
+    if (_kuis.isEmpty) {
+      return const Center(child: Text('Belum ada kuis. Tekan "Tambah Kuis".'));
+    }
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 90),
+        itemCount: _kuis.length,
+        itemBuilder: (context, i) {
+          final k = _kuis[i];
+          final materi = _judulMateri(k['materi_id']);
+          final jenis = (k['tipe'] ?? 'kuis').toString() == 'latihan' ? 'Latihan' : 'Kuis';
+          return itemCard(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                      color: AppColors.purpleSoft,
+                      borderRadius: BorderRadius.circular(10)),
+                  child: const Icon(Icons.assignment, color: AppColors.secondary),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(k['judul'] ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.labelMedium
+                              .copyWith(fontWeight: FontWeight.bold)),
+                      Text(
+                        '$jenis • ${_jumlahSoal(k)} soal • ${k['xp_reward']} XP'
+                        '${materi == null ? '' : ' • $materi'}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.labelSmall.copyWith(color: AppColors.textMuted),
+                      ),
+                    ],
+                  ),
+                ),
+                actionBtn('Soal', AppColors.secondary, () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => SoalKuisPage(kuis: k)),
+                  );
+                  _load(); // jumlah soal bisa berubah
+                }),
+                const SizedBox(width: 6),
+                actionBtn('Edit', AppColors.primary, () => _showForm(existing: k)),
+                const SizedBox(width: 6),
+                actionBtn('Hapus', AppColors.danger, () => _hapus(k)),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -645,48 +1825,621 @@ class ManagementKuisPage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
-        onPressed: () => toast(context, 'Form tambah kuis (sambung backend)'),
+        onPressed: _loading ? null : () => _showForm(),
         icon: const Icon(Icons.add, color: AppColors.textOnPrimary),
         label: const Text('Tambah Kuis', style: TextStyle(color: AppColors.textOnPrimary)),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 90),
-        itemCount: kuis.length,
-        itemBuilder: (context, i) {
-          final k = kuis[i];
-          return itemCard(
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: AppColors.purpleSoft, borderRadius: BorderRadius.circular(10)),
-                  child: const Icon(Icons.assignment, color: AppColors.secondary),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(k['title'], style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold)),
-                      Text('${k['questions']} soal • Rata-rata skor ${k['avg'].toStringAsFixed(0)}%',
-                          style: AppTextStyles.labelSmall.copyWith(color: AppColors.textMuted)),
-                    ],
-                  ),
-                ),
-                actionBtn('Edit', AppColors.primary, () => toast(context, 'Edit "${k['title']}"')),
-                const SizedBox(width: 6),
-                actionBtn('Hapus', AppColors.danger, () => toast(context, '"${k['title']}" dihapus')),
-              ],
-            ),
-          );
-        },
-      ),
+      body: _buildBody(),
     );
   }
 }
 
 // ============================================================
-// 8. BROADCAST NOTIFIKASI
+// SOAL KUIS (tabel soal)
+//    Soal di dalam sebuah kuis: pertanyaan, pilihan, jawaban benar
+// ============================================================
+
+class SoalKuisPage extends StatefulWidget {
+  const SoalKuisPage({super.key, required this.kuis});
+
+  final Map<String, dynamic> kuis;
+
+  @override
+  State<SoalKuisPage> createState() => _SoalKuisPageState();
+}
+
+class _SoalKuisPageState extends State<SoalKuisPage> {
+  final _db = Supabase.instance.client;
+  List<Map<String, dynamic>> _soal = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  // opsi di database bertipe jsonb: bisa list, bisa map
+  List<String> _opsiList(dynamic raw) {
+    if (raw is List) return raw.map((e) => e.toString()).toList();
+    if (raw is Map) return raw.values.map((e) => e.toString()).toList();
+    return <String>[];
+  }
+
+  Future<void> _load() async {
+    if (!mounted) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final data = await _db
+          .from('soal')
+          .select()
+          .eq('kuis_id', widget.kuis['id'])
+          .order('urutan', ascending: true);
+      if (!mounted) return;
+      setState(() {
+        _soal = List<Map<String, dynamic>>.from(data);
+        _loading = false;
+      });
+    } catch (e) {
+      debugPrint('Gagal memuat soal: $e');
+      if (!mounted) return;
+      setState(() {
+        _error = 'Gagal memuat soal.';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _showForm({Map<String, dynamic>? existing}) async {
+    final tipeAwal = (existing?['tipe'] ?? 'teks').toString();
+    final awalGambar = existing != null && tipeAwal != 'teks';
+
+    final pertanyaan = TextEditingController(text: existing?['pertanyaan'] ?? '');
+    final penjelasan = TextEditingController(text: existing?['penjelasan'] ?? '');
+    final gambar = TextEditingController(text: existing?['gambar_pertanyaan'] ?? '');
+
+    final opsiAwal = existing == null ? <String>[] : _opsiList(existing['opsi']);
+    final gambarAwal = existing == null ? <String>[] : _opsiList(existing['opsi_gambar']);
+    final teksAwal = awalGambar ? <String>[] : opsiAwal;
+    final urlAwal = !awalGambar ? <String>[] : (gambarAwal.isNotEmpty ? gambarAwal : opsiAwal);
+
+    bool modeGambar = awalGambar;
+    final opsiCtrl = List.generate(
+      teksAwal.length < 4 ? 4 : teksAwal.length,
+      (i) => TextEditingController(text: i < teksAwal.length ? teksAwal[i] : ''),
+    );
+    final gambarCtrl = List.generate(
+      urlAwal.length < 4 ? 4 : urlAwal.length,
+      (i) => TextEditingController(text: i < urlAwal.length ? urlAwal[i] : ''),
+    );
+
+    int? benarTeks;
+    int? benarGambar;
+    if (existing != null) {
+      final jb = (existing['jawaban_benar'] ?? '').toString();
+      if (awalGambar) {
+        var idx = opsiAwal.indexOf(jb);
+        if (idx < 0) idx = gambarAwal.indexOf(jb);
+        if (idx >= 0 && idx < urlAwal.length) benarGambar = idx;
+      } else {
+        final idx = teksAwal.indexOf(jb);
+        if (idx >= 0) benarTeks = idx;
+      }
+    }
+
+    final berikutnya = _soal.isEmpty ? 1 : ((_soal.last['urutan'] as num).toInt() + 1);
+    final urutan = TextEditingController(text: '${existing?['urutan'] ?? berikutnya}');
+    String? err;
+    bool saving = false;
+    int? uploadingIdx; // -1 = gambar pertanyaan, 0.. = gambar pilihan
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModal) {
+            // Pilih gambar dari galeri, upload ke Storage, kembalikan link publik
+            Future<String?> unggah(int slot) async {
+              setModal(() {
+                uploadingIdx = slot;
+                err = null;
+              });
+              try {
+                final file =
+                    await ImagePicker().pickImage(source: ImageSource.gallery);
+                if (file == null) {
+                  if (ctx.mounted) setModal(() => uploadingIdx = null);
+                  return null;
+                }
+                const mimeTipe = {
+                  'jpg': 'image/jpeg',
+                  'jpeg': 'image/jpeg',
+                  'png': 'image/png',
+                  'gif': 'image/gif',
+                  'webp': 'image/webp',
+                };
+                final ext = file.name.split('.').last.toLowerCase();
+                final bytes = await file.readAsBytes();
+                String? pesan;
+                if (!mimeTipe.containsKey(ext)) {
+                  pesan = 'Format harus JPG, PNG, GIF, atau WEBP';
+                } else if (bytes.length > 5 * 1024 * 1024) {
+                  pesan = 'Ukuran gambar maksimal 5 MB';
+                }
+                if (pesan != null) {
+                  if (ctx.mounted) {
+                    setModal(() {
+                      uploadingIdx = null;
+                      err = pesan;
+                    });
+                  }
+                  return null;
+                }
+                final path = 'soal/${DateTime.now().microsecondsSinceEpoch}.$ext';
+                final bucket = _db.storage.from('materi');
+                await bucket.uploadBinary(
+                  path,
+                  bytes,
+                  fileOptions: FileOptions(contentType: mimeTipe[ext]),
+                );
+                if (!ctx.mounted) return null;
+                setModal(() => uploadingIdx = null);
+                return bucket.getPublicUrl(path);
+              } catch (e) {
+                debugPrint('Gagal upload gambar soal: $e');
+                if (!ctx.mounted) return null;
+                setModal(() {
+                  uploadingIdx = null;
+                  err = 'Gagal upload. Cek bucket dan izin Storage di Supabase.';
+                });
+                return null;
+              }
+            }
+
+            Future<void> simpan() async {
+              final p = pertanyaan.text.trim();
+              final g = gambar.text.trim();
+              final u = int.tryParse(urutan.text.trim());
+              if (p.isEmpty && g.isEmpty) {
+                setModal(() => err = 'Pertanyaan atau gambar pertanyaan wajib diisi');
+                return;
+              }
+              if (u == null) {
+                setModal(() => err = 'Urutan harus berupa angka');
+                return;
+              }
+
+              final sumber = modeGambar ? gambarCtrl : opsiCtrl;
+              final terpilih = modeGambar ? benarGambar : benarTeks;
+              final opsi = <String>[];
+              int? benarBaru;
+              for (var i = 0; i < sumber.length; i++) {
+                final t = sumber[i].text.trim();
+                if (t.isEmpty) continue;
+                if (terpilih == i) benarBaru = opsi.length;
+                opsi.add(t);
+              }
+              if (opsi.length < 2) {
+                setModal(() => err = modeGambar
+                    ? 'Isi minimal 2 pilihan gambar'
+                    : 'Isi minimal 2 pilihan jawaban');
+                return;
+              }
+              if (benarBaru == null) {
+                setModal(() => err =
+                    'Pilih jawaban yang benar (tap bulatan di samping pilihan)');
+                return;
+              }
+
+              setModal(() {
+                saving = true;
+                err = null;
+              });
+              final payload = <String, dynamic>{
+                'kuis_id': widget.kuis['id'],
+                'pertanyaan': p,
+                'gambar_pertanyaan': g.isEmpty ? null : g,
+                'penjelasan': penjelasan.text.trim(),
+                'urutan': u,
+                'opsi': opsi,
+                'jawaban_benar': opsi[benarBaru],
+                'tipe': modeGambar ? (awalGambar ? tipeAwal : 'gambar') : 'teks',
+                'opsi_gambar': modeGambar ? opsi : <String>[],
+              };
+              try {
+                if (existing == null) {
+                  await _db.from('soal').insert(payload);
+                } else {
+                  final res = await _db
+                      .from('soal')
+                      .update(payload)
+                      .eq('id', existing['id'])
+                      .select();
+                  if (res.isEmpty) throw Exception('ditolak');
+                }
+                if (ctx.mounted) Navigator.pop(ctx, true);
+              } catch (e) {
+                debugPrint('Gagal menyimpan soal: $e');
+                if (!ctx.mounted) return;
+                setModal(() {
+                  saving = false;
+                  err = 'Gagal menyimpan. Cek izin admin (RLS) di Supabase.';
+                });
+              }
+            }
+
+            final sibuk = saving || uploadingIdx != null;
+
+            // Satu baris pilihan bergambar
+            Widget barisGambar(int i) {
+              final url = gambarCtrl[i].text.trim();
+              Widget preview;
+              if (url.isEmpty) {
+                preview = const Icon(Icons.image_outlined, color: AppColors.textMuted);
+              } else if (url.startsWith('http')) {
+                preview = Image.network(
+                  url,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.broken_image, color: AppColors.textMuted),
+                );
+              } else {
+                preview = Center(
+                  child: Text(url,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 9),
+                      overflow: TextOverflow.ellipsis),
+                );
+              }
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => setModal(() => benarGambar = i),
+                      icon: Icon(
+                        benarGambar == i
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_unchecked,
+                        color: benarGambar == i ? AppColors.success : AppColors.textMuted,
+                      ),
+                    ),
+                    Container(
+                      width: 64,
+                      height: 64,
+                      clipBehavior: Clip.antiAlias,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceMuted,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: preview,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Pilihan ${String.fromCharCode(65 + i)}',
+                              style: AppTextStyles.labelMedium
+                                  .copyWith(fontWeight: FontWeight.bold)),
+                          Wrap(
+                            spacing: 4,
+                            children: [
+                              OutlinedButton(
+                                onPressed: sibuk
+                                    ? null
+                                    : () async {
+                                        final hasil = await unggah(i);
+                                        if (hasil != null && ctx.mounted) {
+                                          setModal(() => gambarCtrl[i].text = hasil);
+                                        }
+                                      },
+                                child: Text(uploadingIdx == i
+                                    ? 'Mengupload...'
+                                    : (url.isEmpty ? 'Pilih Gambar' : 'Ganti')),
+                              ),
+                              if (url.isNotEmpty)
+                                TextButton(
+                                  onPressed: sibuk
+                                      ? null
+                                      : () => setModal(() => gambarCtrl[i].clear()),
+                                  child: const Text('Hapus'),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                  20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(existing == null ? 'Tambah Soal' : 'Edit Soal',
+                        style: AppTextStyles.titleLarge),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: pertanyaan,
+                      maxLines: 3,
+                      decoration: const InputDecoration(labelText: 'Pertanyaan'),
+                    ),
+                    const SizedBox(height: 12),
+                    if (gambar.text.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Image.network(
+                          gambar.text,
+                          height: 120,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Text('Gambar tidak bisa ditampilkan'),
+                        ),
+                      ),
+                    Row(
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: sibuk
+                              ? null
+                              : () async {
+                                  final hasil = await unggah(-1);
+                                  if (hasil != null && ctx.mounted) {
+                                    setModal(() => gambar.text = hasil);
+                                  }
+                                },
+                          icon: const Icon(Icons.upload),
+                          label: Text(uploadingIdx == -1
+                              ? 'Mengupload...'
+                              : 'Gambar Pertanyaan'),
+                        ),
+                        if (gambar.text.isNotEmpty)
+                          TextButton(
+                            onPressed: sibuk ? null : () => setModal(() => gambar.clear()),
+                            child: const Text('Hapus gambar'),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Pilihan jawaban berupa:',
+                        style: AppTextStyles.labelMedium
+                            .copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    SegmentedButton<bool>(
+                      segments: const [
+                        ButtonSegment(value: false, label: Text('Teks')),
+                        ButtonSegment(value: true, label: Text('Gambar')),
+                      ],
+                      selected: {modeGambar},
+                      onSelectionChanged: (s) => setModal(() => modeGambar = s.first),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('Tap bulatan untuk menandai jawaban yang benar',
+                        style: AppTextStyles.labelSmall
+                            .copyWith(color: AppColors.textMuted)),
+                    const SizedBox(height: 4),
+                    if (modeGambar)
+                      ...List.generate(gambarCtrl.length, barisGambar)
+                    else
+                      ...List.generate(
+                        opsiCtrl.length,
+                        (i) => Row(
+                          children: [
+                            IconButton(
+                              onPressed: () => setModal(() => benarTeks = i),
+                              icon: Icon(
+                                benarTeks == i
+                                    ? Icons.radio_button_checked
+                                    : Icons.radio_button_unchecked,
+                                color: benarTeks == i
+                                    ? AppColors.success
+                                    : AppColors.textMuted,
+                              ),
+                            ),
+                            Expanded(
+                              child: TextField(
+                                controller: opsiCtrl[i],
+                                decoration: InputDecoration(
+                                  labelText: 'Pilihan ${String.fromCharCode(65 + i)}',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: penjelasan,
+                      maxLines: 2,
+                      decoration: const InputDecoration(
+                          labelText: 'Penjelasan jawaban (opsional)'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: urutan,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Urutan'),
+                    ),
+                    const SizedBox(height: 12),
+                    if (err != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(err!, style: const TextStyle(color: AppColors.danger)),
+                      ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: sibuk ? null : simpan,
+                        child: Text(
+                          saving ? 'Menyimpan...' : 'Simpan',
+                          style: const TextStyle(
+                            color: AppColors.textOnPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (saved == true && mounted) {
+      toast(context, existing == null ? 'Soal ditambahkan' : 'Soal diperbarui');
+      _load();
+    }
+  }
+
+  Future<void> _hapus(Map<String, dynamic> s) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus soal?'),
+        content: const Text('Soal ini akan dihapus permanen.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    try {
+      final res = await _db.from('soal').delete().eq('id', s['id']).select();
+      if (res.isEmpty) throw Exception('ditolak');
+      if (!mounted) return;
+      toast(context, 'Soal dihapus');
+      _load();
+    } catch (e) {
+      debugPrint('Gagal menghapus soal: $e');
+      if (!mounted) return;
+      toast(context, 'Gagal menghapus. Cek izin admin di Supabase.');
+    }
+  }
+
+  Widget _buildBody() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_error!),
+            TextButton(onPressed: _load, child: const Text('Coba lagi')),
+          ],
+        ),
+      );
+    }
+    if (_soal.isEmpty) {
+      return const Center(child: Text('Belum ada soal. Tekan "Tambah Soal".'));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 90),
+      itemCount: _soal.length,
+      itemBuilder: (context, i) {
+        final s = _soal[i];
+        final url = (s['gambar_pertanyaan'] ?? '').toString();
+        final pertanyaan = (s['pertanyaan'] ?? '').toString();
+        return itemCard(
+          child: Row(
+            children: [
+              if (url.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Image.network(
+                      url,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.broken_image, color: AppColors.textMuted),
+                    ),
+                  ),
+                ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      pertanyaan.isEmpty ? '(pertanyaan bergambar)' : pertanyaan,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      (s['tipe'] ?? 'teks').toString() == 'teks'
+                          ? 'Urutan ${s['urutan']} • Jawaban: ${s['jawaban_benar'] ?? '-'}'
+                          : 'Urutan ${s['urutan']} • Pilihan berupa gambar',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.labelSmall.copyWith(color: AppColors.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+              actionBtn('Edit', AppColors.primary, () => _showForm(existing: s)),
+              const SizedBox(width: 6),
+              actionBtn('Hapus', AppColors.danger, () => _hapus(s)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        leading: const BackButton(color: AppColors.textPrimary),
+        title: Text(widget.kuis['judul'] ?? 'Soal Kuis',
+            style: AppTextStyles.headlineSmall),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primary,
+        onPressed: _loading || _error != null ? null : () => _showForm(),
+        icon: const Icon(Icons.add, color: AppColors.textOnPrimary),
+        label: const Text('Tambah Soal', style: TextStyle(color: AppColors.textOnPrimary)),
+      ),
+      body: _buildBody(),
+    );
+  }
+}
+
+// ============================================================
+// 7. BROADCAST NOTIFIKASI
 // ============================================================
 
 class BroadcastNotifikasiPage extends StatefulWidget {
@@ -702,10 +2455,10 @@ class _BroadcastNotifikasiPageState extends State<BroadcastNotifikasiPage> {
   String target = 'Semua Pengguna';
 
   @override
-  void dispose() { 
-    title.dispose(); 
-    body.dispose(); 
-    super.dispose(); 
+  void dispose() {
+    title.dispose();
+    body.dispose();
+    super.dispose();
   }
 
   InputDecoration deco(String hint) => InputDecoration(
@@ -765,7 +2518,7 @@ class _BroadcastNotifikasiPageState extends State<BroadcastNotifikasiPage> {
 }
 
 // ============================================================
-// 9. BANNER & PROMO
+// 8. BANNER & PROMO
 // ============================================================
 
 class BannerPromoPage extends StatefulWidget {
@@ -843,7 +2596,7 @@ class _BannerPromoPageState extends State<BannerPromoPage> {
 }
 
 // ============================================================
-// 10. LOG AKTIVITAS ADMIN
+// 9. LOG AKTIVITAS ADMIN
 // ============================================================
 
 class LogAktivitasPage extends StatelessWidget {

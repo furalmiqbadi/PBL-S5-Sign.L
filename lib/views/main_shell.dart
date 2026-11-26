@@ -5,12 +5,11 @@ import '../controllers/chat_controller.dart';
 import '../controllers/profile_controller.dart';
 import 'chat/chat_list_view.dart';
 import 'home/home_page.dart';
+import 'home/kuis_page.dart';
 import 'home/materi_page.dart';
-import 'home/quiz_page.dart';
 import 'komunitas/komunitas_page.dart';
 import 'profile/profile_screen.dart';
 import 'setting/setting_screen.dart';
-import 'theme/app_colors.dart';
 import 'widgets/app_bottom_nav_bar.dart';
 import 'widgets/komunitas_header.dart';
 import 'widgets/materi_header.dart';
@@ -33,8 +32,6 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   late int _index;
   late final PageController _pageController;
-
-  static const Color _pink = AppColors.primary;
 
   @override
   void initState() {
@@ -90,172 +87,6 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  void _openQuiz(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const QuizPage()),
-    );
-  }
-
-  Widget _buildQuizView(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.28),
-                blurRadius: 24,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Text(
-                      'KUIS INTERAKTIF · 10 SOAL',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  const Icon(Icons.star_rounded, color: Colors.white, size: 18),
-                  const SizedBox(width: 4),
-                  const Text('+100 XP',
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold)),
-                ],
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Kuis tebak gestur isyarat (A - J)',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Pilih gambar gestur tangan yang tepat untuk setiap huruf target. Dilengkapi sistem nyawa hati dan XP.',
-                style:
-                    TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: _pink,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: () => _openQuiz(context),
-                  icon: const Icon(Icons.play_arrow_rounded, size: 22),
-                  label: const Text(
-                    'Mulai kuis sekarang',
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildActionCard(
-          title: 'Kuis harian gestur',
-          description:
-              'Uji daya ingat 10 gestur acak hari ini dan dapatkan 50 XP!',
-          buttonText: 'Mulai Kuis Harian',
-          onTap: () => _openQuiz(context),
-        ),
-        const SizedBox(height: 14),
-        _buildActionCard(
-          title: 'Tantangan kilat 60 detik',
-          description:
-              'Bentuk sebanyak mungkin gestur isyarat yang diminta sebelum waktu habis.',
-          buttonText: 'Mulai Tantangan',
-          onTap: () => _openQuiz(context),
-        ),
-        const SizedBox(height: 14),
-        _buildActionCard(
-          title: 'Evaluasi modul huruf vokal',
-          description:
-              'Selesaikan evaluasi untuk klaim sertifikat modul pemula.',
-          buttonText: 'Mulai Evaluasi',
-          onTap: () => _openQuiz(context),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionCard({
-    required String title,
-    required String description,
-    required String buttonText,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style:
-                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 6),
-          Text(description,
-              style: const TextStyle(
-                  fontSize: 12, color: Colors.black87, height: 1.4)),
-          const SizedBox(height: 14),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _pink,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              minimumSize: const Size(0, 48),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-            ),
-            onPressed: onTap,
-            child: Text(buttonText,
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
   List<Widget> _buildPages(BuildContext context) {
     final chatUnread = context.watch<ChatController>().totalUnreadMessages;
 
@@ -264,9 +95,10 @@ class _MainShellState extends State<MainShell> {
         onOpenCommunity: () => _goTo(3), // Indeks 3: Komunitas
         onOpenProfile: () => _goTo(4), // Indeks 4: Profil
       ),
-      _HeaderPage(
-        header: const MateriHeader(title: 'Kuis'),
-        body: _buildQuizView(context),
+      // Tab Kuis: daftar kuis diambil dari Supabase (tabel `kuis`).
+      const _HeaderPage(
+        header: MateriHeader(title: 'Kuis'),
+        body: KuisPage(),
       ),
       const _HeaderPage(
         header: MateriHeader(),
