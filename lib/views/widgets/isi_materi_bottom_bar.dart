@@ -21,10 +21,17 @@ class IsiMateriBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
       decoration: BoxDecoration(
-        color: AppColors.background.withValues(alpha: 0.95),
-        border: const Border(top: BorderSide(color: AppColors.surfaceMuted)),
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -33,7 +40,8 @@ class IsiMateriBottomBar extends StatelessWidget {
               opacity: isFirst ? 0.4 : 1,
               child: _outlineButton(
                 label: 'Sebelumnya',
-                fg: AppColors.secondary,
+                fg: AppColors.textSecondary,
+                bg: AppColors.fieldFill,
                 onTap: isFirst ? () {} : onPrevious,
               ),
             ),
@@ -43,6 +51,7 @@ class IsiMateriBottomBar extends StatelessWidget {
             child: _outlineButton(
               label: 'Coba Foto',
               fg: AppColors.primary,
+              bg: AppColors.pinkSoft,
               onTap: onCamera,
             ),
           ),
@@ -50,22 +59,17 @@ class IsiMateriBottomBar extends StatelessWidget {
           Expanded(
             child: GestureDetector(
               onTap: onNext,
+              behavior: HitTestBehavior.opaque,
               child: Container(
-                height: 44,
+                height: 48,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      AppColors.primary,
-                      AppColors.primary,
-                      AppColors.secondary,
-                    ],
-                  ),
+                  color: AppColors.primary,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.25),
-                      blurRadius: 6,
-                      offset: const Offset(0, 4),
+                      color: AppColors.primary.withValues(alpha: 0.28),
+                      blurRadius: 24,
+                      offset: const Offset(0, 10),
                     ),
                   ],
                 ),
@@ -90,23 +94,17 @@ class IsiMateriBottomBar extends StatelessWidget {
   Widget _outlineButton({
     required String label,
     required Color fg,
+    required Color bg,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
-        height: 44,
+        height: 48,
         decoration: BoxDecoration(
-          color: AppColors.pinkSoft.withValues(alpha: 0.30),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.20), width: 2),
+          color: bg,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 2,
-              offset: const Offset(0, 1),
-            ),
-          ],
         ),
         child: Center(
           child: Text(

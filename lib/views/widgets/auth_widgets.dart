@@ -8,14 +8,39 @@ const purple = AppColors.secondary;
 const ink = AppColors.textPrimary;
 const muted = AppColors.textSecondary;
 
+/// Path logo aplikasi. Taruh file gambar logo di lokasi ini.
+const String kLogoAsset = 'assets/images/logo.png';
+
+/// Tulisan merek "Sign.L": "Sign." gelap, "L" biru seperti warna logo.
+class SignWordmark extends StatelessWidget {
+  final double fontSize;
+  const SignWordmark({super.key, this.fontSize = 28});
+
+  @override
+  Widget build(BuildContext context) => Text.rich(
+        const TextSpan(children: [
+          TextSpan(text: 'Sign.', style: TextStyle(color: ink)),
+          TextSpan(text: 'L', style: TextStyle(color: pink)),
+        ]),
+        style: AppTextStyles.titleLarge.copyWith(fontSize: fontSize, fontWeight: FontWeight.w800, letterSpacing: -0.5, height: 1.1),
+      );
+}
+
+/// Logo aplikasi. [showText] menambahkan [SignWordmark] di bawah logo.
 class SignLogo extends StatelessWidget {
   final double size;
-  const SignLogo({super.key, this.size = 66});
+  final bool showText;
+  const SignLogo({super.key, this.size = 66, this.showText = true});
+
+  Widget _fallback() => Container(width: size, height: size, decoration: BoxDecoration(color: pink, borderRadius: BorderRadius.circular(size * .28)), child: Icon(Icons.back_hand_rounded, color: Colors.white, size: size * .55));
+
   @override
   Widget build(BuildContext context) => Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(width: size, height: size, decoration: BoxDecoration(gradient: const LinearGradient(colors: [pink, purple]), borderRadius: BorderRadius.circular(size * .24), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.20), blurRadius: 8, offset: const Offset(0, 4))]), child: Icon(Icons.back_hand_rounded, color: Colors.white, size: size * .55)),
-        const SizedBox(height: 4),
-        Text('Sign.L', style: AppTextStyles.labelMedium.copyWith(fontSize: size * .19, fontWeight: FontWeight.w900, color: pink)),
+        Image.asset(kLogoAsset, width: size, height: size, fit: BoxFit.contain, semanticLabel: 'Logo Sign.L', errorBuilder: (_, __, ___) => _fallback()),
+        if (showText) ...[
+          const SizedBox(height: 8),
+          SignWordmark(fontSize: size * .28),
+        ],
       ]);
 }
 
@@ -26,7 +51,7 @@ class AuthScaffold extends StatelessWidget {
   const AuthScaffold({super.key, required this.child, this.back = false, this.onBack});
   @override
   Widget build(BuildContext context) => Scaffold(body: SafeArea(child: Stack(children: [
-        Positioned(top: -35, right: -25, child: Container(width: 110, height: 110, decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.pinkSoft.withValues(alpha: 0.13)))),
+
         SingleChildScrollView(padding: EdgeInsets.fromLTRB(22, back ? 56 : 30, 22, 24), child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 430), child: child))),
         // Diletakkan paling akhir agar berada di atas ScrollView dan selalu
         // menerima tap, termasuk saat dijalankan di Flutter Web.
@@ -55,7 +80,7 @@ class AuthHeader extends StatelessWidget {
   final String subtitle;
   const AuthHeader({super.key, required this.title, required this.subtitle});
   @override
-  Widget build(BuildContext context) => Column(children: [const SignLogo(), const SizedBox(height: 18), Text(title, textAlign: TextAlign.center, style: AppTextStyles.headlineSmall.copyWith(fontSize: 22, fontWeight: FontWeight.w900)), const SizedBox(height: 6), Text(subtitle, textAlign: TextAlign.center, style: AppTextStyles.bodySmall.copyWith(fontSize: 11.5, height: 1.45))]);
+  Widget build(BuildContext context) => Column(children: [const SignLogo(size: 112), const SizedBox(height: 20), Text(title, textAlign: TextAlign.center, style: AppTextStyles.headlineSmall.copyWith(fontSize: 24, fontWeight: FontWeight.w800)), const SizedBox(height: 8), Text(subtitle, textAlign: TextAlign.center, style: AppTextStyles.bodyMedium.copyWith(color: muted, height: 1.5))]);
 }
 
 class AuthField extends StatelessWidget {
@@ -67,7 +92,7 @@ class AuthField extends StatelessWidget {
   final TextEditingController? controller;
   const AuthField({super.key, required this.label, required this.hint, required this.icon, this.password = false, this.suffix, this.controller});
   @override
-  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(bottom: 13), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: AppTextStyles.labelXSmall.copyWith(fontSize: 10.5, fontWeight: FontWeight.w800)), const SizedBox(height: 6), TextField(controller: controller, obscureText: password, style: AppTextStyles.labelSmall.copyWith(color: ink), decoration: InputDecoration(hintText: hint, prefixIcon: Icon(icon, size: 15, color: pink), suffixIcon: suffix))]));
+  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(bottom: 16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.w700, color: ink)), const SizedBox(height: 8), TextField(controller: controller, obscureText: password, style: AppTextStyles.bodyMedium.copyWith(color: ink), decoration: InputDecoration(hintText: hint, prefixIcon: Icon(icon, size: 20, color: pink), suffixIcon: suffix))]));
 }
 
 class GradientButton extends StatelessWidget {
@@ -79,22 +104,22 @@ class GradientButton extends StatelessWidget {
     final enabled = onTap != null;
     return SizedBox(
       width: double.infinity,
-      height: 45,
+      height: 56,
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         child: Ink(
           decoration: BoxDecoration(
-            gradient: enabled ? const LinearGradient(colors: [pink, purple]) : const LinearGradient(colors: [AppColors.textMuted, AppColors.textMuted]),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: enabled ? [BoxShadow(color: Colors.black.withValues(alpha: 0.20), blurRadius: 5, offset: const Offset(0, 3))] : null,
+            color: enabled ? pink : AppColors.textMuted,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: enabled ? [BoxShadow(color: pink.withValues(alpha: 0.28), blurRadius: 16, offset: const Offset(0, 6))] : null,
           ),
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(16),
             splashColor: Colors.white.withValues(alpha: .24),
             highlightColor: Colors.white.withValues(alpha: .12),
-            child: Center(child: Text(text, style: AppTextStyles.labelMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w800))),
+            child: Center(child: Text(text, style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w800))),
           ),
         ),
       ),

@@ -11,15 +11,15 @@ class CurrentProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+            color: AppColors.primary.withValues(alpha: 0.28),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -33,33 +33,34 @@ class CurrentProgressCard extends StatelessWidget {
                 Text(
                   'SEDANG BERLANGSUNG',
                   style: AppTextStyles.labelXSmall.copyWith(
-                    color: AppColors.primary,
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.85),
                     letterSpacing: 0.5,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   bab.title,
-                  style: AppTextStyles.titleLarge,
+                  style: AppTextStyles.titleLarge
+                      .copyWith(color: AppColors.textOnPrimary),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Langkah berikutnya: Uji Kamera Huruf M-Z',
-                  style: AppTextStyles.bodySmall,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.85),
+                  ),
                 ),
               ],
             ),
           ),
           Container(
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.tertiary, AppColors.primary, AppColors.secondary],
-              ),
+              color: AppColors.surface,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.play_arrow, color: Colors.white),
+            child: const Icon(Icons.play_arrow, color: AppColors.primary),
           ),
         ],
       ),
